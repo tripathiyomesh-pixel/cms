@@ -16,6 +16,7 @@ const categoryRoutes    = require('./modules/categories/categories.routes');
 const inventoryRoutes   = require('./modules/inventory/inventory.routes');
 const marketingRoutes   = require('./modules/marketing/marketing.routes');
 const userRoutes        = require('./modules/users/users.routes');
+const pluginRoutes      = require('./modules/plugins/plugins.routes');
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use('/api/categories',  categoryRoutes);
 app.use('/api/inventory',   inventoryRoutes);
 app.use('/api/marketing',   marketingRoutes);
 app.use('/api/users',       userRoutes);
+app.use('/api/plugins',     pluginRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` }));

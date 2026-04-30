@@ -13,6 +13,7 @@ import InventoryPage from './pages/InventoryPage';
 import MarketingPage from './pages/MarketingPage';
 import UsersPage from './pages/UsersPage';
 import SettingsPage from './pages/SettingsPage';
+import PluginsPage from './pages/PluginsPage';
 import { PlaceholderPage } from './pages/PlaceholderPages';
 const MediaPage = () => <PlaceholderPage title="Media library" subtitle="Upload and organize product images — coming next" />;
 const OrdersPage = () => <PlaceholderPage title="Orders" subtitle="Order management — coming next" />;
@@ -57,6 +58,7 @@ export default function App() {
               <Route path="marketing" element={<MarketingPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="plugins" element={<PluginsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 

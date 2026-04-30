@@ -101,3 +101,16 @@ export const usersAPI = {
 };
 
 export default api;
+
+// ─── PLUGINS ──────────────────────────────────────────────────
+export const pluginsAPI = {
+  marketplace:     ()           => api.get('/plugins/marketplace'),
+  active:          ()           => api.get('/plugins/active'),
+  install:         (pluginId)   => api.post(`/plugins/install/${pluginId}`),
+  uninstall:       (pluginId)   => api.post(`/plugins/uninstall/${pluginId}`),
+  toggle:          (pluginId)   => api.put(`/plugins/toggle/${pluginId}`),
+  updateSettings:  (pluginId, s) => api.put(`/plugins/settings/${pluginId}`, s),
+  productFields:   ()           => api.get('/plugins/product-fields'),
+  saveExtension:   (productId, plugin_id, data) => api.post(`/plugins/product/${productId}/extension`, { plugin_id, data }),
+  getExtensions:   (productId)  => api.get(`/plugins/product/${productId}/extensions`),
+};
