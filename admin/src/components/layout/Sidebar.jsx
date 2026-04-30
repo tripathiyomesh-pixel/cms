@@ -2,12 +2,13 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, Layers, FolderTree, Image, Megaphone,
-  ShoppingCart, BarChart3, Users, Settings, Shield, LogOut, Puzzle,
+  ShoppingCart, BarChart3, Users, Settings, Shield, LogOut, Puzzle, Layout,
 } from 'lucide-react';
 
 const NAV = [
   { label: 'Main', items: [
     { to: '/',            icon: LayoutDashboard, text: 'Dashboard' },
+    { to: '/pages',       icon: Layout,          text: 'Page builder' },
     { to: '/products',    icon: Package,         text: 'Products' },
     { to: '/collections', icon: Layers,          text: 'Collections' },
     { to: '/categories',  icon: FolderTree,      text: 'Categories' },

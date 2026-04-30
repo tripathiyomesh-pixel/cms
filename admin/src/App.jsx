@@ -14,9 +14,9 @@ import MarketingPage from './pages/MarketingPage';
 import UsersPage from './pages/UsersPage';
 import SettingsPage from './pages/SettingsPage';
 import PluginsPage from './pages/PluginsPage';
-import { PlaceholderPage } from './pages/PlaceholderPages';
-const MediaPage = () => <PlaceholderPage title="Media library" subtitle="Upload and organize product images — coming next" />;
-const OrdersPage = () => <PlaceholderPage title="Orders" subtitle="Order management — coming next" />;
+import MediaPage from './pages/MediaPage';
+import OrdersPage from './pages/OrdersPage';
+import PageBuilderPage from './pages/PageBuilderPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -53,6 +53,7 @@ export default function App() {
               <Route path="products/:id" element={<ProductFormPage />} />
               <Route path="collections" element={<CollectionsPage />} />
               <Route path="categories" element={<CategoriesPage />} />
+              <Route path="pages" element={<PageBuilderPage />} />
               <Route path="media" element={<MediaPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="marketing" element={<MarketingPage />} />
