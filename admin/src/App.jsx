@@ -7,11 +7,15 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductFormPage from './pages/ProductFormPage';
-import {
-  CollectionsPage, CategoriesPage, MediaPage,
-  InventoryPage, MarketingPage, OrdersPage,
-  UsersPage, SettingsPage,
-} from './pages/PlaceholderPages';
+import CollectionsPage from './pages/CollectionsPage';
+import CategoriesPage from './pages/CategoriesPage';
+import InventoryPage from './pages/InventoryPage';
+import MarketingPage from './pages/MarketingPage';
+import UsersPage from './pages/UsersPage';
+import SettingsPage from './pages/SettingsPage';
+import { PlaceholderPage } from './pages/PlaceholderPages';
+const MediaPage = () => <PlaceholderPage title="Media library" subtitle="Upload and organize product images — coming next" />;
+const OrdersPage = () => <PlaceholderPage title="Orders" subtitle="Order management — coming next" />;
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
