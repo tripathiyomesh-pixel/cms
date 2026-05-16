@@ -20,6 +20,7 @@ const pluginRoutes      = require('./modules/plugins/plugins.routes');
 const menuRoutes        = require('./modules/menus/menus.routes');
 const settingsRoutes    = require('./modules/settings/settings.routes');
 const webhookRoutes     = require('./modules/webhooks/webhooks.routes');
+const jewelleryRoutes = require('./modules/jewellery/jewellery.routes');
 const themeRoutes       = require('./modules/themes/themes.routes');
 
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/plugins',     pluginRoutes);
 app.use('/api/menus',       menuRoutes);
 app.use('/api/settings',    settingsRoutes);
 app.use('/api/webhooks',    webhookRoutes);
+app.use('/api/jewellery', jewelleryRoutes);
 app.use('/api',             themeRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────

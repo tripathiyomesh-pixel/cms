@@ -114,3 +114,31 @@ export const pluginsAPI = {
   saveExtension:   (productId, plugin_id, data) => api.post(`/plugins/product/${productId}/extension`, { plugin_id, data }),
   getExtensions:   (productId)  => api.get(`/plugins/product/${productId}/extensions`),
 };
+
+// ─── Jewellery API ───────────────────────────────────────────
+export const jewelleryAPI = {
+  getSpecs:       (pid)      => API.get(`/jewellery/specs/${pid}`),
+  saveSpecs:      (pid, d)   => API.post(`/jewellery/specs/${pid}`, d),
+  getCerts:       (pid)      => API.get(`/jewellery/certifications/${pid}`),
+  addCert:        (pid, fd)  => API.post(`/jewellery/certifications/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
+  deleteCert:     (id)       => API.delete(`/jewellery/certifications/${id}`),
+  getImages:      (pid)      => API.get(`/jewellery/images/${pid}`),
+  uploadImages:   (pid, fd)  => API.post(`/jewellery/images/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
+  deleteImage:    (id)       => API.delete(`/jewellery/images/${id}`),
+  setImagePrimary:(id)       => API.patch(`/jewellery/images/${id}/primary`),
+  getMetalRates:  ()         => API.get('/jewellery/metal-rates'),
+  saveMetalRate:  (d)        => API.post('/jewellery/metal-rates', d),
+  getEnquiries:   (p)        => API.get('/jewellery/enquiries', {params:p}),
+  updateEnquiry:  (id, d)    => API.patch(`/jewellery/enquiries/${id}`, d),
+  submitEnquiry:  (d)        => API.post('/jewellery/enquiries', d),
+  waLink:         (d)        => API.post('/jewellery/whatsapp-link', d),
+  getBadges:      (lid)      => API.get(`/jewellery/trust-badges?license_id=${lid}`),
+  addBadge:       (d)        => API.post('/jewellery/trust-badges', d),
+  deleteBadge:    (id)       => API.delete(`/jewellery/trust-badges/${id}`),
+  getAppointments:(p)        => API.get('/jewellery/appointments', {params:p}),
+  bookAppointment:(d)        => API.post('/jewellery/appointments', d),
+  updateAppt:     (id, d)    => API.patch(`/jewellery/appointments/${id}`, d),
+  getLocations:   (lid)      => API.get(`/jewellery/locations?license_id=${lid}`),
+  addLocation:    (d)        => API.post('/jewellery/locations', d),
+  deleteLocation: (id)       => API.delete(`/jewellery/locations/${id}`),
+};

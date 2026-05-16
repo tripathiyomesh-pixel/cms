@@ -1,3 +1,5 @@
+import JewellerySpecsForm from './pages/JewellerySpecsForm';
+import EnquiriesPage from './pages/EnquiriesPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -65,7 +67,9 @@ export default function App() {
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+            <Route path="/jewellery-specs/:productId" element={<JewellerySpecsForm />} />
+          <Route path="/enquiries" element={<EnquiriesPage />} />
+        </Routes>
         </BrowserRouter>
         <Toaster
           position="top-right"
