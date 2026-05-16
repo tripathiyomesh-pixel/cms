@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, authorize } = require('../common/guards/auth.guard');
-const upload = require('../config/cloudinary');
+const { authenticate, authorize } = require('../../common/guards/auth.guard');
+const upload = require('../../config/cloudinary');
 const db = require('../../config/db.pool');
-const { successResponse, errorResponse } = require('../common/response');
+const { successResponse, errorResponse } = require('../../common/response');
 
 // ─── GET specs for a product ────────────────────────────────
 router.get('/specs/:productId', authenticate, async (req, res) => {
