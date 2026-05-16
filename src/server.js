@@ -96,7 +96,7 @@ const PORT = process.env.PORT || 4000;
 (async () => {
   try {
     await sequelize.authenticate();
-    logger.info('MySQL connected');
+    logger.info('PostgreSQL connected');
     app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
   } catch (e) {
     logger.error('DB connection failed:', e.message);

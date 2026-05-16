@@ -37,7 +37,7 @@ router.get('/', authenticate, paginationRules, validate, async (req, res) => {
       where,
       include: [
         { model: Category, as: 'category', attributes: ['id', 'name', 'slug'] },
-        { model: Media, as: 'media', where: { is_primary: true }, required: false, attributes: ['file_url', 'thumb_url', 'alt_text'] },
+        { model: Media, as: 'media', where: { is_primary: true }, required: false, attributes: ["file_url","thumb_url","alt_text"], paranoid: false },
       ],
       order: [[sortCol, sortDir]],
       limit: parseInt(limit),
@@ -49,6 +49,7 @@ router.get('/', authenticate, paginationRules, validate, async (req, res) => {
     await cache.set(cacheKey, payload, CACHE_TTL);
     res.json({ success: true, ...payload });
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -64,13 +65,14 @@ router.get('/:id', authenticate, async (req, res) => {
       include: [
         { model: Category, as: 'category', attributes: ['id', 'name', 'slug'] },
         { model: Collection, as: 'collections', attributes: ['id', 'name', 'slug'], through: { attributes: [] } },
-        { model: Media, as: 'media', order: [['sort_order', 'ASC']] },
+        { model: Media, as: 'media', order: [["sort_order","ASC"]], paranoid: false },
       ],
     });
     if (!product) return error(res, 'Product not found', 404);
     await cache.set(cacheKey, product, CACHE_TTL);
     success(res, product);
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -100,6 +102,7 @@ router.post('/', authenticate, authorize(['super_admin', 'admin', 'manager', 'ed
     await cache.delPattern('products:list:*');
     created(res, product, 'Product created successfully');
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -133,6 +136,7 @@ router.put('/:id', authenticate, authorize(['super_admin', 'admin', 'manager', '
     await cache.delPattern('products:*');
     success(res, product, 'Product updated successfully');
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -148,6 +152,7 @@ router.delete('/:id', authenticate, authorize(['super_admin', 'admin']),
     await cache.delPattern('products:*');
     success(res, {}, 'Product deleted');
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -162,6 +167,7 @@ router.put('/:id/price', authenticate, authorize(['super_admin', 'admin', 'manag
     await cache.delPattern('products:*');
     success(res, pricing, 'Price updated');
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -191,6 +197,7 @@ router.put('/:id/stock', authenticate, authorize(['super_admin', 'admin', 'manag
     await cache.delPattern('products:*');
     success(res, { stock_quantity: newQty }, 'Stock updated');
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
@@ -225,6 +232,7 @@ router.post('/:id/media', authenticate, authorize(['super_admin', 'admin', 'mana
     await cache.delPattern('products:*');
     created(res, media, `${media.length} file(s) uploaded`);
   } catch (e) {
+    console.error("Route error:", e.message, e.stack?.split("\n")[1]);
     error(res, e.message);
   }
 });
