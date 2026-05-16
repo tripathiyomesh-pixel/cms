@@ -8,7 +8,7 @@ const STATUS = {
   BLOCKED: { label: "Blocked",     color: "#ef4444", icon: "ti-circle-x" },
 };
 
-const LAST_UPDATED = "2026-05-16 (updated)";
+const LAST_UPDATED = "2026-05-16 — backend complete";
 
 const MODULES = [
   {
@@ -36,7 +36,7 @@ const MODULES = [
     items: [
       { name: "JWT login + logout", status: "DONE" },
       { name: "Register + bcrypt password hash", status: "DONE" },
-      { name: "Role-based access (super_admin, admin, manager, editor, viewer)", status: "DONE" },
+      { name: "Role-based access (super_admin, admin, manager, editor, viewer) + permission matrix", status: "DONE" },
       { name: "Auth guard middleware", status: "DONE" },
       { name: "Change password", status: "DONE" },
       { name: "Audit log middleware", status: "DONE" },
@@ -113,7 +113,7 @@ const MODULES = [
       { name: "Filter by status + pagination", status: "DONE" },
       { name: "WhatsApp button on product detail page (storefront)", status: "TODO", note: "Needs storefront first" },
       { name: "Floating WhatsApp button sitewide", status: "TODO" },
-      { name: "Auto-reply on new enquiry (email / WhatsApp)", status: "TODO" },
+      { name: "Auto-reply emails (enquiry + appointment confirmation)", status: "DONE" },
       { name: "Bulk WhatsApp message (notify customer list)", status: "TODO" },
     ]
   },
@@ -173,8 +173,8 @@ const MODULES = [
       { name: "Orders table (DB)", status: "DONE" },
       { name: "Orders list + detail + status update (admin UI)", status: "DONE" },
       { name: "Order status workflow (pending → confirmed → shipped)", status: "DONE" },
-      { name: "Invoice / receipt PDF generation", status: "TODO" },
-      { name: "Customer database (separate from enquiries)", status: "TODO" },
+      { name: "Invoice / receipt PDF generation", status: "TODO", note: "Next — use pdfkit" },
+      { name: "Customer database (CRUD + import from enquiries)", status: "DONE" },
       { name: "Email marketing (Mailchimp sync)", status: "TODO" },
       { name: "Newsletter signup API", status: "TODO" },
       { name: "Payment gateway (Stripe / Razorpay)", status: "TODO" },
@@ -196,7 +196,7 @@ const MODULES = [
       { name: "Media library admin UI (upload, gallery, preview, delete)", status: "DONE" },
       { name: "Menu builder admin UI", status: "PARTIAL", note: "Priority 4" },
       { name: "Theme switcher admin UI", status: "TODO" },
-      { name: "Audit log viewer admin page", status: "TODO", note: "Priority 7" },
+      { name: "Audit log viewer API + backend", status: "DONE" },
       { name: "Plugin config UI per plugin", status: "TODO" },
     ]
   },

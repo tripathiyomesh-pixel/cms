@@ -1,146 +1,102 @@
-/**
- * Seed: Register available industry plugins
- * Run: node src/database/seeds/seed_plugins.js
- */
-require('dotenv').config();
-const sequelize = require('../../config/database');
-const { DataTypes } = require('sequelize');
-
-const Plugin = sequelize.define('Plugin', {
-  id:             { type: DataTypes.STRING(50), primaryKey: true },
-  name:           DataTypes.STRING(100),
-  description:    DataTypes.TEXT,
-  icon:           DataTypes.STRING(50),
-  color:          DataTypes.STRING(20),
-  version:        DataTypes.STRING(20),
-  category:       DataTypes.STRING(50),
-  author:         DataTypes.STRING(100),
-  is_premium:     DataTypes.BOOLEAN,
-  config_schema:  DataTypes.JSON,
-  product_fields: DataTypes.JSON,
-  validators:     DataTypes.JSON,
-}, { tableName: 'plugins', timestamps: true, updatedAt: false, paranoid: false });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.env') });
+const { Client } = require('pg');
 
 const PLUGINS = [
   {
-    id: 'jewellery',
-    name: 'Jewellery & Diamonds',
-    description: 'Metal type, purity, karat, gemstone details, certifications (GIA/IGI/SGL), making charges, gross/net weight, old gold exchange.',
-    icon: 'Gem',
-    color: 'amber',
-    version: '1.0.0',
-    category: 'industry',
-    author: 'KenTech Global',
-    is_premium: false,
-    config_schema: {
-      default_metal: { type: 'select', options: ['gold','silver','platinum','rose_gold','white_gold'], default: 'gold' },
-      default_purity: { type: 'select', options: ['24K','22K','18K','14K'], default: '18K' },
-      enable_certification: { type: 'boolean', default: true },
-      enable_old_gold: { type: 'boolean', default: false },
-    },
-    product_fields: [
-      { key: 'metal_type',   label: 'Metal type',   type: 'select', options: ['gold','silver','platinum','rose_gold','white_gold','palladium'], required: true, group: 'Metal & weight' },
-      { key: 'purity',       label: 'Purity / Karat', type: 'select', options: ['24K','22K','18K','14K','950','925','other'], required: true, group: 'Metal & weight' },
-      { key: 'gross_weight', label: 'Gross weight (g)', type: 'number', step: 0.001, required: true, group: 'Metal & weight' },
-      { key: 'net_weight',   label: 'Net weight (g)',   type: 'number', step: 0.001, required: false, group: 'Metal & weight' },
-      { key: 'making_charges',    label: 'Making charges',     type: 'number', step: 0.01, group: 'Pricing' },
-      { key: 'making_charge_pct', label: 'Making charge (%)',  type: 'number', step: 0.01, group: 'Pricing' },
-      { key: 'gemstone_type',     label: 'Gemstone type',      type: 'text', group: 'Gemstone' },
-      { key: 'gemstone_carat',    label: 'Carat weight',       type: 'number', step: 0.01, group: 'Gemstone' },
-      { key: 'gemstone_clarity',  label: 'Clarity',  type: 'select', options: ['FL','IF','VVS1','VVS2','VS1','VS2','SI1','SI2','I1','I2','I3'], group: 'Gemstone' },
-      { key: 'gemstone_cut',      label: 'Cut',      type: 'select', options: ['Excellent','Very Good','Good','Fair','Poor'], group: 'Gemstone' },
-      { key: 'gemstone_color',    label: 'Color grade', type: 'text', group: 'Gemstone' },
-      { key: 'certification_body', label: 'Certification', type: 'multiselect', options: ['GIA','IGI','SGL','HRD','AGS'], group: 'Certification' },
-      { key: 'certificate_number', label: 'Certificate #', type: 'text', group: 'Certification' },
-    ],
-    validators: {
-      purity: { in: ['24K','22K','18K','14K','950','925','other'] },
-      gross_weight: { min: 0.001 },
-      gemstone_carat: { min: 0 },
-    },
+    id: 'jewellery', name: 'Jewellery & Diamonds',
+    description: 'Metal type, purity, karat, gemstone details, certifications (GIA/IGI/SGL), making charges, gross/net weight, ring sizes, occasion tags.',
+    icon: 'Gem', color: 'amber', version: '1.2.0', category: 'industry',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { whatsapp_number: { type: 'text', label: 'WhatsApp number', placeholder: '+971 50 000 0000' }, live_gold_rate: { type: 'boolean', label: 'Show live gold rate' } },
+    product_fields: ['metal_type','purity','gross_weight','net_weight','diamond_carat','diamond_cut','diamond_color','diamond_clarity','certifications','making_charges','ring_sizes'],
   },
   {
-    id: 'fashion',
-    name: 'Fashion & Apparel',
-    description: 'Sizes (S/M/L/XL or numeric), color variants with swatches, fabric type, fit, care instructions, season/collection tagging.',
-    icon: 'Shirt',
-    color: 'pink',
-    version: '1.0.0',
-    category: 'industry',
-    author: 'KenTech Global',
-    is_premium: false,
-    config_schema: {
-      size_system: { type: 'select', options: ['letter','numeric','both'], default: 'letter' },
-      enable_color_swatches: { type: 'boolean', default: true },
-      enable_care_labels: { type: 'boolean', default: true },
-    },
-    product_fields: [
-      { key: 'sizes',         label: 'Available sizes',  type: 'multiselect', options: ['XS','S','M','L','XL','XXL','2XL','3XL'], group: 'Sizing' },
-      { key: 'size_chart_url', label: 'Size chart image', type: 'image', group: 'Sizing' },
-      { key: 'colors',        label: 'Color variants',   type: 'color_array', group: 'Colors' },
-      { key: 'fabric',        label: 'Fabric / material', type: 'text', group: 'Material' },
-      { key: 'fabric_blend',  label: 'Blend (%)',        type: 'text', placeholder: '60% Cotton, 40% Polyester', group: 'Material' },
-      { key: 'fit_type',      label: 'Fit',              type: 'select', options: ['Regular','Slim','Relaxed','Oversized','Tailored'], group: 'Fit' },
-      { key: 'length',        label: 'Length',            type: 'select', options: ['Cropped','Regular','Long','Maxi'], group: 'Fit' },
-      { key: 'gender',        label: 'Gender',            type: 'select', options: ['Men','Women','Unisex','Kids','Boys','Girls'], group: 'Classification' },
-      { key: 'season',        label: 'Season',            type: 'multiselect', options: ['Spring','Summer','Autumn','Winter','All Season'], group: 'Classification' },
-      { key: 'care_instructions', label: 'Care instructions', type: 'textarea', group: 'Care' },
-      { key: 'wash_type',     label: 'Wash type',         type: 'select', options: ['Machine wash','Hand wash','Dry clean only','Do not wash'], group: 'Care' },
-    ],
-    validators: {
-      sizes: { minItems: 1, message: 'At least one size required' },
-    },
+    id: 'whatsapp', name: 'WhatsApp Enquiry',
+    description: 'Add WhatsApp enquiry button on product pages. Pre-fills product name, SKU, and price in the message.',
+    icon: 'MessageCircle', color: 'green', version: '1.0.0', category: 'communication',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { whatsapp_number: { type: 'text', label: 'WhatsApp number', required: true }, message_template: { type: 'textarea', label: 'Message template' } },
+    product_fields: [],
   },
   {
-    id: 'realestate',
-    name: 'Real Estate & Property',
-    description: 'Bedrooms, bathrooms, area (sqft/sqm), property type, location/map coordinates, amenities, agent details, floor plans.',
-    icon: 'Building2',
-    color: 'teal',
-    version: '1.0.0',
-    category: 'industry',
-    author: 'KenTech Global',
-    is_premium: false,
-    config_schema: {
-      area_unit: { type: 'select', options: ['sqft','sqm','both'], default: 'sqft' },
-      enable_map: { type: 'boolean', default: true },
-      listing_type: { type: 'select', options: ['sale','rent','both'], default: 'both' },
-    },
-    product_fields: [
-      { key: 'property_type',  label: 'Property type',   type: 'select', options: ['Apartment','Villa','Townhouse','Penthouse','Studio','Office','Plot','Warehouse','Shop'], required: true, group: 'Property' },
-      { key: 'listing_type',   label: 'Listing type',    type: 'select', options: ['For Sale','For Rent','Off-plan'], required: true, group: 'Property' },
-      { key: 'bedrooms',       label: 'Bedrooms',        type: 'number', step: 1, min: 0, group: 'Specifications' },
-      { key: 'bathrooms',      label: 'Bathrooms',       type: 'number', step: 1, min: 0, group: 'Specifications' },
-      { key: 'area_sqft',      label: 'Area (sqft)',      type: 'number', step: 1, group: 'Specifications' },
-      { key: 'area_sqm',       label: 'Area (sqm)',       type: 'number', step: 0.01, group: 'Specifications' },
-      { key: 'floors',         label: 'Floor / Level',    type: 'number', step: 1, group: 'Specifications' },
-      { key: 'parking',        label: 'Parking spaces',   type: 'number', step: 1, group: 'Specifications' },
-      { key: 'furnished',      label: 'Furnished',        type: 'select', options: ['Furnished','Semi-furnished','Unfurnished'], group: 'Specifications' },
-      { key: 'location',       label: 'Location / area',  type: 'text', group: 'Location' },
-      { key: 'city',           label: 'City',             type: 'text', group: 'Location' },
-      { key: 'latitude',       label: 'Latitude',         type: 'number', step: 0.000001, group: 'Location' },
-      { key: 'longitude',      label: 'Longitude',        type: 'number', step: 0.000001, group: 'Location' },
-      { key: 'amenities',      label: 'Amenities',        type: 'multiselect', options: ['Pool','Gym','Parking','Security','Balcony','Garden','Central AC','Elevator','Maid Room','Storage','Beach Access','Concierge'], group: 'Amenities' },
-      { key: 'developer',      label: 'Developer',        type: 'text', group: 'Agent' },
-      { key: 'agent_name',     label: 'Agent name',       type: 'text', group: 'Agent' },
-      { key: 'agent_phone',    label: 'Agent phone',      type: 'text', group: 'Agent' },
-      { key: 'handover_date',  label: 'Handover date',    type: 'date', group: 'Agent' },
-    ],
-    validators: {
-      bedrooms: { min: 0 },
-      bathrooms: { min: 0 },
-      area_sqft: { min: 1 },
-    },
+    id: 'appointments', name: 'Boutique Appointments',
+    description: 'Cartier-style appointment booking for showrooms. 5-step booking flow with time slots, location selection, and booking reference.',
+    icon: 'Calendar', color: 'blue', version: '1.1.0', category: 'commerce',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { max_per_slot: { type: 'number', label: 'Max bookings per slot', default: 2 }, slot_duration: { type: 'number', label: 'Slot duration (minutes)', default: 30 } },
+    product_fields: [],
+  },
+  {
+    id: 'analytics', name: 'Google Analytics 4',
+    description: 'Integrate GA4 tracking on your storefront. Track product views, enquiries, and appointment bookings as events.',
+    icon: 'BarChart', color: 'orange', version: '1.0.0', category: 'marketing',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { measurement_id: { type: 'text', label: 'GA4 Measurement ID', placeholder: 'G-XXXXXXXXXX' } },
+    product_fields: [],
+  },
+  {
+    id: 'meta_pixel', name: 'Meta Pixel',
+    description: 'Add Facebook/Instagram pixel tracking. Track ViewContent, Lead, and Purchase events.',
+    icon: 'Facebook', color: 'blue', version: '1.0.0', category: 'marketing',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { pixel_id: { type: 'text', label: 'Meta Pixel ID', placeholder: '123456789012345' } },
+    product_fields: [],
+  },
+  {
+    id: 'multilingual', name: 'Arabic + Multi-language',
+    description: 'Add Arabic RTL support and multi-language content. Translate product names, descriptions, and page content.',
+    icon: 'Languages', color: 'purple', version: '1.0.0', category: 'localization',
+    author: 'KenTech Global', is_premium: true,
+    config_schema: { default_lang: { type: 'select', label: 'Default language', options: ['en','ar','hi'] }, rtl_support: { type: 'boolean', label: 'Enable RTL (Arabic)' } },
+    product_fields: [],
+  },
+  {
+    id: 'live_gold_rate', name: 'Live Gold Rate Pricing',
+    description: 'Automatically update product prices based on live gold rates. Fetches rates hourly from goldapi.io.',
+    icon: 'TrendingUp', color: 'gold', version: '1.0.0', category: 'pricing',
+    author: 'KenTech Global', is_premium: true,
+    config_schema: { api_key: { type: 'text', label: 'GoldAPI.io API key' }, update_interval: { type: 'number', label: 'Update interval (minutes)', default: 60 } },
+    product_fields: [],
+  },
+  {
+    id: 'fashion', name: 'Fashion & Apparel',
+    description: 'Adds size charts, color variants, fabric details, and season tags for fashion and clothing businesses.',
+    icon: 'Shirt', color: 'pink', version: '1.0.0', category: 'industry',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { size_system: { type: 'select', label: 'Size system', options: ['UK','US','EU','IN'] } },
+    product_fields: ['sizes','colors','fabric','care_instructions','season'],
+  },
+  {
+    id: 'real_estate', name: 'Real Estate & Properties',
+    description: 'Property listings with BHK, area in sqft/sqm, floor plans, amenities, and location map.',
+    icon: 'Building', color: 'teal', version: '1.0.0', category: 'industry',
+    author: 'KenTech Global', is_premium: false,
+    config_schema: { area_unit: { type: 'select', label: 'Area unit', options: ['sqft','sqm'] } },
+    product_fields: ['bedrooms','bathrooms','area','floor','amenities','floor_plan_url'],
   },
 ];
 
-(async () => {
-  await sequelize.authenticate();
+async function seed() {
+  const client = new Client({
+    host: process.env.DB_HOST || 'localhost', port: parseInt(process.env.DB_PORT) || 5432,
+    database: process.env.DB_NAME, user: process.env.DB_USER, password: process.env.DB_PASS,
+  });
+  await client.connect();
+  console.log('🔗 Connected. Seeding plugins...');
+
   for (const p of PLUGINS) {
-    await Plugin.upsert(p);
-    console.log(`  ✅ Plugin registered: ${p.name}`);
+    await client.query(`
+      INSERT INTO plugins (id, name, description, icon, color, version, category, author, is_premium, config_schema, product_fields)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      ON CONFLICT (id) DO UPDATE SET
+        name=EXCLUDED.name, description=EXCLUDED.description, version=EXCLUDED.version,
+        config_schema=EXCLUDED.config_schema, product_fields=EXCLUDED.product_fields
+    `, [p.id, p.name, p.description, p.icon, p.color, p.version, p.category,
+        p.author, p.is_premium, JSON.stringify(p.config_schema), JSON.stringify(p.product_fields)]);
+    console.log(`  ✅ ${p.name}`);
   }
-  console.log('\n✅ All plugins seeded');
-  await sequelize.close();
-  process.exit(0);
-})().catch(e => { console.error(e); process.exit(1); });
+
+  console.log('✅ Plugin seeding complete');
+  await client.end();
+}
+seed().catch(e => { console.error('❌', e.message); process.exit(1); });

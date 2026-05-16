@@ -24,6 +24,7 @@ node src/database/migrations/002_plugins.js
 node src/database/migrations/003_universal.js
 node src/database/migrations/004_jewellery_specs.js
 node src/database/migrations/005_appointments_upgrade.js
+node src/database/migrations/006_customers.js
 
 # Seed master data if exists
 if [ -f "backend/seed_masters.py" ]; then

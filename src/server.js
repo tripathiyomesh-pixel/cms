@@ -21,6 +21,12 @@ const menuRoutes        = require('./modules/menus/menus.routes');
 const settingsRoutes    = require('./modules/settings/settings.routes');
 const webhookRoutes     = require('./modules/webhooks/webhooks.routes');
 const ordersRoutes = require('./modules/orders/orders.routes');
+const dashboardRoutes      = require('./modules/dashboard/dashboard.routes');
+const customerRoutes       = require('./modules/customers/customers.routes');
+const notificationRoutes   = require('./modules/notifications/notifications.routes');
+const storefrontRoutes     = require('./modules/storefront/storefront.routes');
+const auditRoutes          = require('./modules/audit/audit.routes');
+
 const jewelleryRoutes = require('./modules/jewellery/jewellery.routes');
 const appointmentRoutes = require('./modules/jewellery/appointments.routes');
 const themeRoutes       = require('./modules/themes/themes.routes');
@@ -76,6 +82,12 @@ app.use('/api/menus',       menuRoutes);
 app.use('/api/settings',    settingsRoutes);
 app.use('/api/webhooks',    webhookRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/dashboard',      dashboardRoutes);
+app.use('/api/customers',      customerRoutes);
+app.use('/api/notifications',  notificationRoutes);
+app.use('/api/storefront',     storefrontRoutes);
+app.use('/api/audit',          auditRoutes);
+
 app.use('/api/jewellery', jewelleryRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api',             themeRoutes);
