@@ -21,7 +21,7 @@ const Plugin = sequelize.define('Plugin', {
   config_schema:  DataTypes.JSON,
   product_fields: DataTypes.JSON,
   validators:     DataTypes.JSON,
-}, { tableName: 'plugins', timestamps: true, updatedAt: false });
+}, { tableName: 'plugins', timestamps: true, updatedAt: false, paranoid: false });
 
 const InstalledPlugin = sequelize.define('InstalledPlugin', {
   id:           { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -30,14 +30,14 @@ const InstalledPlugin = sequelize.define('InstalledPlugin', {
   is_active:    { type: DataTypes.BOOLEAN, defaultValue: true },
   settings:     { type: DataTypes.JSON, defaultValue: {} },
   installed_at: DataTypes.DATE,
-}, { tableName: 'installed_plugins', createdAt: 'installed_at' });
+}, { tableName: 'installed_plugins', createdAt: 'installed_at', paranoid: false });
 
 const ProductExtension = sequelize.define('ProductExtension', {
   id:         { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   product_id: DataTypes.UUID,
   plugin_id:  DataTypes.STRING(50),
   data:       { type: DataTypes.JSON, defaultValue: {} },
-}, { tableName: 'product_extensions' });
+}, { tableName: 'product_extensions', paranoid: false });
 
 // ─── GET /plugins/marketplace — list all available plugins ──────
 router.get('/marketplace', authenticate, async (req, res) => {

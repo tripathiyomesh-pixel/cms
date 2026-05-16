@@ -12,7 +12,7 @@ const User = sequelize.define('User', {
   permissions: { type: DataTypes.JSON, defaultValue: {} },
   is_active:   { type: DataTypes.BOOLEAN, defaultValue: true },
   last_login:  { type: DataTypes.DATE },
-}, { tableName: 'users', paranoid: true });
+}, { tableName: 'users', paranoid: true, timestamps: true });
 
 // ─── CATEGORY ──────────────────────────────────────────────────────────────
 const Category = sequelize.define('Category', {
@@ -26,7 +26,7 @@ const Category = sequelize.define('Category', {
   is_active:   { type: DataTypes.BOOLEAN, defaultValue: true },
   seo_title:   { type: DataTypes.STRING(200) },
   seo_desc:    { type: DataTypes.TEXT },
-}, { tableName: 'categories', paranoid: true });
+}, { tableName: 'categories', paranoid: true, timestamps: true });
 Category.hasMany(Category, { as: 'children', foreignKey: 'parent_id' });
 Category.belongsTo(Category, { as: 'parent', foreignKey: 'parent_id' });
 
@@ -43,7 +43,7 @@ const Collection = sequelize.define('Collection', {
   sort_order:    { type: DataTypes.INTEGER, defaultValue: 0 },
   seo_title:     { type: DataTypes.STRING(200) },
   seo_desc:      { type: DataTypes.TEXT },
-}, { tableName: 'collections', paranoid: true });
+}, { tableName: 'collections', paranoid: true, timestamps: true });
 
 // ─── PRODUCT ───────────────────────────────────────────────────────────────
 const Product = sequelize.define('Product', {
@@ -80,7 +80,7 @@ const Product = sequelize.define('Product', {
   seo_description:   { type: DataTypes.TEXT },
   created_by:        { type: DataTypes.UUID },
   updated_by:        { type: DataTypes.UUID },
-}, { tableName: 'products', paranoid: true });
+}, { tableName: 'products', paranoid: true, timestamps: true });
 
 // ─── MEDIA ────────────────────────────────────────────────────────────────
 const Media = sequelize.define('Media', {
@@ -96,7 +96,7 @@ const Media = sequelize.define('Media', {
   alt_text:      { type: DataTypes.STRING(300) },
   is_primary:    { type: DataTypes.BOOLEAN, defaultValue: false },
   sort_order:    { type: DataTypes.INTEGER, defaultValue: 0 },
-}, { tableName: 'media', updatedAt: false });
+}, { tableName: 'media', updatedAt: false, paranoid: false });
 
 // ─── INVENTORY LEDGER ─────────────────────────────────────────────────────
 const InventoryLedger = sequelize.define('InventoryLedger', {
