@@ -49,15 +49,6 @@ const PLUGIN_FIELD_GROUPS = {
       },
     ]
   },
-  fashion: {
-    label: '👗 Fashion & Apparel',
-    color: 'border-pink-200 dark:border-pink-800 bg-pink-50/30 dark:bg-pink-900/10',
-    badge: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300',
-    sections: [
-      {
-        title: 'Product details',
-        fields: [
-          { key: 'fabric',   label: 'Fabric / Material', type: 'text', placeholder: 'Cotton, Silk, Linen...' },
           { key: 'season',   label: 'Season',            type: 'select',
             options: ['All season','Spring/Summer','Autumn/Winter','Summer','Winter'].map(v=>({value:v,label:v})) },
           { key: 'gender',   label: 'Gender',            type: 'select',
@@ -76,15 +67,6 @@ const PLUGIN_FIELD_GROUPS = {
       }
     ]
   },
-  real_estate: {
-    label: '🏠 Real Estate',
-    color: 'border-teal-200 dark:border-teal-800 bg-teal-50/30 dark:bg-teal-900/10',
-    badge: 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300',
-    sections: [
-      {
-        title: 'Property details',
-        fields: [
-          { key: 'bedrooms',  label: 'Bedrooms',       type: 'number', placeholder: '3' },
           { key: 'bathrooms', label: 'Bathrooms',      type: 'number', placeholder: '2' },
           { key: 'area',      label: 'Area (sqft)',     type: 'number', placeholder: '1200' },
           { key: 'floor',     label: 'Floor / Level',  type: 'text',   placeholder: '5th floor' },

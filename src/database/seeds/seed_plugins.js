@@ -57,21 +57,9 @@ const PLUGINS = [
     author: 'KenTech Global', is_premium: true,
     config_schema: { api_key: { type: 'text', label: 'GoldAPI.io API key' }, update_interval: { type: 'number', label: 'Update interval (minutes)', default: 60 } },
     product_fields: [],
-  },
-  {
-    id: 'fashion', name: 'Fashion & Apparel',
-    description: 'Adds size charts, color variants, fabric details, and season tags for fashion and clothing businesses.',
-    icon: 'Shirt', color: 'pink', version: '1.0.0', category: 'industry',
-    author: 'KenTech Global', is_premium: false,
-    config_schema: { size_system: { type: 'select', label: 'Size system', options: ['UK','US','EU','IN'] } },
+  }, },
     product_fields: ['sizes','colors','fabric','care_instructions','season'],
-  },
-  {
-    id: 'real_estate', name: 'Real Estate & Properties',
-    description: 'Property listings with BHK, area in sqft/sqm, floor plans, amenities, and location map.',
-    icon: 'Building', color: 'teal', version: '1.0.0', category: 'industry',
-    author: 'KenTech Global', is_premium: false,
-    config_schema: { area_unit: { type: 'select', label: 'Area unit', options: ['sqft','sqm'] } },
+  }, },
     product_fields: ['bedrooms','bathrooms','area','floor','amenities','floor_plan_url'],
   },
 ];
