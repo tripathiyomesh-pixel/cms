@@ -2,382 +2,401 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Topbar from "../components/layout/Topbar";
 
-const LAST_UPDATED = "2026-05-16 — Inventory Engine added";
+const LAST_UPDATED = "2026-05-16";
+const PLATFORM = "Jewellery Commerce OS";
 
-const STATUS = {
-  DONE:    { label: "Done",        color: "#22c55e", icon: "ti-circle-check" },
-  PARTIAL: { label: "In progress", color: "#f59e0b", icon: "ti-clock" },
-  TODO:    { label: "Pending",     color: "#6b7280", icon: "ti-circle-dashed" },
-  BLOCKED: { label: "Blocked",     color: "#ef4444", icon: "ti-circle-x" },
+const S = {
+  DONE:    { label: "Done",     cls: "status-done",    icon: "ti-circle-check" },
+  PARTIAL: { label: "Partial",  cls: "status-partial", icon: "ti-clock"        },
+  TODO:    { label: "Pending",  cls: "status-todo",    icon: "ti-circle-dashed"},
 };
 
 const MODULES = [
-  {
-    id: "infra", name: "Infrastructure & DevOps", icon: "ti-server-2",
-    items: [
-      { name: "Docker Compose — PostgreSQL + Redis + Backend + Admin + pgAdmin", status: "DONE" },
-      { name: "PostgreSQL 16 (same as Vantix ERP)", status: "DONE" },
-      { name: "Redis cache + sessions", status: "DONE" },
-      { name: "GitHub private repo + git workflow", status: "DONE" },
-      { name: "Nodemon hot-reload (backend)", status: "DONE" },
-      { name: "Vite hot-reload (admin panel)", status: "DONE" },
-      { name: "Windows batch files (start.bat, stop.bat)", status: "DONE" },
-      { name: "Nginx + SSL (production)", status: "TODO", note: "Needed before first client goes live" },
-      { name: "PM2 auto-restart production", status: "TODO" },
-      { name: "Automated daily DB backups", status: "TODO" },
-      { name: "CI/CD pipeline + staging environment", status: "TODO" },
-      { name: "Error tracking (Sentry)", status: "TODO" },
-      { name: "Admin 2FA (TOTP)", status: "TODO" },
-    ]
-  },
-  {
-    id: "auth", name: "Authentication & Users", icon: "ti-shield-lock",
-    items: [
-      { name: "JWT login + logout + refresh token", status: "DONE" },
-      { name: "RBAC — super_admin, admin, manager, editor, viewer", status: "DONE" },
-      { name: "Permissions matrix (11 resources × 4 actions)", status: "DONE" },
-      { name: "Audit log (all actions tracked)", status: "DONE" },
-      { name: "Users admin page (invite, edit, deactivate)", status: "DONE" },
-      { name: "Role guide + permissions matrix page", status: "DONE" },
-      { name: "Workshop Manager role (for manufacturing module)", status: "TODO" },
-      { name: "Forgot password / email reset flow", status: "TODO" },
-      { name: "Admin 2FA", status: "TODO" },
-      { name: "Supplier login (B2B future)", status: "TODO" },
-    ]
-  },
-  {
-    id: "inventory", name: "Inventory Engine — Core", icon: "ti-database",
-    items: [
-      { name: "inventory_type column on products (JEWELLERY, NATURAL_DIAMOND, LAB_GROWN, GEMSTONE, PEARL, MOUNTING, CUSTOM_DESIGN, PARCEL)", status: "DONE", note: "Migration 008" },
-      { name: "inventory_mode column (IN_HOUSE, MEMO, SUPPLIER, MADE_TO_ORDER, VIRTUAL)", status: "DONE", note: "Migration 008" },
-      { name: "Feature flags table — module on/off per client", status: "DONE", note: "19 flags seeded" },
-      { name: "Inventory admin page — type-routed product form", status: "TODO", note: "Form shows correct fields based on inventory_type" },
-      { name: "Dynamic attribute engine — admin creates new gemstone types without code", status: "TODO" },
-      { name: "Bulk CSV/XLS import engine (RapNet format + supplier sheets)", status: "TODO" },
-      { name: "Import job tracking (status, errors, matched/skipped)", status: "TODO" },
-    ]
-  },
-  {
-    id: "jewellery", name: "Jewellery Module (Finished pieces)", icon: "ti-diamond",
-    items: [
-      { name: "Jewellery specs — metal, purity, gross/net weight", status: "DONE" },
-      { name: "Making charges (flat + %)", status: "DONE" },
-      { name: "Ring sizes + occasion tags + gender", status: "DONE" },
-      { name: "Jewellery BOM / components table (1 ring = diamond + side stones + gold)", status: "DONE", note: "Migration 008" },
-      { name: "Multi-image gallery with primary image", status: "DONE" },
-      { name: "Product form — jewellery fields section", status: "DONE" },
-      { name: "Jewellery variants (size matrix, metal options)", status: "TODO" },
-      { name: "Custom jewellery flow (inquiry → CAD → approval → production)", status: "TODO" },
-    ]
-  },
-  {
-    id: "diamonds", name: "Diamond Module (Natural + Lab-grown)", icon: "ti-hexagon",
-    items: [
-      { name: "diamond_details table (4Cs, measurements, polish, symmetry, fluorescence, laser inscription)", status: "DONE", note: "Migration 008" },
-      { name: "Natural vs lab-grown flag + CVD/HPHT type", status: "DONE", note: "Migration 008" },
-      { name: "Country of origin field", status: "DONE", note: "Migration 008" },
-      { name: "Rapaport pricing structure (rap_rate, discount %, final_rate)", status: "DONE", note: "Migration 008" },
-      { name: "Diamond hold system (hold_until, hold_by_customer)", status: "DONE", note: "Migration 008" },
-      { name: "Diamond admin form (full grading UI)", status: "TODO", note: "Admin UI for diamond_details" },
-      { name: "Diamond search API (faceted — shape, carat, color, clarity, cut, lab, price)", status: "TODO" },
-      { name: "Diamond comparison (up to 4 side by side)", status: "TODO" },
-      { name: "360 diamond viewer", status: "TODO" },
-      { name: "Rapaport auto-pricing (fetch + apply markup rules)", status: "TODO" },
-      { name: "Supplier inventory sync", status: "TODO" },
-    ]
-  },
-  {
-    id: "gemstones", name: "Gemstone Module (Coloured stones)", icon: "ti-oval",
-    items: [
-      { name: "gemstone_details table (type, species, variety, origin, treatment, saturation, tone)", status: "DONE", note: "Migration 008" },
-      { name: "Cert labs — GRS, SSEF, GIA, Gübelin, Lotus", status: "DONE", note: "Migration 008" },
-      { name: "Gemstone admin form", status: "TODO" },
-      { name: "Gemstone search + filter page", status: "TODO" },
-    ]
-  },
-  {
-    id: "pearls", name: "Pearl Module", icon: "ti-circle",
-    items: [
-      { name: "pearl_details table (type, nacre, lustre, overtone, shape, size, matching grade)", status: "DONE", note: "Migration 008" },
-      { name: "Pearl types — Akoya, South Sea, Tahitian, Freshwater", status: "DONE" },
-      { name: "Pearl admin form", status: "TODO" },
-    ]
-  },
-  {
-    id: "mountings", name: "Mounting Module", icon: "ti-ring",
-    items: [
-      { name: "mounting_details table (type, style, shank, head, prong, compatible shapes/carats, metal options)", status: "DONE", note: "Migration 008" },
-      { name: "CAD file upload per mounting", status: "DONE", note: "Migration 008" },
-      { name: "Mounting admin form", status: "TODO" },
-      { name: "Stone + Mounting builder (customer picks both, price calculated)", status: "TODO" },
-      { name: "Mounting catalogue storefront page", status: "TODO" },
-    ]
-  },
-  {
-    id: "certificates", name: "Certificate Engine", icon: "ti-certificate",
-    items: [
-      { name: "Certificate storage — lab, number, date, PDF upload (Cloudinary)", status: "DONE" },
-      { name: "Certifications admin UI on product", status: "DONE" },
-      { name: "Diamond cert fields (cert_url, primary_cert_no)", status: "DONE", note: "Migration 008" },
-      { name: "Public verification page — /verify/:cert_number", status: "TODO", note: "Critical for trust" },
-      { name: "QR code generation per certificate", status: "TODO" },
-      { name: "GRS, SSEF, Gübelin, Lotus labs for gemstones", status: "DONE", note: "Migration 008" },
-    ]
-  },
-  {
-    id: "suppliers", name: "Supplier & Memo System", icon: "ti-building-store",
-    items: [
-      { name: "Suppliers table (name, contact, terms, currency, discount)", status: "DONE", note: "Migration 008" },
-      { name: "Memo tracking table (memo items, status, due date)", status: "DONE", note: "Migration 008" },
-      { name: "Suppliers admin page (CRUD)", status: "TODO" },
-      { name: "Memo admin page (issue memo, mark returned/sold)", status: "TODO" },
-      { name: "Supplier inventory sync (CSV import)", status: "TODO" },
-    ]
-  },
-  {
-    id: "manufacturing", name: "Manufacturing & Custom Orders", icon: "ti-tools",
-    items: [
-      { name: "custom_orders table (full workflow status)", status: "DONE", note: "Migration 008" },
-      { name: "custom_order_cad table (versions, approval, feedback)", status: "DONE", note: "Migration 008" },
-      { name: "Custom order statuses — INQUIRY → DESIGNING → APPROVAL_PENDING → APPROVED → MANUFACTURING → STONE_SETTING → POLISHING → QC → READY → SHIPPED", status: "DONE", note: "Migration 008" },
-      { name: "Custom orders admin page", status: "TODO" },
-      { name: "CAD file management UI (upload, versions, approve/reject)", status: "TODO" },
-      { name: "Workshop status board", status: "TODO" },
-      { name: "Craftsman assignment", status: "TODO" },
-      { name: "Customer custom order request flow (storefront)", status: "TODO" },
-    ]
-  },
-  {
-    id: "pricing", name: "Pricing Engine", icon: "ti-currency-dollar",
-    items: [
-      { name: "Base price + making charges + discount calculation", status: "DONE" },
-      { name: "Live gold rate table (manual entry)", status: "DONE" },
-      { name: "Price preview (weight × rate + making charges)", status: "DONE" },
-      { name: "Rapaport pricing structure in DB", status: "DONE", note: "Migration 008" },
-      { name: "Auto gold rate fetch cron job", status: "TODO" },
-      { name: "Rapaport live feed integration", status: "TODO" },
-      { name: "Markup rules engine (% above/below rap)", status: "TODO" },
-      { name: "Dynamic pricing per country/currency", status: "TODO" },
-      { name: "B2B pricing tiers", status: "TODO" },
-    ]
-  },
-  {
-    id: "crm", name: "CRM — Enquiries, Appointments, WhatsApp", icon: "ti-messages",
-    items: [
-      { name: "Enquiry CRM (list, detail, status tracking)", status: "DONE" },
-      { name: "WhatsApp quick reply + link generator", status: "DONE" },
-      { name: "Boutique appointment booking (5-step, Cartier-style)", status: "DONE" },
-      { name: "Appointments admin page + today summary", status: "DONE" },
-      { name: "Customer database (CRUD + import from enquiries)", status: "DONE" },
-      { name: "Auto-reply emails (enquiry + appointment confirmation)", status: "DONE" },
-      { name: "Saved diamond searches (customer portal)", status: "TODO" },
-      { name: "Diamond comparison save", status: "TODO" },
-      { name: "Customer login portal", status: "TODO" },
-    ]
-  },
-  {
-    id: "commerce", name: "Commerce Engine", icon: "ti-shopping-cart",
-    items: [
-      { name: "Orders admin (list, detail, status update)", status: "DONE" },
-      { name: "Promo codes (% + fixed, min order, expiry)", status: "DONE" },
-      { name: "Cart (guest + logged in + saved + reserved inventory)", status: "TODO" },
-      { name: "Checkout (address, shipping, payment, VAT)", status: "TODO" },
-      { name: "Payment gateways — Stripe, Checkout.com, Telr, Tabby, Tamara", status: "TODO" },
-      { name: "Shipping — Aramex, DHL, FedEx", status: "TODO" },
-      { name: "Customer account portal (orders, wishlist, certs, custom orders)", status: "TODO" },
-      { name: "B2B wholesale pricing + RFQ", status: "TODO" },
-      { name: "Invoice PDF generation", status: "TODO" },
-    ]
-  },
-  {
-    id: "admin_ui", name: "Admin Panel UI", icon: "ti-layout-dashboard",
-    items: [
-      { name: "Login page (65/35 split, jewellery showcase, remember me)", status: "DONE" },
-      { name: "Dashboard (real KPIs, activity feed, low stock alerts)", status: "DONE" },
-      { name: "Products list (paginated, filtered, 💎 specs button)", status: "DONE" },
-      { name: "Product form (plugin-aware, universal + jewellery fields)", status: "DONE" },
-      { name: "Jewellery specs form (5-tab — metal, certs, images, pricing, details)", status: "DONE" },
-      { name: "Categories + Collections manager", status: "DONE" },
-      { name: "Media library (upload, gallery, preview)", status: "DONE" },
-      { name: "Enquiries CRM page", status: "DONE" },
-      { name: "Appointments admin page", status: "DONE" },
-      { name: "Customers page", status: "DONE" },
-      { name: "Orders page", status: "DONE" },
-      { name: "Inventory page (stock + ledger)", status: "DONE" },
-      { name: "Marketing page (banners + promos)", status: "DONE" },
-      { name: "Store locations page", status: "DONE" },
-      { name: "Trust badges page", status: "DONE" },
-      { name: "Plugin marketplace (install/configure)", status: "DONE" },
-      { name: "Users + Roles + Permissions matrix", status: "DONE" },
-      { name: "Settings page", status: "DONE" },
-      { name: "Audit log viewer", status: "DONE" },
-      { name: "Dev status tracker (this page)", status: "DONE" },
-      { name: "Diamond inventory form (4Cs, measurements, Rap pricing)", status: "TODO" },
-      { name: "Gemstone inventory form", status: "TODO" },
-      { name: "Pearl inventory form", status: "TODO" },
-      { name: "Mounting catalogue form", status: "TODO" },
-      { name: "Suppliers admin page", status: "TODO" },
-      { name: "Memo tracking page", status: "TODO" },
-      { name: "Custom orders admin + CAD workflow", status: "TODO" },
-      { name: "Import engine page (CSV upload + field mapping)", status: "TODO" },
-      { name: "Feature flags admin (enable/disable modules per client)", status: "TODO" },
-      { name: "Certificate management + QR generator", status: "TODO" },
-      { name: "Blog + education content manager", status: "TODO" },
-      { name: "Visual page builder (drag-and-drop)", status: "TODO" },
-    ]
-  },
-  {
-    id: "storefront", name: "Next.js Storefront (Public Website)", icon: "ti-world",
-    items: [
-      { name: "Homepage — hero, collections, diamonds, gemstones, appointment CTA", status: "TODO" },
-      { name: "Jewellery catalogue (filters — metal, purity, occasion, gender, price)", status: "TODO" },
-      { name: "Diamond search (live filters — shape, carat, color, clarity, cut, lab, price)", status: "TODO" },
-      { name: "Gemstone search page", status: "TODO" },
-      { name: "Product detail page (gallery, zoom, 360, cert viewer, WhatsApp button)", status: "TODO" },
-      { name: "Mounting catalogue page", status: "TODO" },
-      { name: "Stone + Mounting builder (pick your stone + setting)", status: "TODO" },
-      { name: "Custom jewellery request flow", status: "TODO" },
-      { name: "Certificate verification — /verify/:cert_number", status: "TODO" },
-      { name: "Cart + Checkout + Payment", status: "TODO" },
-      { name: "Customer account portal", status: "TODO" },
-      { name: "Blog / education hub", status: "TODO" },
-      { name: "About, FAQ, policy pages (from CMS)", status: "TODO" },
-      { name: "Appointment booking (from product page)", status: "TODO" },
-      { name: "WhatsApp floating button + product enquiry", status: "TODO" },
-      { name: "Wishlist (localStorage + account sync)", status: "TODO" },
-      { name: "Diamond comparison page", status: "TODO" },
-      { name: "SEO — SSR, schema.org, sitemap, Open Graph, canonical", status: "TODO" },
-      { name: "Arabic RTL support", status: "TODO" },
-      { name: "Multi-currency display (AED, USD, SAR, INR)", status: "TODO" },
-    ]
-  },
+  { id:"infra", icon:"ti-server-2", name:"Infrastructure", phase:"Core", items:[
+    { n:"Docker Compose — PostgreSQL · Redis · Backend · Admin · pgAdmin", s:"DONE" },
+    { n:"PostgreSQL 16 (shared with Vantix ERP)", s:"DONE" },
+    { n:"Redis cache + sessions", s:"DONE" },
+    { n:"Nodemon hot-reload (backend)", s:"DONE" },
+    { n:"Vite hot-reload (admin panel)", s:"DONE" },
+    { n:"GitHub private repo + batch scripts (start / stop / migrate)", s:"DONE" },
+    { n:"Nginx + SSL — production setup", s:"TODO", note:"Before first client goes live" },
+    { n:"PM2 auto-restart on VPS", s:"TODO" },
+    { n:"Automated daily DB backups", s:"TODO" },
+    { n:"CI/CD pipeline + staging environment", s:"TODO" },
+    { n:"Error tracking — Sentry", s:"TODO" },
+    { n:"Admin 2FA — TOTP", s:"TODO" },
+  ]},
+  { id:"auth", icon:"ti-shield-lock", name:"Auth & Users", phase:"Core", items:[
+    { n:"JWT login + logout", s:"DONE" },
+    { n:"RBAC — 5 roles with hierarchy (super_admin → viewer)", s:"DONE" },
+    { n:"Permissions matrix — 11 resources × 4 actions", s:"DONE" },
+    { n:"Users admin — invite, edit, deactivate", s:"DONE" },
+    { n:"Role guide + permissions matrix page", s:"DONE" },
+    { n:"Audit log — all actions tracked", s:"DONE" },
+    { n:"Forgot password / email reset", s:"TODO" },
+    { n:"Admin 2FA", s:"TODO" },
+    { n:"Workshop Manager role", s:"TODO", note:"For manufacturing module" },
+  ]},
+  { id:"inventory", icon:"ti-database", name:"Inventory Engine", phase:"Core", items:[
+    { n:"inventory_type on products — JEWELLERY, NATURAL_DIAMOND, LAB_GROWN, GEMSTONE, PEARL, MOUNTING, CUSTOM_DESIGN, PARCEL", s:"DONE", note:"Migration 008" },
+    { n:"inventory_mode — IN_HOUSE, MEMO, SUPPLIER, MADE_TO_ORDER, VIRTUAL", s:"DONE", note:"Migration 008" },
+    { n:"Feature flags — 19 module on/off flags per client", s:"DONE", note:"Migration 008" },
+    { n:"Feature flags admin page — enable/disable modules per client", s:"TODO" },
+    { n:"Inventory type-routed product form", s:"TODO", note:"Form shows correct fields per type" },
+    { n:"Dynamic attribute engine — admin creates new stone types without code", s:"TODO" },
+    { n:"Bulk CSV/XLS import engine — RapNet format + supplier sheets", s:"TODO" },
+    { n:"Import job tracking — status, errors, matched/skipped", s:"TODO" },
+  ]},
+  { id:"jewellery", icon:"ti-diamond", name:"Jewellery Module", phase:"Inventory", items:[
+    { n:"Jewellery specs — metal, purity, gross/net weight", s:"DONE" },
+    { n:"Making charges (flat AED + %)", s:"DONE" },
+    { n:"Ring sizes, occasion tags, gender", s:"DONE" },
+    { n:"Multi-image gallery with primary image", s:"DONE" },
+    { n:"Jewellery BOM — component table (1 ring = diamond + side stones + gold)", s:"DONE", note:"Migration 008" },
+    { n:"5-tab jewellery specs form (metal · certs · images · pricing · details)", s:"DONE" },
+    { n:"Jewellery variants — size matrix, metal options", s:"TODO" },
+    { n:"Custom jewellery flow — inquiry → CAD → approval → production", s:"TODO" },
+  ]},
+  { id:"diamonds", icon:"ti-hexagon", name:"Diamond Module", phase:"Inventory", items:[
+    { n:"diamond_details table — 4Cs, measurements, polish, symmetry, fluorescence, laser inscription", s:"DONE", note:"Migration 008" },
+    { n:"Natural vs lab-grown flag + CVD/HPHT type", s:"DONE", note:"Migration 008" },
+    { n:"Rapaport pricing structure — rap_rate, discount %, final_rate", s:"DONE", note:"Migration 008" },
+    { n:"Diamond hold system — hold_until, hold_by_customer", s:"DONE", note:"Migration 008" },
+    { n:"Diamond admin form — full grading UI", s:"TODO" },
+    { n:"Diamond search API — faceted (shape, carat, color, clarity, cut, lab, price)", s:"TODO" },
+    { n:"Diamond comparison — up to 4 side by side", s:"TODO" },
+    { n:"360° diamond viewer", s:"TODO" },
+    { n:"Rapaport auto-pricing — fetch + markup rules", s:"TODO" },
+    { n:"Supplier inventory sync", s:"TODO" },
+  ]},
+  { id:"gemstones", icon:"ti-oval", name:"Gemstone Module", phase:"Inventory", items:[
+    { n:"gemstone_details table — species, variety, origin, treatment, saturation, tone", s:"DONE", note:"Migration 008" },
+    { n:"Colour stone cert labs — GRS, SSEF, GIA, Gübelin, Lotus", s:"DONE", note:"Migration 008" },
+    { n:"Gemstone admin form", s:"TODO" },
+    { n:"Gemstone search + filter page", s:"TODO" },
+  ]},
+  { id:"pearls", icon:"ti-circle", name:"Pearl Module", phase:"Inventory", items:[
+    { n:"pearl_details table — type, nacre, lustre, overtone, shape, size_mm, matching grade", s:"DONE", note:"Migration 008" },
+    { n:"Pearl types — Akoya, South Sea, Tahitian, Freshwater", s:"DONE" },
+    { n:"Pearl admin form", s:"TODO" },
+  ]},
+  { id:"mountings", icon:"ti-ring", name:"Mounting Module", phase:"Inventory", items:[
+    { n:"mounting_details table — type, style, shank, head, prong, CAD file, metal options", s:"DONE", note:"Migration 008" },
+    { n:"Compatible stone shapes + carat ranges", s:"DONE", note:"Migration 008" },
+    { n:"Mounting admin form", s:"TODO" },
+    { n:"Stone + mounting builder — customer picks both", s:"TODO" },
+    { n:"Mounting catalogue storefront page", s:"TODO" },
+  ]},
+  { id:"certs", icon:"ti-certificate", name:"Certificate Engine", phase:"Trust", items:[
+    { n:"Certificate storage — lab, number, date, PDF upload", s:"DONE" },
+    { n:"Certifications UI on product form", s:"DONE" },
+    { n:"Diamond cert URL + primary cert fields", s:"DONE", note:"Migration 008" },
+    { n:"Public verification page — /verify/:cert_number", s:"TODO", note:"Critical for customer trust" },
+    { n:"QR code generation per certificate", s:"TODO" },
+  ]},
+  { id:"suppliers", icon:"ti-building-store", name:"Supplier & Memo", phase:"Operations", items:[
+    { n:"Suppliers table — name, contact, terms, currency, discount", s:"DONE", note:"Migration 008" },
+    { n:"Memo tracking table — items, status, due date", s:"DONE", note:"Migration 008" },
+    { n:"Suppliers admin page", s:"TODO" },
+    { n:"Memo admin page — issue, mark returned/sold", s:"TODO" },
+    { n:"Supplier inventory sync via CSV", s:"TODO" },
+  ]},
+  { id:"manufacturing", icon:"ti-tools", name:"Manufacturing & Custom Orders", phase:"Operations", items:[
+    { n:"custom_orders table — full 10-stage workflow", s:"DONE", note:"Migration 008" },
+    { n:"custom_order_cad table — versions, approval, customer feedback", s:"DONE", note:"Migration 008" },
+    { n:"Workflow: INQUIRY → DESIGNING → APPROVAL_PENDING → APPROVED → MANUFACTURING → STONE_SETTING → POLISHING → QC → READY → SHIPPED", s:"DONE", note:"Migration 008" },
+    { n:"Custom orders admin page", s:"TODO" },
+    { n:"CAD file management — upload, versions, approve/reject", s:"TODO" },
+    { n:"Workshop status board", s:"TODO" },
+    { n:"Craftsman assignment", s:"TODO" },
+    { n:"Customer custom order request flow (storefront)", s:"TODO" },
+  ]},
+  { id:"pricing", icon:"ti-currency-dollar", name:"Pricing Engine", phase:"Commerce", items:[
+    { n:"Base price + making charges + discount calculation", s:"DONE" },
+    { n:"Live gold rate table — manual entry", s:"DONE" },
+    { n:"Price preview — weight × rate + making charges", s:"DONE" },
+    { n:"Rapaport pricing structure in DB", s:"DONE", note:"Migration 008" },
+    { n:"Auto gold rate fetch — cron job", s:"TODO" },
+    { n:"Rapaport live feed integration", s:"TODO" },
+    { n:"Markup rules engine — % above/below Rap", s:"TODO" },
+    { n:"Dynamic pricing per country and currency", s:"TODO" },
+  ]},
+  { id:"crm", icon:"ti-messages", name:"CRM — Enquiries, Appointments, WhatsApp", phase:"Commerce", items:[
+    { n:"Enquiry CRM — list, detail, status tracking", s:"DONE" },
+    { n:"WhatsApp quick reply + link generator", s:"DONE" },
+    { n:"Boutique appointment booking — 5-step Cartier-style flow", s:"DONE" },
+    { n:"Appointments admin + today summary", s:"DONE" },
+    { n:"Customer database — CRUD + import from enquiries", s:"DONE" },
+    { n:"Auto-reply emails — enquiry + appointment confirmation", s:"DONE" },
+    { n:"Saved diamond searches (customer portal)", s:"TODO" },
+    { n:"Customer login portal", s:"TODO" },
+  ]},
+  { id:"commerce", icon:"ti-shopping-cart", name:"Commerce Engine", phase:"Commerce", items:[
+    { n:"Orders admin — list, detail, status update", s:"DONE" },
+    { n:"Promo codes — % + fixed, min order, expiry", s:"DONE" },
+    { n:"Cart — guest + logged in + saved + reserved inventory", s:"TODO" },
+    { n:"Checkout — address, shipping, payment, VAT", s:"TODO" },
+    { n:"Payment gateways — Stripe, Telr, Tabby, Tamara", s:"TODO" },
+    { n:"Shipping — Aramex, DHL, FedEx", s:"TODO" },
+    { n:"Customer account portal", s:"TODO" },
+    { n:"Invoice PDF generation", s:"TODO" },
+  ]},
+  { id:"admin_ui", icon:"ti-layout-dashboard", name:"Admin Panel — UI Pages", phase:"Frontend", items:[
+    { n:"Login page — 65/35 split, jewellery showcase, remember me", s:"DONE" },
+    { n:"Dashboard — real KPIs, activity feed, low stock alerts", s:"DONE" },
+    { n:"Products list — paginated, filtered, 💎 specs button", s:"DONE" },
+    { n:"Product form — inventory type aware, jewellery fields", s:"DONE" },
+    { n:"Jewellery specs form — 5 tabs", s:"DONE" },
+    { n:"Categories + collections manager", s:"DONE" },
+    { n:"Media library — upload, gallery, preview", s:"DONE" },
+    { n:"Enquiries CRM page", s:"DONE" },
+    { n:"Appointments admin page", s:"DONE" },
+    { n:"Customers page", s:"DONE" },
+    { n:"Orders page", s:"DONE" },
+    { n:"Inventory page — stock + ledger", s:"DONE" },
+    { n:"Marketing — banners + promos", s:"DONE" },
+    { n:"Store locations page", s:"DONE" },
+    { n:"Trust badges page", s:"DONE" },
+    { n:"Plugin marketplace — install, configure", s:"DONE" },
+    { n:"Users + roles + permissions matrix", s:"DONE" },
+    { n:"Settings page", s:"DONE" },
+    { n:"Audit log viewer", s:"DONE" },
+    { n:"Diamond inventory form — 4Cs, measurements, Rap pricing", s:"TODO" },
+    { n:"Gemstone inventory form", s:"TODO" },
+    { n:"Pearl inventory form", s:"TODO" },
+    { n:"Mounting catalogue form", s:"TODO" },
+    { n:"Suppliers admin page", s:"TODO" },
+    { n:"Memo tracking page", s:"TODO" },
+    { n:"Custom orders admin + CAD workflow", s:"TODO" },
+    { n:"Import engine — CSV upload + field mapping", s:"TODO" },
+    { n:"Feature flags — enable/disable modules per client", s:"TODO" },
+    { n:"Certificate management + QR generator", s:"TODO" },
+    { n:"Blog + education content manager", s:"TODO" },
+    { n:"Visual page builder — drag and drop", s:"TODO" },
+  ]},
+  { id:"storefront", icon:"ti-world", name:"Next.js Storefront", phase:"Frontend", items:[
+    { n:"Homepage — hero, collections, diamonds, gemstones, appointment CTA", s:"TODO" },
+    { n:"Jewellery catalogue — filters by metal, purity, occasion, gender, price", s:"TODO" },
+    { n:"Diamond search — live filters, shape, carat, color, clarity, cut, lab, price", s:"TODO" },
+    { n:"Gemstone search page", s:"TODO" },
+    { n:"Product detail page — gallery, zoom, 360, cert viewer, WhatsApp button", s:"TODO" },
+    { n:"Mounting catalogue page", s:"TODO" },
+    { n:"Stone + mounting builder", s:"TODO" },
+    { n:"Custom jewellery request flow", s:"TODO" },
+    { n:"Certificate verification — /verify/:cert_number", s:"TODO" },
+    { n:"Cart + checkout + payment", s:"TODO" },
+    { n:"Customer account portal", s:"TODO" },
+    { n:"Blog / education hub", s:"TODO" },
+    { n:"WhatsApp floating button + product enquiry", s:"TODO" },
+    { n:"SEO — SSR, schema.org, sitemap, Open Graph, canonical", s:"TODO" },
+    { n:"Arabic RTL support", s:"TODO" },
+    { n:"Multi-currency — AED, USD, SAR, INR", s:"TODO" },
+  ]},
 ];
 
-function countStatus(items) {
-  const done = items.filter(i => i.status === "DONE").length;
-  const partial = items.filter(i => i.status === "PARTIAL").length;
-  const total = items.length;
-  const pct = Math.round(((done + partial * 0.5) / total) * 100);
-  return { done, partial, total, pct };
-}
+const PHASES = ["Core","Inventory","Trust","Operations","Commerce","Frontend"];
+const PHASE_COLORS = {
+  Core:"#6366f1", Inventory:"#c9a84c", Trust:"#22c55e",
+  Operations:"#f59e0b", Commerce:"#3b82f6", Frontend:"#8b5cf6"
+};
 
-function ProgressBar({ pct, color }) {
-  return (
-    <div style={{ height: 3, background: "var(--color-border-tertiary)", borderRadius: 4, marginTop: 5 }}>
-      <div style={{ height: 3, width: `${pct}%`, background: color, borderRadius: 4, transition: "width .4s" }} />
-    </div>
-  );
+function pct(items) {
+  const d = items.filter(i=>i.s==="DONE").length;
+  const p = items.filter(i=>i.s==="PARTIAL").length;
+  return Math.round(((d + p*0.5)/items.length)*100);
 }
-
-const getColor = (pct) => pct >= 70 ? "#22c55e" : pct >= 30 ? "#f59e0b" : "#6b7280";
 
 export default function DevStatusPage() {
   const { collapsed, toggleSidebar } = useOutletContext();
-  const [expanded, setExpanded] = useState({});
-  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filter, setFilter]     = useState("ALL");
+  const [phase,  setPhase]      = useState("ALL");
+  const [open,   setOpen]       = useState({});
 
-  const allItems = MODULES.flatMap(m => m.items);
-  const totalDone    = allItems.filter(i => i.status === "DONE").length;
-  const totalPartial = allItems.filter(i => i.status === "PARTIAL").length;
-  const totalTodo    = allItems.filter(i => i.status === "TODO").length;
-  const totalAll     = allItems.length;
-  const overallPct   = Math.round(((totalDone + totalPartial * 0.5) / totalAll) * 100);
-  const gold = "#c9a84c";
+  const toggle = id => setOpen(o=>({...o,[id]:o[id]===false?true:false}));
+  const isOpen = id => open[id] !== false;
 
-  const toggle = (id) => setExpanded(e => ({ ...e, [id]: e[id] === false ? true : false }));
-  const isOpen = (id) => expanded[id] !== false;
+  const allItems = MODULES.flatMap(m=>m.items);
+  const done    = allItems.filter(i=>i.s==="DONE").length;
+  const partial = allItems.filter(i=>i.s==="PARTIAL").length;
+  const todo    = allItems.filter(i=>i.s==="TODO").length;
+  const total   = allItems.length;
+  const overall = Math.round(((done+partial*0.5)/total)*100);
 
-  const text    = "var(--color-text-primary)";
-  const muted   = "var(--color-text-secondary)";
-  const cardBg  = "var(--color-background-primary)";
-  const cardBg2 = "var(--color-background-secondary)";
-  const border  = "var(--color-border-tertiary)";
+  const visibleModules = MODULES.filter(m => {
+    if (phase !== "ALL" && m.phase !== phase) return false;
+    if (filter === "ALL") return true;
+    return m.items.some(i=>i.s===filter);
+  });
 
   return (
     <>
-      <Topbar title="Development status" subtitle={`Jewellery Commerce OS · Last updated: ${LAST_UPDATED}`}
+      <Topbar title="Development status" subtitle={`${PLATFORM} · Updated ${LAST_UPDATED}`}
         collapsed={collapsed} onToggle={toggleSidebar} />
 
-      <div className="flex-1 overflow-y-auto" style={{ fontFamily: "Inter, sans-serif", color: text }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 20px 40px" }}>
+      <div className="flex-1 overflow-y-auto">
+        <div style={{maxWidth:860,margin:"0 auto",padding:"20px 20px 48px"}}>
 
-          {/* Overall progress */}
-          <div style={{ background: cardBg, border: `0.5px solid ${border}`, borderRadius: 12, padding: "16px 20px", marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Overall progress</span>
-              <span style={{ fontSize: 24, fontWeight: 700, color: gold }}>{overallPct}%</span>
+          {/* ── OVERALL PROGRESS CARD ── */}
+          <div className="card p-5 mb-5">
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+              <div>
+                <p className="text-xs text-ink-400 uppercase tracking-wide font-medium mb-1">Overall progress</p>
+                <p className="text-sm text-ink-600 dark:text-ink-300">{PLATFORM} · {total} tasks across {MODULES.length} modules</p>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <span style={{fontSize:36,fontWeight:500,color:"#c9a84c",lineHeight:1}}>{overall}%</span>
+                <p className="text-xs text-ink-400 mt-1">complete</p>
+              </div>
             </div>
-            <ProgressBar pct={overallPct} color={gold} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginTop: 14 }}>
+
+            {/* Progress bar */}
+            <div style={{height:6,background:"var(--color-border-tertiary)",borderRadius:6,overflow:"hidden",marginBottom:16}}>
+              <div style={{height:"100%",width:`${overall}%`,background:"#c9a84c",borderRadius:6,transition:"width .5s"}}/>
+            </div>
+
+            {/* Stats */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
               {[
-                { label: "Total tasks", value: totalAll, color: text },
-                { label: "Done", value: totalDone, color: "#22c55e" },
-                { label: "In progress", value: totalPartial, color: "#f59e0b" },
-                { label: "Pending", value: totalTodo, color: muted },
-              ].map(s => (
-                <div key={s.label} style={{ background: cardBg2, borderRadius: 8, padding: "10px 14px" }}>
-                  <div style={{ fontSize: 20, fontWeight: 600, color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: 11, color: muted, marginTop: 2 }}>{s.label}</div>
+                {label:"Total tasks", val:total,   color:"var(--color-text-primary)"},
+                {label:"Done",        val:done,    color:"#22c55e"},
+                {label:"In progress", val:partial, color:"#f59e0b"},
+                {label:"Pending",     val:todo,    color:"var(--color-text-secondary)"},
+              ].map(s=>(
+                <div key={s.label} style={{background:"var(--color-background-secondary)",borderRadius:"var(--border-radius-md)",padding:"12px 14px"}}>
+                  <div style={{fontSize:24,fontWeight:500,color:s.color}}>{s.val}</div>
+                  <div style={{fontSize:11,color:"var(--color-text-secondary)",marginTop:2}}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Filter */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-            {["ALL", "DONE", "PARTIAL", "TODO"].map(f => (
-              <button key={f} onClick={() => setFilterStatus(f)}
-                style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, cursor: "pointer",
-                  fontWeight: filterStatus === f ? 600 : 400, border: `0.5px solid ${filterStatus === f ? gold : border}`,
-                  background: filterStatus === f ? gold : "transparent",
-                  color: filterStatus === f ? "#000" : muted }}>
-                {f === "ALL" ? "All" : STATUS[f].label}
-              </button>
-            ))}
+          {/* ── PHASE PROGRESS MINI BARS ── */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:20}}>
+            {PHASES.map(ph=>{
+              const mods = MODULES.filter(m=>m.phase===ph);
+              const items = mods.flatMap(m=>m.items);
+              if(!items.length) return null;
+              const p = pct(items);
+              const col = PHASE_COLORS[ph];
+              return (
+                <button key={ph} onClick={()=>setPhase(phase===ph?"ALL":ph)}
+                  style={{background:phase===ph?"var(--color-background-primary)":"var(--color-background-secondary)",
+                    border:`0.5px solid ${phase===ph?col:"var(--color-border-tertiary)"}`,
+                    borderRadius:"var(--border-radius-md)",padding:"10px 12px",cursor:"pointer",textAlign:"left"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                    <span style={{fontSize:12,fontWeight:500,color:"var(--color-text-primary)"}}>{ph}</span>
+                    <span style={{fontSize:12,fontWeight:500,color:col}}>{p}%</span>
+                  </div>
+                  <div style={{height:3,background:"var(--color-border-tertiary)",borderRadius:3}}>
+                    <div style={{height:"100%",width:`${p}%`,background:col,borderRadius:3,transition:"width .4s"}}/>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Modules */}
-          {MODULES.map(mod => {
-            const stats = countStatus(mod.items);
-            const filteredItems = filterStatus === "ALL" ? mod.items : mod.items.filter(i => i.status === filterStatus);
-            if (filterStatus !== "ALL" && filteredItems.length === 0) return null;
-            const moduleColor = getColor(stats.pct);
-            const open = isOpen(mod.id);
+          {/* ── FILTERS ── */}
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+            <span style={{fontSize:11,color:"var(--color-text-secondary)",marginRight:4}}>Status</span>
+            {["ALL","DONE","PARTIAL","TODO"].map(f=>(
+              <button key={f} onClick={()=>setFilter(f)}
+                style={{padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:filter===f?500:400,cursor:"pointer",
+                  background:filter===f?"var(--color-text-primary)":"transparent",
+                  color:filter===f?"var(--color-background-primary)":"var(--color-text-secondary)",
+                  border:"0.5px solid var(--color-border-secondary)"}}>
+                {f==="ALL"?"All":S[f].label}
+              </button>
+            ))}
+            {(filter!=="ALL"||phase!=="ALL") && (
+              <button onClick={()=>{setFilter("ALL");setPhase("ALL");}}
+                style={{padding:"4px 10px",borderRadius:20,fontSize:11,cursor:"pointer",color:"var(--color-text-danger)",
+                  border:"0.5px solid var(--color-border-danger)",background:"transparent",marginLeft:"auto"}}>
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {/* ── MODULE CARDS ── */}
+          {visibleModules.map(mod=>{
+            const filtItems = filter==="ALL" ? mod.items : mod.items.filter(i=>i.s===filter);
+            if(!filtItems.length && filter!=="ALL") return null;
+            const p = pct(mod.items);
+            const phCol = PHASE_COLORS[mod.phase] || "#888";
+            const expanded = isOpen(mod.id);
+            const doneCount = mod.items.filter(i=>i.s==="DONE").length;
 
             return (
-              <div key={mod.id} style={{ background: cardBg, border: `0.5px solid ${border}`, borderRadius: 12, marginBottom: 8, overflow: "hidden" }}>
-                <div onClick={() => toggle(mod.id)}
-                  style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-                  <i className={`ti ${mod.icon}`} style={{ fontSize: 16, color: gold, flexShrink: 0 }} aria-hidden="true" />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{mod.name}</span>
-                      <span style={{ fontSize: 11, color: muted }}>{stats.done}/{stats.total}</span>
-                    </div>
-                    <ProgressBar pct={stats.pct} color={moduleColor} />
+              <div key={mod.id} className="card mb-3" style={{overflow:"hidden"}}>
+                {/* Module header */}
+                <div onClick={()=>toggle(mod.id)}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",cursor:"pointer",
+                    borderBottom:expanded?"0.5px solid var(--color-border-tertiary)":"none"}}>
+
+                  {/* Icon */}
+                  <div style={{width:36,height:36,borderRadius:"var(--border-radius-md)",
+                    background:`${phCol}15`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <i className={`ti ${mod.icon}`} style={{fontSize:16,color:phCol}} aria-hidden="true"/>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: moduleColor }}>{stats.pct}%</span>
-                    <i className={`ti ti-chevron-${open ? "up" : "down"}`} style={{ fontSize: 13, color: muted }} aria-hidden="true" />
+
+                  {/* Name + progress */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                      <span style={{fontSize:13,fontWeight:500,color:"var(--color-text-primary)"}}>{mod.name}</span>
+                      <span style={{fontSize:10,padding:"1px 7px",borderRadius:20,fontWeight:500,
+                        background:`${phCol}15`,color:phCol}}>{mod.phase}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{flex:1,height:3,background:"var(--color-border-tertiary)",borderRadius:3}}>
+                        <div style={{height:"100%",width:`${p}%`,background:p===100?"#22c55e":p>30?"#c9a84c":"var(--color-border-secondary)",
+                          borderRadius:3,transition:"width .4s"}}/>
+                      </div>
+                      <span style={{fontSize:11,color:"var(--color-text-secondary)",whiteSpace:"nowrap"}}>
+                        {doneCount}/{mod.items.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Percentage + chevron */}
+                  <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+                    <span style={{fontSize:14,fontWeight:500,
+                      color:p===100?"#22c55e":p>30?"#c9a84c":"var(--color-text-secondary)"}}>{p}%</span>
+                    <i className={`ti ti-chevron-${expanded?"up":"down"}`}
+                      style={{fontSize:14,color:"var(--color-text-secondary)"}} aria-hidden="true"/>
                   </div>
                 </div>
 
-                {open && (
-                  <div style={{ borderTop: `0.5px solid ${border}`, padding: "8px 16px 12px" }}>
-                    {filteredItems.map((item, idx) => {
-                      const s = STATUS[item.status];
+                {/* Items list */}
+                {expanded && (
+                  <div style={{padding:"4px 0 8px"}}>
+                    {filtItems.map((item,idx)=>{
+                      const st = S[item.s];
                       return (
-                        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0",
-                          borderBottom: idx < filteredItems.length - 1 ? `0.5px solid var(--color-background-secondary)` : "none" }}>
-                          <i className={`ti ${s.icon}`} style={{ fontSize: 14, color: s.color, flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 12, color: item.status === "DONE" ? muted : text,
-                              textDecoration: item.status === "DONE" ? "line-through" : "none" }}>{item.name}</div>
-                            {item.note && <div style={{ fontSize: 10, color: muted, marginTop: 1 }}>{item.note}</div>}
+                        <div key={idx}
+                          style={{display:"flex",alignItems:"flex-start",gap:10,padding:"7px 16px",
+                            background:idx%2===0?"transparent":"var(--color-background-secondary)"}}>
+                          <i className={`ti ${st.icon}`}
+                            style={{fontSize:14,flexShrink:0,marginTop:2,
+                              color:item.s==="DONE"?"#22c55e":item.s==="PARTIAL"?"#f59e0b":"var(--color-border-secondary)"}}
+                            aria-hidden="true"/>
+                          <div style={{flex:1,minWidth:0}}>
+                            <span style={{fontSize:12,
+                              color:item.s==="DONE"?"var(--color-text-secondary)":"var(--color-text-primary)",
+                              textDecoration:item.s==="DONE"?"line-through":"none"}}>
+                              {item.n}
+                            </span>
+                            {item.note && (
+                              <span style={{fontSize:10,color:"var(--color-text-secondary)",marginLeft:6,
+                                background:"var(--color-background-secondary)",padding:"1px 6px",
+                                borderRadius:4,display:"inline-block",marginTop:2}}>
+                                {item.note}
+                              </span>
+                            )}
                           </div>
-                          <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20,
-                            background: s.color + "22", color: s.color, fontWeight: 600,
-                            flexShrink: 0, whiteSpace: "nowrap" }}>{s.label}</span>
+                          <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,flexShrink:0,fontWeight:500,whiteSpace:"nowrap",
+                            background:item.s==="DONE"?"#dcfce7":item.s==="PARTIAL"?"#fef9c3":"var(--color-background-secondary)",
+                            color:item.s==="DONE"?"#15803d":item.s==="PARTIAL"?"#a16207":"var(--color-text-secondary)"}}>
+                            {st.label}
+                          </span>
                         </div>
                       );
                     })}
@@ -387,9 +406,9 @@ export default function DevStatusPage() {
             );
           })}
 
-          <div style={{ textAlign: "center", padding: "16px 0 4px", fontSize: 11, color: muted }}>
-            Jewellery Commerce OS · Built by KenTech Global · {LAST_UPDATED}
-          </div>
+          <p style={{fontSize:11,color:"var(--color-text-secondary)",textAlign:"center",marginTop:8}}>
+            {PLATFORM} · KenTech Global · {LAST_UPDATED}
+          </p>
         </div>
       </div>
     </>
