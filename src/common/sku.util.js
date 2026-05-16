@@ -10,13 +10,15 @@ const { Product } = require('../database/models');
 const METAL_CODES = {
   gold: 'GD', silver: 'SV', platinum: 'PT',
   rose_gold: 'RG', white_gold: 'WG', palladium: 'PD',
+  generic: 'PR',  // generic product (non-jewellery)
 };
 
 const generateSKU = async (metalType, purity) => {
-  const metalCode = METAL_CODES[metalType] || 'XX';
-  const purCode   = purity.replace('K', '').replace('0', '');
+  const metalCode = METAL_CODES[metalType] || 'PR';
+  const purCode   = purity && purity !== 'NA' ? purity.replace('K', '').replace('0', '') : '';
   const rand      = uuid().split('-')[0].toUpperCase().slice(0, 4);
-  const sku       = `JM-${metalCode}${purCode}-${rand}`;
+  const prefix    = metalType === 'generic' ? 'PRD' : 'JM';
+  const sku       = purCode ? `${prefix}-${metalCode}${purCode}-${rand}` : `${prefix}-${metalCode}-${rand}`;
 
   // Ensure uniqueness
   const exists = await Product.findOne({ where: { sku }, paranoid: false });

@@ -13,3 +13,4 @@ echo.
 echo All migrations complete!
 pause
 docker compose exec backend node src/database/migrations/006_customers.js
+docker compose exec backend node src/database/migrations/007_relax_product_columns.js

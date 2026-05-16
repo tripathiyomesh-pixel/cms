@@ -84,12 +84,16 @@ router.post('/', authenticate, authorize(['super_admin', 'admin', 'manager', 'ed
     const data = req.body;
 
     // Auto SKU + slug
-    data.sku  = data.sku  || await generateSKU(data.metal_type, data.purity);
+    // Auto SKU — works with or without jewellery plugin
+    data.sku  = data.sku  || await generateSKU(data.metal_type || 'generic', data.purity || 'NA');
     data.slug = data.slug || await generateSlug(data.name);
 
-    // Calculate price
+    // Calculate price (works for all industries)
     const pricing = calculateFinalPrice(data);
     Object.assign(data, pricing);
+
+    // Ensure final_price has a value
+    if (!data.final_price && data.final_price !== 0) data.final_price = 0;
     data.created_by = req.user.id;
 
     const product = await Product.create(data);

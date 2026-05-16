@@ -15,3 +15,4 @@ docker compose exec backend node src/database/migrations/005_appointments_upgrad
 echo ""
 echo "✅ All migrations complete!"
 docker compose exec backend node src/database/migrations/006_customers.js
+docker compose exec backend node src/database/migrations/007_relax_product_columns.js
