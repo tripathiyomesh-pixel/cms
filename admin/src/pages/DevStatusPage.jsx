@@ -393,6 +393,7 @@ export default function DevStatusPage() {
           Jewellery CMS · Built by KenTech Global · {LAST_UPDATED}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
