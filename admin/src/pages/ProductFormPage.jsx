@@ -38,8 +38,8 @@ const PLUGIN_FIELD_GROUPS = {
       {
         title: 'Pricing extras',
         fields: [
-          { key: 'making_charges',    label: 'Making charges (flat)',type: 'number', step: '0.01', placeholder: '500.00' },
-          { key: 'making_charge_pct', label: 'Making charges (%)',   type: 'number', step: '0.1',  placeholder: '12.5' },
+          { key: 'making_charges',    label: 'Making charges (flat)', type: 'number', step: '0.01', placeholder: '500.00' },
+          { key: 'making_charge_pct', label: 'Making charges (%)',    type: 'number', step: '0.1',  placeholder: '12.5' },
         ]
       },
       {
@@ -47,35 +47,6 @@ const PLUGIN_FIELD_GROUPS = {
         type: 'certifications',
         options: ['GIA','IGI','SGL','HRD','AGS'],
       },
-    ]
-  },
-          { key: 'season',   label: 'Season',            type: 'select',
-            options: ['All season','Spring/Summer','Autumn/Winter','Summer','Winter'].map(v=>({value:v,label:v})) },
-          { key: 'gender',   label: 'Gender',            type: 'select',
-            options: ['Women','Men','Unisex','Kids'].map(v=>({value:v,label:v})) },
-          { key: 'care',     label: 'Care instructions', type: 'text', placeholder: 'Machine wash 30°, do not tumble dry' },
-        ]
-      },
-      {
-        title: 'Sizes available',
-        type: 'size_tags',
-        presets: ['XS','S','M','L','XL','XXL','6','8','10','12','14','16'],
-      },
-      {
-        title: 'Colours available',
-        type: 'color_tags',
-      }
-    ]
-  },
-          { key: 'bathrooms', label: 'Bathrooms',      type: 'number', placeholder: '2' },
-          { key: 'area',      label: 'Area (sqft)',     type: 'number', placeholder: '1200' },
-          { key: 'floor',     label: 'Floor / Level',  type: 'text',   placeholder: '5th floor' },
-          { key: 'property_type', label: 'Property type', type: 'select',
-            options: ['Apartment','Villa','Townhouse','Studio','Office','Shop','Warehouse'].map(v=>({value:v,label:v})) },
-          { key: 'furnishing', label: 'Furnishing', type: 'select',
-            options: ['Furnished','Semi-furnished','Unfurnished'].map(v=>({value:v,label:v})) },
-        ]
-      }
     ]
   },
 };
