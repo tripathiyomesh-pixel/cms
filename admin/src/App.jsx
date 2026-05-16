@@ -1,3 +1,5 @@
+import AppointmentsAdminPage from './pages/AppointmentsAdminPage';
+import AppointmentBookingModal from './pages/AppointmentBookingModal';
 import JewellerySpecsForm from './pages/JewellerySpecsForm';
 import EnquiriesPage from './pages/EnquiriesPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -69,6 +71,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/jewellery-specs/:productId" element={<JewellerySpecsForm />} />
           <Route path="/enquiries" element={<EnquiriesPage />} />
+          <Route path="/appointments" element={<AppointmentsAdminPage />} />
         </Routes>
         </BrowserRouter>
         <Toaster

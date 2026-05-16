@@ -75,3 +75,37 @@ cd admin && npm run dev -- --host 0.0.0.0
 - [ ] Media library (admin UI)
 - [ ] Page builder (admin UI)
 - [ ] Storefront (Next.js Phase 2)
+
+---
+
+## Session 2 additions (2026-05-16) — Cartier-style boutique appointments
+
+### New files
+- `src/modules/jewellery/appointments.routes.js` — dedicated appointment API
+- `src/database/migrations/005_appointments_upgrade.js` — upgraded schema
+- `admin/src/pages/AppointmentBookingModal.jsx` — 5-step booking modal (Cartier-style)
+- `admin/src/pages/AppointmentsAdminPage.jsx` — admin CRM for appointments
+
+### Booking modal steps
+1. Purpose selector (Product discovery, Engagement ring, Bridal, Gifting, Resize/repair, Valuation)
+2. Boutique / location picker
+3. Date picker + available time slots (real-time from API, respects max bookings per slot)
+4. Customer details (name, phone, email, party size, special requests)
+5. Summary + confirm
+6. Confirmation screen with booking ref + WhatsApp confirm button
+
+### Admin appointments page
+- Today's stats (total, confirmed, pending)
+- Upcoming confirmed strip
+- Filter by status + date
+- Detail panel with WhatsApp confirm link
+- One-click status update
+
+### VM commands
+```bash
+cd /var/www/cms
+git pull origin main
+node src/database/migrations/005_appointments_upgrade.js
+pm2 restart jewellery-cms
+cd admin && npm run dev -- --host 0.0.0.0
+```

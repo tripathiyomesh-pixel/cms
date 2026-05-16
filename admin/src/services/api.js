@@ -142,3 +142,22 @@ export const jewelleryAPI = {
   addLocation:    (d)        => API.post('/jewellery/locations', d),
   deleteLocation: (id)       => API.delete(`/jewellery/locations/${id}`),
 };
+
+// ─── Appointments extended API ───────────────────────────────
+export const appointmentsAPI = {
+  getSlots:      (p)       => API.get('/appointments/slots', {params:p}),
+  book:          (d)       => API.post('/appointments', d),
+  getByRef:      (ref)     => API.get(`/appointments/ref/${ref}`),
+  list:          (p)       => API.get('/appointments', {params:p}),
+  update:        (id,d)    => API.patch(`/appointments/${id}`, d),
+  summary:       ()        => API.get('/appointments/summary/today'),
+};
+// Patch jewelleryAPI with slots + summary (also on appointmentsAPI above)
+// Use appointmentsAPI for new code; these aliases kept for backward compat
+if(typeof jewelleryAPI !== 'undefined'){
+  jewelleryAPI.getSlots = (p) => API.get('/appointments/slots',{params:p});
+  jewelleryAPI.bookAppointment = (d) => API.post('/appointments',d);
+  jewelleryAPI.getAppointments = (p) => API.get('/appointments',{params:p});
+  jewelleryAPI.updateAppt = (id,d) => API.patch(`/appointments/${id}`,d);
+  jewelleryAPI.getAppointmentSummary = () => API.get('/appointments/summary/today');
+}
