@@ -1,3 +1,4 @@
+import DevStatusPage from './pages/DevStatusPage';
 import AppointmentsAdminPage from './pages/AppointmentsAdminPage';
 import AppointmentBookingModal from './pages/AppointmentBookingModal';
 import JewellerySpecsForm from './pages/JewellerySpecsForm';
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="users" element={<UsersPage />} />
               <Route path="plugins" element={<PluginsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="dev-status" element={<DevStatusPage />} />
             </Route>
 
             {/* Fallback */}
