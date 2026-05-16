@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
+import Topbar from "../components/layout/Topbar";
 import { useTheme } from "../context/ThemeContext";
 
 const STATUS = {
@@ -8,7 +10,7 @@ const STATUS = {
   BLOCKED: { label: "Blocked",     color: "#ef4444", icon: "ti-circle-x" },
 };
 
-const LAST_UPDATED = "2026-05-16 — backend + admin UI complete";
+const LAST_UPDATED = "2026-05-16 — dev status, users RBAC, plugins operational";
 
 const MODULES = [
   {
@@ -36,7 +38,7 @@ const MODULES = [
     items: [
       { name: "JWT login + logout", status: "DONE" },
       { name: "Register + bcrypt password hash", status: "DONE" },
-      { name: "Role-based access (super_admin, admin, manager, editor, viewer) + permission matrix", status: "DONE" },
+      { name: "Role-based access + permissions matrix page (role guide + resource matrix)", status: "DONE" },
       { name: "Auth guard middleware", status: "DONE" },
       { name: "Change password", status: "DONE" },
       { name: "Audit log middleware", status: "DONE" },
@@ -190,14 +192,14 @@ const MODULES = [
       { name: "Themes system (backend)", status: "DONE" },
       { name: "Content pages DB (buying guide, FAQ, about)", status: "DONE" },
       { name: "Webhooks CRUD + event delivery", status: "DONE" },
-      { name: "Plugin registry + marketplace", status: "DONE" },
+      { name: "Plugin marketplace (install/uninstall/activate/configure — fully operational)", status: "DONE" },
       { name: "Audit log (DB)", status: "DONE" },
       { name: "Page builder admin UI", status: "PARTIAL", note: "Page exists, drag-and-drop incomplete" },
       { name: "Media library admin UI (upload, gallery, preview, delete)", status: "DONE" },
       { name: "Menu builder admin UI", status: "PARTIAL", note: "Priority 4" },
       { name: "Theme switcher admin UI", status: "TODO" },
       { name: "Audit log viewer (backend + admin UI + diff view)", status: "DONE" },
-      { name: "Plugin config UI per plugin", status: "TODO" },
+      { name: "Plugin config UI per plugin", status: "DONE", note: "Settings modal per plugin" },
     ]
   },
   {
@@ -258,6 +260,7 @@ function ProgressBar({ pct, color }) {
 
 export default function DevStatusPage() {
   const { dark } = useTheme();
+  const { collapsed, toggleSidebar } = useOutletContext();
   const [expanded, setExpanded] = useState({});
   const [filterStatus, setFilterStatus] = useState("ALL");
 
@@ -279,8 +282,11 @@ export default function DevStatusPage() {
 
   const getColor = (pct) => pct >= 80 ? "#22c55e" : pct >= 40 ? "#f59e0b" : "#6b7280";
 
+  // AppLayout provides the scroll container — just use its pattern
   return (
-    <div style={{ background: bg, minHeight: "100vh", color: text, fontFamily: "Inter, sans-serif" }}>
+    <>
+      <Topbar title="Dev status" subtitle={`Last updated: ${LAST_UPDATED}`} collapsed={collapsed} onToggle={toggleSidebar} />
+      <div className="flex-1 overflow-y-auto" style={{ background: bg, color: text, fontFamily: "Inter, sans-serif" }}>
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }}>
 
         {/* Header */}
