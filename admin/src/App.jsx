@@ -1,3 +1,5 @@
+import CustomersPage from './pages/CustomersPage';
+import AuditLogPage from './pages/AuditLogPage';
 import StoreLocationsPage from './pages/StoreLocationsPage';
 import TrustBadgesPage from './pages/TrustBadgesPage';
 import DevStatusPage from './pages/DevStatusPage';
@@ -71,6 +73,8 @@ export default function App() {
               <Route path="dev-status" element={<DevStatusPage />} />
               <Route path="locations" element={<StoreLocationsPage />} />
               <Route path="trust-badges" element={<TrustBadgesPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="audit-log" element={<AuditLogPage />} />
             </Route>
 
             {/* Fallback */}

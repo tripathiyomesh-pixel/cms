@@ -161,3 +161,58 @@ if(typeof jewelleryAPI !== 'undefined'){
   jewelleryAPI.updateAppt = (id,d) => API.patch(`/appointments/${id}`,d);
   jewelleryAPI.getAppointmentSummary = () => API.get('/appointments/summary/today');
 }
+
+// ─── DASHBOARD ────────────────────────────────────────────────
+export const dashboardAPI = {
+  stats:          () => api.get('/dashboard/stats'),
+  recentActivity: () => api.get('/dashboard/recent-activity'),
+  salesChart:     () => api.get('/dashboard/sales-chart'),
+  lowStock:       () => api.get('/dashboard/low-stock'),
+};
+
+// ─── CUSTOMERS ────────────────────────────────────────────────
+export const customersAPI = {
+  list:              (p)    => api.get('/customers', { params: p }),
+  get:               (id)   => api.get(`/customers/${id}`),
+  create:            (d)    => api.post('/customers', d),
+  update:            (id,d) => api.put(`/customers/${id}`, d),
+  delete:            (id)   => api.delete(`/customers/${id}`),
+  importFromEnquiries: ()   => api.post('/customers/import-from-enquiries'),
+};
+
+// ─── ORDERS ───────────────────────────────────────────────────
+export const ordersAPI = {
+  list:         (p)    => api.get('/orders', { params: p }),
+  get:          (id)   => api.get(`/orders/${id}`),
+  create:       (d)    => api.post('/orders', d),
+  updateStatus: (id,d) => api.patch(`/orders/${id}/status`, d),
+  stats:        ()     => api.get('/orders/stats/summary'),
+};
+
+// ─── AUDIT ────────────────────────────────────────────────────
+export const auditAPI = {
+  list: (p) => api.get('/audit', { params: p }),
+};
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────
+export const notificationsAPI = {
+  sendEmail:              (d) => api.post('/notifications/email', d),
+  enquiryReply:           (d) => api.post('/notifications/enquiry-reply', d),
+  appointmentConfirmation:(d) => api.post('/notifications/appointment-confirmation', d),
+  testEmail:              ()  => api.post('/notifications/test-email'),
+};
+
+// ─── STOREFRONT (public) ──────────────────────────────────────
+export const storefrontAPI = {
+  store:       ()       => api.get('/storefront/store'),
+  products:    (p)      => api.get('/storefront/products', { params: p }),
+  product:     (slug)   => api.get(`/storefront/products/${slug}`),
+  categories:  ()       => api.get('/storefront/categories'),
+  collections: ()       => api.get('/storefront/collections'),
+  collection:  (slug)   => api.get(`/storefront/collections/${slug}`),
+  banners:     (pos)    => api.get('/storefront/banners', { params: { position: pos } }),
+  menu:        (loc)    => api.get(`/storefront/menus/${loc}`),
+  pages:       (lang)   => api.get('/storefront/pages', { params: { lang } }),
+  page:        (slug)   => api.get(`/storefront/pages/${slug}`),
+  metalRates:  ()       => api.get('/storefront/metal-rates'),
+};

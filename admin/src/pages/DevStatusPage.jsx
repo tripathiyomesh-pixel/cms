@@ -8,7 +8,7 @@ const STATUS = {
   BLOCKED: { label: "Blocked",     color: "#ef4444", icon: "ti-circle-x" },
 };
 
-const LAST_UPDATED = "2026-05-16 — backend complete";
+const LAST_UPDATED = "2026-05-16 — backend + admin UI complete";
 
 const MODULES = [
   {
@@ -171,10 +171,10 @@ const MODULES = [
       { name: "Marketing admin page", status: "DONE" },
       { name: "Inventory ledger + low stock alerts", status: "DONE" },
       { name: "Orders table (DB)", status: "DONE" },
-      { name: "Orders list + detail + status update (admin UI)", status: "DONE" },
+      { name: "Orders page (list, detail, status workflow, WhatsApp contact)", status: "DONE" },
       { name: "Order status workflow (pending → confirmed → shipped)", status: "DONE" },
       { name: "Invoice / receipt PDF generation", status: "TODO", note: "Next — use pdfkit" },
-      { name: "Customer database (CRUD + import from enquiries)", status: "DONE" },
+      { name: "Customers page (list, detail, WhatsApp, import from enquiries)", status: "DONE" },
       { name: "Email marketing (Mailchimp sync)", status: "TODO" },
       { name: "Newsletter signup API", status: "TODO" },
       { name: "Payment gateway (Stripe / Razorpay)", status: "TODO" },
@@ -196,7 +196,7 @@ const MODULES = [
       { name: "Media library admin UI (upload, gallery, preview, delete)", status: "DONE" },
       { name: "Menu builder admin UI", status: "PARTIAL", note: "Priority 4" },
       { name: "Theme switcher admin UI", status: "TODO" },
-      { name: "Audit log viewer API + backend", status: "DONE" },
+      { name: "Audit log viewer (backend + admin UI + diff view)", status: "DONE" },
       { name: "Plugin config UI per plugin", status: "TODO" },
     ]
   },
