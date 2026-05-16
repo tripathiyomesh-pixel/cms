@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
-const upload = require('../../config/cloudinary');
+const { upload } = require('../../config/cloudinary');
 const db = require('../../config/db.pool');
 const { successResponse, errorResponse } = require('../../common/response');
 
