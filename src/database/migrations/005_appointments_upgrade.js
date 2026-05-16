@@ -1,61 +1,79 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config({ path: '/var/www/cms/.env' });
+/**
+ * Migration 005 — Appointments system (PostgreSQL)
+ * Run: node src/database/migrations/005_appointments_upgrade.js
+ */
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.env') });
+const { Client } = require('pg');
 
-async function migrate() {
-  const db = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'cmsuser',
-    password: process.env.DB_PASS || 'CmsPass@2026',
+async function up() {
+  const client = new Client({
+    host:     process.env.DB_HOST || 'localhost',
+    port:     parseInt(process.env.DB_PORT) || 5432,
     database: process.env.DB_NAME || 'jewellery_cms',
-    multipleStatements: true
+    user:     process.env.DB_USER || 'cmsuser',
+    password: process.env.DB_PASS,
   });
+  await client.connect();
+  console.log('🔗 Connected to PostgreSQL...');
 
-  console.log('🔗 Connected...');
+  await client.query(`
 
-  await db.execute(`
-    -- Add new columns to appointments table
-    ALTER TABLE appointments
-      ADD COLUMN IF NOT EXISTS location_id    INT DEFAULT NULL AFTER license_id,
-      ADD COLUMN IF NOT EXISTS product_ref    VARCHAR(100) DEFAULT NULL AFTER purpose,
-      ADD COLUMN IF NOT EXISTS product_name   VARCHAR(255) DEFAULT NULL AFTER product_ref,
-      ADD COLUMN IF NOT EXISTS product_url    VARCHAR(500) DEFAULT NULL AFTER product_name,
-      ADD COLUMN IF NOT EXISTS party_size     INT DEFAULT 1 AFTER product_url,
-      ADD COLUMN IF NOT EXISTS special_requests TEXT DEFAULT NULL AFTER party_size,
-      ADD COLUMN IF NOT EXISTS booking_ref    VARCHAR(50) UNIQUE DEFAULT NULL AFTER special_requests,
-      ADD COLUMN IF NOT EXISTS confirmed_time VARCHAR(20) DEFAULT NULL AFTER booking_ref,
-      ADD COLUMN IF NOT EXISTS lang           VARCHAR(10) DEFAULT 'en' AFTER confirmed_time,
-      ADD COLUMN IF NOT EXISTS updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at;
-
-    -- Flexible store settings table (key-value)
-    CREATE TABLE IF NOT EXISTS settings (
-      id            INT AUTO_INCREMENT PRIMARY KEY,
-      license_id    INT NOT NULL,
-      setting_key   VARCHAR(100) NOT NULL,
-      setting_value LONGTEXT DEFAULT NULL,
-      setting_type  ENUM('string','json','boolean','number') DEFAULT 'string',
-      UNIQUE KEY uq_license_key (license_id, setting_key),
-      FOREIGN KEY (license_id) REFERENCES licenses(id)
+    -- ── APPOINTMENTS ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS appointments (
+      id                SERIAL PRIMARY KEY,
+      license_id        UUID REFERENCES licenses(id),
+      location_id       INT,
+      customer_name     VARCHAR(150) NOT NULL,
+      customer_phone    VARCHAR(30)  NOT NULL,
+      customer_email    VARCHAR(150),
+      preferred_date    DATE NOT NULL,
+      preferred_time    VARCHAR(20),
+      purpose           VARCHAR(255),
+      product_ref       VARCHAR(100),
+      product_name      VARCHAR(255),
+      product_url       VARCHAR(500),
+      party_size        INT DEFAULT 1,
+      special_requests  TEXT,
+      booking_ref       VARCHAR(50) UNIQUE,
+      confirmed_time    VARCHAR(20),
+      lang              VARCHAR(10) DEFAULT 'en',
+      status            VARCHAR(20) DEFAULT 'pending'
+                          CHECK (status IN ('pending','confirmed','completed','cancelled')),
+      notes             TEXT,
+      created_at        TIMESTAMPTZ DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE INDEX IF NOT EXISTS idx_appt_date   ON appointments(preferred_date);
+    CREATE INDEX IF NOT EXISTS idx_appt_status ON appointments(status);
+    CREATE INDEX IF NOT EXISTS idx_appt_license ON appointments(license_id);
 
-    -- Appointment purposes / visit types (admin configures)
+    -- ── APPOINTMENT PURPOSES ─────────────────────────────────────
     CREATE TABLE IF NOT EXISTS appointment_purposes (
-      id          INT AUTO_INCREMENT PRIMARY KEY,
-      license_id  INT NOT NULL,
-      label       VARCHAR(100) NOT NULL,
-      label_ar    VARCHAR(100) DEFAULT NULL,
-      icon        VARCHAR(50) DEFAULT NULL,
+      id            SERIAL PRIMARY KEY,
+      license_id    UUID REFERENCES licenses(id),
+      label         VARCHAR(100) NOT NULL,
+      label_ar      VARCHAR(100),
+      icon          VARCHAR(50),
       duration_mins INT DEFAULT 30,
-      is_active   BOOLEAN DEFAULT TRUE,
-      sort_order  INT DEFAULT 0,
-      FOREIGN KEY (license_id) REFERENCES licenses(id)
+      is_active     BOOLEAN DEFAULT TRUE,
+      sort_order    INT DEFAULT 0
     );
 
-    -- Default appointment purposes seed (will be skipped if already exist)
-    -- These get inserted per-license on first use via API
+    -- ── STORE SETTINGS (key-value per license) ───────────────────
+    CREATE TABLE IF NOT EXISTS store_kv_settings (
+      id            SERIAL PRIMARY KEY,
+      license_id    UUID REFERENCES licenses(id),
+      setting_key   VARCHAR(100) NOT NULL,
+      setting_value TEXT,
+      setting_type  VARCHAR(20) DEFAULT 'string'
+                      CHECK (setting_type IN ('string','json','boolean','number')),
+      UNIQUE (license_id, setting_key)
+    );
+
   `);
 
-  console.log('✅ Migration 005 complete — appointments upgraded');
-  await db.end();
+  console.log('✅ Migration 005 complete — appointments tables created (PostgreSQL)');
+  await client.end();
 }
 
-migrate().catch(e => { console.error('❌', e.message); process.exit(1); });
+up().catch(e => { console.error('❌', e.message); process.exit(1); });

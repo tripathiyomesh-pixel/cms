@@ -109,3 +109,47 @@ node src/database/migrations/005_appointments_upgrade.js
 pm2 restart jewellery-cms
 cd admin && npm run dev -- --host 0.0.0.0
 ```
+
+---
+
+## Session 3 (2026-05-16) — Migrated from MySQL to PostgreSQL
+
+### Why switched
+- Vantix ERP already uses PostgreSQL 16
+- Single DB engine for both products (simpler ops, shared server)
+- Better JSON/JSONB support for jewellery specs
+- Row-level security for future multi-tenant needs
+
+### Files changed
+| File | Change |
+|------|--------|
+| `src/config/database.js` | dialect: mysql → postgres, port 3306 → 5432 |
+| `src/config/db.pool.js` | NEW — pg Pool wrapper with mysql2-compatible API |
+| `package.json` | mysql2 removed, pg + pg-hstore added |
+| `src/database/migrations/004_jewellery_specs.js` | Full rewrite — PostgreSQL syntax |
+| `src/database/migrations/005_appointments_upgrade.js` | Full rewrite — PostgreSQL syntax |
+| `src/modules/jewellery/jewellery.routes.js` | Updated to use db.pool.js + RETURNING id |
+| `src/modules/jewellery/appointments.routes.js` | Updated to use db.pool.js |
+| `.env.example` | DB_PORT=5432, DB_SSL=false added |
+| `setup.sh` | Rewritten for PostgreSQL |
+
+### Migrations 001, 002, 003
+These use Sequelize DataTypes — no changes needed, Sequelize handles MySQL→PG automatically
+
+### VM setup commands (PostgreSQL)
+```bash
+# Install PostgreSQL instead of MySQL
+sudo apt install -y postgresql postgresql-contrib
+
+# Create DB and user
+sudo -u postgres psql -c "CREATE USER cmsuser WITH PASSWORD 'CmsPass@2026';"
+sudo -u postgres psql -c "CREATE DATABASE jewellery_cms OWNER cmsuser;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE jewellery_cms TO cmsuser;"
+
+# Clone and setup
+cd /var/www/cms
+npm install
+cp .env.example .env
+# edit .env with your values
+bash setup.sh
+```

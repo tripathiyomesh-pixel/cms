@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
-const db = require('../../config/database');
+const db = require('../../config/db.pool');
 const { successResponse, errorResponse } = require('../../common/response');
 
 // ─── PUBLIC: Get available time slots for a date + location ──
@@ -83,7 +83,7 @@ router.post('/', async (req, res) => {
       `INSERT INTO appointments 
         (license_id, location_id, customer_name, customer_phone, customer_email,
          preferred_date, preferred_time, purpose, product_ref, product_name,
-         product_url, party_size, special_requests, booking_ref, status, lang)
+         product_url, party_size, special_requests, booking_ref, status, lang RETURNING id)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)`,
       [
         license_id, location_id || null, customer_name, customer_phone, customer_email || null,
@@ -102,7 +102,7 @@ router.post('/', async (req, res) => {
 
     return res.json(successResponse({
       booking_ref: ref,
-      appointment_id: result.insertId,
+      appointment_id: result[0].insertId,
       customer_name,
       preferred_date,
       preferred_time,
