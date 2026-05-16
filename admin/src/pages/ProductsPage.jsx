@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { productsAPI } from '../services/api';
-import { Plus, Search, Filter, ChevronLeft, ChevronRight, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Search, Filter, ChevronLeft, ChevronRight, Trash2, Edit2, Gem, Calendar, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const METAL_COLORS = {
@@ -130,10 +130,16 @@ export default function ProductsPage() {
                     <td className="px-4 py-3"><span className={`badge ${STATUS_COLORS[p.status] || 'badge-gray'}`}>{p.status}</span></td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => navigate(`/products/${p.id}`)} className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400">
+                        <button onClick={() => navigate(`/products/${p.id}`)} title="Edit product"
+                          className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400">
                           <Edit2 size={13} />
                         </button>
-                        <button onClick={() => handleDelete(p.id, p.name)} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
+                        <button onClick={() => navigate(`/jewellery-specs/${p.id}`)} title="Jewellery specs"
+                          className="p-1.5 rounded hover:bg-amber-50 dark:hover:bg-amber-900/20 text-ink-400 hover:text-amber-500">
+                          <Gem size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(p.id, p.name)} title="Delete"
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
                           <Trash2 size={13} />
                         </button>
                       </div>

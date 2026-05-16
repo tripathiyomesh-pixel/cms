@@ -1,3 +1,5 @@
+import StoreLocationsPage from './pages/StoreLocationsPage';
+import TrustBadgesPage from './pages/TrustBadgesPage';
 import DevStatusPage from './pages/DevStatusPage';
 import AppointmentsAdminPage from './pages/AppointmentsAdminPage';
 import AppointmentBookingModal from './pages/AppointmentBookingModal';
@@ -67,6 +69,8 @@ export default function App() {
               <Route path="plugins" element={<PluginsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="dev-status" element={<DevStatusPage />} />
+              <Route path="locations" element={<StoreLocationsPage />} />
+              <Route path="trust-badges" element={<TrustBadgesPage />} />
             </Route>
 
             {/* Fallback */}

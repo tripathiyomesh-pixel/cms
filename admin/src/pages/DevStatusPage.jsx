@@ -8,7 +8,7 @@ const STATUS = {
   BLOCKED: { label: "Blocked",     color: "#ef4444", icon: "ti-circle-x" },
 };
 
-const LAST_UPDATED = "2026-05-16";
+const LAST_UPDATED = "2026-05-16 (updated)";
 
 const MODULES = [
   {
@@ -92,7 +92,7 @@ const MODULES = [
       { name: "Live price preview (weight × rate + making)", status: "DONE" },
       { name: "5-tab jewellery specs form (admin UI)", status: "DONE" },
       { name: "Multi-image gallery with primary image", status: "DONE" },
-      { name: "Wire 'Jewellery Specs' button on product list", status: "TODO", note: "Priority 1 — link product list to /jewellery-specs/:id" },
+      { name: "Wire 'Jewellery Specs' button on product list", status: "DONE", note: "💎 button now on each product row" },
       { name: "Hallmark fields (BIS India)", status: "TODO" },
       { name: "Old gold exchange calculator", status: "TODO" },
       { name: "Making charges per category (not per product)", status: "TODO" },
@@ -155,8 +155,8 @@ const MODULES = [
       { name: "Store countries + currency + VAT", status: "DONE" },
       { name: "Key-value settings store (brand colors, logo, WhatsApp)", status: "DONE" },
       { name: "Settings admin page (partial)", status: "PARTIAL", note: "Logo upload and branding UI incomplete" },
-      { name: "Store locations admin page (UI)", status: "TODO", note: "Priority 5" },
-      { name: "Trust badges admin page (UI)", status: "TODO", note: "Priority 6" },
+      { name: "Store locations admin page (UI)", status: "DONE" },
+      { name: "Trust badges admin page (UI)", status: "DONE" },
       { name: "Logo + favicon upload in settings", status: "TODO" },
       { name: "Google Maps embed on storefront", status: "TODO" },
     ]
@@ -171,8 +171,8 @@ const MODULES = [
       { name: "Marketing admin page", status: "DONE" },
       { name: "Inventory ledger + low stock alerts", status: "DONE" },
       { name: "Orders table (DB)", status: "DONE" },
-      { name: "Orders list admin UI", status: "PARTIAL", note: "Page exists, needs full order detail view" },
-      { name: "Order status workflow (pending → confirmed → shipped)", status: "TODO" },
+      { name: "Orders list + detail + status update (admin UI)", status: "DONE" },
+      { name: "Order status workflow (pending → confirmed → shipped)", status: "DONE" },
       { name: "Invoice / receipt PDF generation", status: "TODO" },
       { name: "Customer database (separate from enquiries)", status: "TODO" },
       { name: "Email marketing (Mailchimp sync)", status: "TODO" },
@@ -193,7 +193,7 @@ const MODULES = [
       { name: "Plugin registry + marketplace", status: "DONE" },
       { name: "Audit log (DB)", status: "DONE" },
       { name: "Page builder admin UI", status: "PARTIAL", note: "Page exists, drag-and-drop incomplete" },
-      { name: "Media library admin UI", status: "PARTIAL", note: "Page exists, upload flow incomplete" },
+      { name: "Media library admin UI (upload, gallery, preview, delete)", status: "DONE" },
       { name: "Menu builder admin UI", status: "PARTIAL", note: "Priority 4" },
       { name: "Theme switcher admin UI", status: "TODO" },
       { name: "Audit log viewer admin page", status: "TODO", note: "Priority 7" },
