@@ -43,8 +43,7 @@ router.post('/specs/:productId', authenticate, authorize(['super_admin','client_
          has_diamond,diamond_carat,diamond_cut,diamond_color,diamond_clarity,diamond_shape,
          has_gemstone,gemstone_type,gemstone_carat,gemstone_color,
          making_charges,making_pct,use_live_rate,
-         ring_size_min,ring_size_max,ring_sizes,occasion,gender,care_instructions RETURNING id)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         ring_size_min,ring_size_max,ring_sizes,occasion,gender,care_instructions) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
        ON DUPLICATE KEY UPDATE
         metal_type=VALUES(metal_type),purity=VALUES(purity),
         gross_weight=VALUES(gross_weight),net_weight=VALUES(net_weight),
@@ -83,8 +82,7 @@ router.post('/certifications/:productId', authenticate, upload.single('cert_file
       await db.query('UPDATE product_certifications SET is_primary=FALSE WHERE product_id=?', [req.params.productId]);
     }
     const [result] = await db.query(
-      `INSERT INTO product_certifications (product_id,cert_type,cert_number,cert_lab,cert_date,cert_file_url,is_primary RETURNING id)
-       VALUES (?,?,?,?,?,?,?)`,
+      `INSERT INTO product_certifications (product_id,cert_type,cert_number,cert_lab,cert_date,cert_file_url,is_primary) VALUES (?,?,?,?,?,?,?)`,
       [req.params.productId, cert_type, cert_number, cert_lab||null, cert_date||null, cert_file_url, is_primary==='true']
     );
     return res.json(successResponse({ id: result[0].insertId }, 'Certification added'));
@@ -111,8 +109,7 @@ router.post('/images/:productId', authenticate, upload.array('images', 20), asyn
         await db.query('UPDATE product_images SET is_primary=FALSE WHERE product_id=?', [pid]);
       }
       await db.query(
-        `INSERT INTO product_images (product_id,url,alt_text,is_primary,sort_order,image_type RETURNING id)
-         VALUES (?,?,?,?,?,?)`,
+        `INSERT INTO product_images (product_id,url,alt_text,is_primary,sort_order,image_type) VALUES (?,?,?,?,?,?)`,
         [pid, file.path, file.originalname, is_primary==='true' && sort===0, sort, image_type||'photo']
       );
       sort++;
@@ -154,8 +151,7 @@ router.post('/metal-rates', authenticate, authorize(['super_admin','client_admin
   try {
     const { metal, purity, rate_per_gram, rate_aed, rate_inr, rate_sar } = req.body;
     await db.query(
-      `INSERT INTO metal_rates (metal,purity,rate_per_gram,rate_aed,rate_inr,rate_sar,source RETURNING id)
-       VALUES (?,?,?,?,?,?,'manual')`,
+      `INSERT INTO metal_rates (metal,purity,rate_per_gram,rate_aed,rate_inr,rate_sar,source) VALUES (?,?,?,?,?,?,'manual')`,
       [metal, purity, rate_per_gram, rate_aed||null, rate_inr||null, rate_sar||null]
     );
     return res.json(successResponse({}, 'Rate saved'));
@@ -193,8 +189,7 @@ router.post('/enquiries', async (req, res) => {
             product_sku, product_name, product_price } = req.body;
     await db.query(
       `INSERT INTO enquiries (license_id,product_id,enquiry_type,channel,customer_name,
-        customer_phone,customer_email,country_code,message,product_sku,product_name,product_price RETURNING id)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        customer_phone,customer_email,country_code,message,product_sku,product_name,product_price) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
       [license_id, product_id||null, enquiry_type||'product', channel||'form',
        customer_name||null, customer_phone||null, customer_email||null,
        country_code||'AE', message||null, product_sku||null, product_name||null, product_price||null]
@@ -227,7 +222,7 @@ router.get('/trust-badges', async (req, res) => {
 router.post('/trust-badges', authenticate, async (req, res) => {
   const { label, icon, icon_url, sort_order } = req.body;
   const [r] = await db.query(
-    'INSERT INTO trust_badges (license_id,label,icon,icon_url,sort_order RETURNING id) VALUES (?,?,?,?,?)',
+    'INSERT INTO trust_badges (license_id,label,icon,icon_url,sort_order) VALUES (?,?,?,?,?)',
     [req.user.license_id, label, icon||null, icon_url||null, sort_order||0]
   );
   return res.json(successResponse({ id: r.insertId }, 'Badge added'));
@@ -258,7 +253,7 @@ router.post('/appointments', async (req, res) => {
           preferred_date, preferred_time, location, purpose } = req.body;
   await db.query(
     `INSERT INTO appointments (license_id,customer_name,customer_phone,customer_email,
-      preferred_date,preferred_time,location,purpose RETURNING id) VALUES (?,?,?,?,?,?,?,?)`,
+      preferred_date,preferred_time,location,purpose) VALUES (?,?,?,?,?,?,?,?)`,
     [license_id, customer_name, customer_phone, customer_email||null,
      preferred_date, preferred_time||null, location||null, purpose||null]
   );
@@ -285,8 +280,7 @@ router.post('/locations', authenticate, async (req, res) => {
   const { name, address, city, country_code, phone, whatsapp, email, google_maps_url, working_hours, is_primary } = req.body;
   if (is_primary) await db.query('UPDATE store_locations SET is_primary=FALSE WHERE license_id=?', [req.user.license_id]);
   const [r] = await db.query(
-    `INSERT INTO store_locations (license_id,name,address,city,country_code,phone,whatsapp,email,google_maps_url,working_hours,is_primary RETURNING id)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+    `INSERT INTO store_locations (license_id,name,address,city,country_code,phone,whatsapp,email,google_maps_url,working_hours,is_primary) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
     [req.user.license_id, name, address, city||null, country_code||'AE',
      phone||null, whatsapp||null, email||null, google_maps_url||null, working_hours||null, is_primary||false]
   );

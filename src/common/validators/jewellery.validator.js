@@ -67,7 +67,7 @@ const registerRules = [
   body('name').trim().notEmpty().isLength({ max: 150 }),
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-  body('role').optional().isIn(['admin','manager','editor','viewer']),
+  body('role').optional().isIn(['super_admin','admin','manager','editor','viewer']),
 ];
 
 // ─── PAGINATION RULES ──────────────────────────────────────────────────────

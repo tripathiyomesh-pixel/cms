@@ -14,7 +14,7 @@ const Setting = sequelize.define('Setting', {
   type:      { type: DataTypes.ENUM('text','number','boolean','select','json','image','color'), defaultValue: 'text' },
   options:   { type: DataTypes.JSON },
   is_public: { type: DataTypes.BOOLEAN, defaultValue: false },
-}, { tableName: 'settings' });
+}, { tableName: 'settings', paranoid: false, timestamps: true });
 
 const router = express.Router();
 

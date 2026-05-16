@@ -15,7 +15,7 @@ const Webhook = sequelize.define('Webhook', {
   last_triggered: { type: DataTypes.DATE },
   last_status:    { type: DataTypes.INTEGER },
   fail_count:     { type: DataTypes.INTEGER, defaultValue: 0 },
-}, { tableName: 'webhooks' });
+}, { tableName: 'webhooks', paranoid: false, timestamps: true });
 
 const router = express.Router();
 

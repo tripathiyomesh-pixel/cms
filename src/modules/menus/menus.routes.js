@@ -13,7 +13,7 @@ const Menu = sequelize.define('Menu', {
   location:  { type: DataTypes.ENUM('header','footer','sidebar','mobile','mega'), defaultValue: 'header' },
   items:     { type: DataTypes.JSON, defaultValue: [] },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
-}, { tableName: 'menus' });
+}, { tableName: 'menus', paranoid: false, timestamps: true });
 
 const router = express.Router();
 

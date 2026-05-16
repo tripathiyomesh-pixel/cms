@@ -83,8 +83,7 @@ router.post('/', async (req, res) => {
       `INSERT INTO appointments 
         (license_id, location_id, customer_name, customer_phone, customer_email,
          preferred_date, preferred_time, purpose, product_ref, product_name,
-         product_url, party_size, special_requests, booking_ref, status, lang RETURNING id)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)`,
+         product_url, party_size, special_requests, booking_ref, status, lang) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)`,
       [
         license_id, location_id || null, customer_name, customer_phone, customer_email || null,
         preferred_date, preferred_time, purpose || 'Product discovery',

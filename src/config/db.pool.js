@@ -18,7 +18,7 @@ const pool = new Pool({
     : false,
 });
 
-// Wrap to keep mysql2-style API: db.query(sql, params) → [rows]
+// PostgreSQL pool with simple query API: db.query(sql, params) → [rows]
 const db = {
   query: async (sql, params = []) => {
     // Convert MySQL ? placeholders to PostgreSQL $1,$2...
@@ -31,7 +31,7 @@ const db = {
     let i = 0;
     const pgSql = sql.replace(/\?/g, () => `$${++i}`);
     const result = await pool.query(pgSql, params);
-    // Simulate mysql2 insertId via RETURNING id
+    // Get inserted id via RETURNING id (PostgreSQL standard)
     return [{ rows: result.rows, insertId: result.rows[0]?.id ?? null, affectedRows: result.rowCount }];
   },
 };

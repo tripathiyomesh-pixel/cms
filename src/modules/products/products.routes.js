@@ -22,7 +22,7 @@ router.get('/', authenticate, paginationRules, validate, async (req, res) => {
     if (cached) return res.json({ success: true, ...cached });
 
     const where = {};
-    if (search)      where.name = { [Op.like]: `%${search}%` };
+    if (search)      where.name = { [Op.iLike]: `%${search}%` };
     if (metal_type)  where.metal_type = metal_type;
     if (purity)      where.purity = purity;
     if (status)      where.status = status;

@@ -19,7 +19,7 @@ const Plugin = sequelize.define('Plugin', {
   config_schema:  DataTypes.JSON,
   product_fields: DataTypes.JSON,
   validators:     DataTypes.JSON,
-}, { tableName: 'plugins', timestamps: true, updatedAt: false });
+}, { tableName: 'plugins', timestamps: true, updatedAt: false, paranoid: false });
 
 const PLUGINS = [
   {

@@ -108,7 +108,7 @@ const InventoryLedger = sequelize.define('InventoryLedger', {
   reference:  { type: DataTypes.STRING(200) },
   notes:      { type: DataTypes.TEXT },
   created_by: { type: DataTypes.UUID },
-}, { tableName: 'inventory_ledger', updatedAt: false });
+}, { tableName: 'inventory_ledger', updatedAt: false, paranoid: false });
 
 // ─── ORDER ────────────────────────────────────────────────────────────────
 const Order = sequelize.define('Order', {
@@ -125,7 +125,7 @@ const Order = sequelize.define('Order', {
   country_code:   { type: DataTypes.STRING(5) },
   status:         { type: DataTypes.ENUM('pending','confirmed','processing','shipped','delivered','cancelled','returned'), defaultValue: 'pending' },
   notes:          { type: DataTypes.TEXT },
-}, { tableName: 'orders' });
+}, { tableName: 'orders', paranoid: false });
 
 // ─── BANNER ───────────────────────────────────────────────────────────────
 const Banner = sequelize.define('Banner', {
@@ -142,7 +142,7 @@ const Banner = sequelize.define('Banner', {
   starts_at:    { type: DataTypes.DATE },
   ends_at:      { type: DataTypes.DATE },
   sort_order:   { type: DataTypes.INTEGER, defaultValue: 0 },
-}, { tableName: 'banners' });
+}, { tableName: 'banners', paranoid: false });
 
 // ─── PROMO CODE ───────────────────────────────────────────────────────────
 const PromoCode = sequelize.define('PromoCode', {
@@ -158,7 +158,7 @@ const PromoCode = sequelize.define('PromoCode', {
   is_active:    { type: DataTypes.BOOLEAN, defaultValue: true },
   starts_at:    { type: DataTypes.DATE },
   expires_at:   { type: DataTypes.DATE },
-}, { tableName: 'promo_codes' });
+}, { tableName: 'promo_codes', paranoid: false });
 
 // ─── AUDIT LOG ────────────────────────────────────────────────────────────
 const AuditLog = sequelize.define('AuditLog', {
@@ -172,7 +172,7 @@ const AuditLog = sequelize.define('AuditLog', {
   new_data:    { type: DataTypes.JSON },
   ip_address:  { type: DataTypes.STRING(50) },
   user_agent:  { type: DataTypes.TEXT },
-}, { tableName: 'audit_logs', updatedAt: false });
+}, { tableName: 'audit_logs', updatedAt: false, paranoid: false });
 
 // ─── ASSOCIATIONS ─────────────────────────────────────────────────────────
 Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });

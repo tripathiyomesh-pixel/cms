@@ -18,7 +18,7 @@ const Theme = sequelize.define('Theme', {
   settings_schema:  { type: DataTypes.JSON, defaultValue: {} },
   default_settings: { type: DataTypes.JSON, defaultValue: {} },
   is_active:        { type: DataTypes.BOOLEAN, defaultValue: false },
-}, { tableName: 'themes' });
+}, { tableName: 'themes', paranoid: false, timestamps: true });
 
 // ─── PAGE SECTIONS MODEL ───────────────────────────────────────
 const PageSection = sequelize.define('PageSection', {
@@ -30,7 +30,7 @@ const PageSection = sequelize.define('PageSection', {
   is_visible:   { type: DataTypes.BOOLEAN, defaultValue: true },
   sort_order:   { type: DataTypes.INTEGER, defaultValue: 0 },
   country_code: { type: DataTypes.STRING(5) },
-}, { tableName: 'page_sections' });
+}, { tableName: 'page_sections', paranoid: false, timestamps: true });
 
 const router = express.Router();
 
