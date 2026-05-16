@@ -76,7 +76,6 @@ app.use('/api/settings',    settingsRoutes);
 app.use('/api/webhooks',    webhookRoutes);
 app.use('/api/jewellery', jewelleryRoutes);
 app.use('/api/appointments', appointmentRoutes);
-const appointmentRoutes = require('./modules/jewellery/appointments.routes');
 app.use('/api',             themeRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
