@@ -71,6 +71,8 @@ export default function ProductFormPage() {
     category_id: '', status: 'draft',
     stock_quantity: 0, low_stock_alert: 5,
     is_made_to_order: false, is_featured: false,
+    compare_price: '',
+    is_new: false,
     tags: '', certifications: [],
     seo_title: '', seo_description: '',
     currency: 'AED',

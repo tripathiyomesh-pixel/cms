@@ -477,3 +477,18 @@ router.post('/enquiry', async (req, res) => {
     res.json({ success: true, data: { id: r[0]?.id || r.rows?.[0]?.id }, message: 'Enquiry submitted' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
+
+// ─── EXHIBITIONS PUBLIC (storefront) ──────────────────────────
+router.get('/exhibitions', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(`
+      SELECT id,title,slug,subtitle,venue_name,venue_city,booth_number,
+             start_date,end_date,hero_image,is_vip,registration_open
+      FROM exhibitions
+      WHERE is_active=true AND is_published=true AND end_date >= CURRENT_DATE
+      ORDER BY start_date ASC LIMIT 3
+    `);
+    res.json({ success:true, data:rows });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});

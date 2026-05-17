@@ -1,3 +1,5 @@
+import PageBuilderPage from './pages/PageBuilderPage';
+import ExhibitionsPage from './pages/ExhibitionsPage';
 import RapNetSettingsPage from './pages/RapNetSettingsPage';
 import AppearancePage from './pages/AppearancePage';
 import PearlsPage from './pages/PearlsPage';
@@ -93,6 +95,8 @@ function AppRoutes() {
         <Route path="feature-flags" element={<FeatureFlagsPage />} />
               <Route path="appearance" element={<AppearancePage />} />
               <Route path="rapnet" element={<RapNetSettingsPage />} />
+              <Route path="exhibitions" element={<ExhibitionsPage />} />
+              <Route path="page-builder" element={<PageBuilderPage />} />
               <Route path="pearls" element={<PearlsPage />} />
               <Route path="pearls/new" element={<PearlFormPage />} />
               <Route path="pearls/:id" element={<PearlFormPage />} />

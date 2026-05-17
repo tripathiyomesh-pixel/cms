@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import Topbar from "../components/layout/Topbar";
 import api from "../services/api";
 
-const LAST_UPDATED = "2026-05-17 — 4 homepage templates built";
+const LAST_UPDATED = "2026-05-17 — Exhibitions + Page builder + Tejori features";
 const PLATFORM     = "Jewellery Commerce OS";
 const VERSION      = "v0.9";
 
@@ -289,12 +289,17 @@ const STOREFRONT = [
   { n:"Ring builder UI — pick diamond + mounting = combined price", s:1 },
   { n:"Blog listing page — /blog", s:1 },
   { n:"Blog single post — /blog/:slug", s:1 },
-  { n:"About page — brand story, locations, certifications", s:0 },
+  { n:"About page — brand story, locations, certifications (La Maison style)", s:1 },
   { n:"SEO — metadata per page, Open Graph, schema.org injection", s:1 },
   { n:"Arabic RTL support — dir=rtl on html tag", s:0 },
   { n:"Multi-currency display — AED / USD / SAR switcher", s:0 },
   { n:"Wishlist page — saved items (session + localStorage)", s:0 },
   { n:"RapNet diamonds integration — /diamonds?source=rapnet shows live RapNet feed alongside own inventory", s:0 },
+  { n:"Exhibition module — /exhibitions + /exhibitions/:slug + registration + countdown + VIP", s:1 },
+  { n:"Quick View modal — hover product card to preview without page load", s:1 },
+  { n:"Sale price / compare_price — strikethrough original + discount %", s:1 },
+  { n:"Boutique Finder page — /boutiques with map embed", s:1 },
+  { n:"Page builder admin — template/header/hero/grid/filters/footer/colors settings", s:1 },
   { n:"Search results page — /search?q=", s:0 },
   { n:"Homepage templates — luxury-dark, clean-minimal, boutique-warm, diamond-dealer", s:1 },
   { n:"Template switcher in admin Appearance page", s:1 },

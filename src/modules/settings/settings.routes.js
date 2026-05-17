@@ -119,3 +119,30 @@ router.get('/appearance', authenticate, async (req, res) => {
     res.json({ success: true, data: map });
   } catch(e) { res.status(500).json({ success: false, message: e.message }); }
 });
+
+// ─── PAGE BUILDER — get all customization settings ───────────
+router.get('/page-builder', authenticate, async (req, res) => {
+  try {
+    const keys = [
+      // Header
+      'header_logo_url','header_logo_text','header_show_topbar','header_topbar_text','header_topbar_bg',
+      'header_nav_style','header_show_whatsapp','header_whatsapp_position',
+      // Hero
+      'hero_layout','hero_overlay_opacity','hero_show_stats','hero_autoplay','hero_autoplay_interval',
+      // Product grid
+      'grid_columns','grid_card_style','grid_show_price','grid_show_quick_enquire','grid_show_new_badge','grid_sort_default',
+      // Filters
+      'filter_position','filter_style','filter_show_price','filter_show_carat','filter_show_color','filter_show_clarity','filter_show_cert',
+      // Footer
+      'footer_columns','footer_show_newsletter','footer_show_social','footer_bg_color',
+      // Colors
+      'color_accent','color_background','color_text','button_style','font_heading','font_body',
+      // Storefront template
+      'storefront_template',
+    ];
+    const [rows] = await db.query(`SELECT key,value FROM settings WHERE key = ANY($1)`, [keys]);
+    const map = {};
+    rows.forEach(r => { map[r.key] = r.value; });
+    res.json({ success: true, data: map });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});

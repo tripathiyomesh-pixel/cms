@@ -4,10 +4,21 @@ import Link from 'next/link';
 import { Menu, X, Heart, Phone } from 'lucide-react';
 
 const NAV = [
+  { label:'High Jewellery', href:'/jewellery?is_featured=true', sub:[
+    { label:'Rings',         href:'/jewellery?category=rings' },
+    { label:'Necklaces',     href:'/jewellery?category=necklaces' },
+    { label:'Earrings',      href:'/jewellery?category=earrings' },
+    { label:'Bracelets',     href:'/jewellery?category=bracelets' },
+    { label:'Bridal Sets',   href:'/jewellery?category=bridal' },
+  ]},
+  { label:'Jewellery',      href:'/jewellery', sub:[
+    { label:'All Jewellery', href:'/jewellery' },
+    { label:'New Arrivals',  href:'/jewellery?is_new=true' },
+    { label:'On Sale',       href:'/jewellery?on_sale=true' },
+  ]},
   { label:'Diamonds',  href:'/diamonds', sub:[
     { label:'Natural Diamonds',   href:'/diamonds?type=NATURAL' },
     { label:'Lab-Grown Diamonds', href:'/diamonds?type=LAB_GROWN' },
-    { label:'Compare Diamonds',   href:'/diamonds' },
   ]},
   { label:'Gemstones', href:'/gemstones', sub:[
     { label:'Ruby',      href:'/gemstones?type=Ruby' },
@@ -15,23 +26,17 @@ const NAV = [
     { label:'Emerald',   href:'/gemstones?type=Emerald' },
     { label:'All stones',href:'/gemstones' },
   ]},
-  { label:'Pearls',    href:'/pearls', sub:[
-    { label:'South Sea', href:'/pearls?type=South+Sea' },
-    { label:'Tahitian',  href:'/pearls?type=Tahitian' },
-    { label:'Akoya',     href:'/pearls?type=Akoya' },
-    { label:'Freshwater',href:'/pearls?type=Freshwater' },
+  { label:'Pearls',    href:'/pearls' },
+  { label:'Customisation', href:'/custom' },
+  { label:'News',      href:'/blog' },
+  { label:'La Maison', href:'/about', sub:[
+    { label:'About us',          href:'/about' },
+    { label:'Boutique Finder',   href:'/boutiques' },
+    { label:'Exhibitions',       href:'/exhibitions' },
+    { label:'Ring Builder',      href:'/ring-builder' },
+    { label:'Verify Certificate',href:'/verify' },
+    { label:'Book Appointment',  href:'/appointment' },
   ]},
-  { label:'Jewellery', href:'/jewellery', sub:[
-    { label:'Rings',        href:'/jewellery?category=rings' },
-    { label:'Necklaces',    href:'/jewellery?category=necklaces' },
-    { label:'Earrings',     href:'/jewellery?category=earrings' },
-    { label:'Bracelets',    href:'/jewellery?category=bracelets' },
-    { label:'Bridal Sets',  href:'/jewellery?category=bridal' },
-  ]},
-  { label:'Mountings', href:'/mountings' },
-  { label:'Ring Builder', href:'/ring-builder' },
-  { label:'Custom',    href:'/custom' },
-  { label:'Blog',      href:'/blog' },
 ];
 
 export default function Header({ template }) {
