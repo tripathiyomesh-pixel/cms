@@ -36,12 +36,12 @@ async function up() {
       ALTER TABLE media ADD CONSTRAINT media_product_url_unique UNIQUE (product_id, file_url);
     EXCEPTION WHEN duplicate_table THEN null; END $$;
 
-    -- ERP API settings
+    -- ERP API settings (value is JSON type — must be valid JSON)
     INSERT INTO settings (key, value, is_public) VALUES
-      ('erp_api_url',    '',    false),
-      ('erp_api_key',    '',    false),
-      ('erp_sync_enabled','false', false),
-      ('erp_sync_interval','15', false)
+      ('erp_api_url',      '""'::json,      false),
+      ('erp_api_key',      '""'::json,      false),
+      ('erp_sync_enabled', '"false"'::json, false),
+      ('erp_sync_interval','"15"'::json,  false)
     ON CONFLICT (key) DO NOTHING;
 
     -- Jewellery specs: ensure product_id unique
