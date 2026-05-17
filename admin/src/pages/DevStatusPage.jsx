@@ -27,7 +27,7 @@ const MODULES = [
   { id:"crm",           icon:"ti-messages",         name:"CRM & Appointments",  phase:"Commerce",   total:8,  done:6  },
   { id:"commerce",      icon:"ti-shopping-cart",    name:"Commerce Engine",     phase:"Commerce",   total:8,  done:2  },
   { id:"admin_ui",      icon:"ti-layout-dashboard", name:"Admin Panel UI",      phase:"Frontend",   total:32, done:32 },
-  { id:"storefront",    icon:"ti-world",            name:"Next.js Storefront",  phase:"Frontend",   total:16, done:0  },
+  { id:"storefront",    icon:"ti-world",            name:"Next.js Storefront",  phase:"Frontend",   total:16, done:10 },
 ];
 
 const INTEGRATIONS = [
