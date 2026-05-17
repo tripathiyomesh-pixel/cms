@@ -309,3 +309,28 @@ router.post('/whatsapp-link', async (req, res) => {
 });
 
 module.exports = router;
+
+// ─── ENQUIRY: WhatsApp link generator ────────────────────────
+router.post('/enquiry/whatsapp-link', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const { product_id, inventory_type } = req.body;
+
+    // Get store WhatsApp number
+    const [settings] = await db.query("SELECT value FROM settings WHERE key = 'whatsapp_number' LIMIT 1");
+    const waNumber = settings[0]?.value || '';
+
+    let productInfo = '';
+    if (product_id) {
+      const [p] = await db.query('SELECT name, sku, final_price, currency FROM products WHERE id = $1', [product_id]);
+      if (p.length) {
+        productInfo = `\n\nProduct: ${p[0].name}\nSKU: ${p[0].sku}\nPrice: ${p[0].currency} ${Number(p[0].final_price).toLocaleString()}`;
+      }
+    }
+
+    const message = encodeURIComponent(`Hello, I'm interested in your jewellery.${productInfo}\n\nPlease share more details.`);
+    const link = `https://wa.me/${waNumber.replace(/\D/g, '')}?text=${message}`;
+
+    res.json({ success: true, data: { link, number: waNumber } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});

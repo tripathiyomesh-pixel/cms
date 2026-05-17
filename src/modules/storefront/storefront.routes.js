@@ -267,3 +267,212 @@ router.delete('/wishlist/:session_token/:product_id', async (req, res) => {
 });
 
 module.exports = router;
+
+// ─── DIAMOND DETAIL (public) ─────────────────────────────────
+router.get('/diamonds/:id', async (req, res) => {
+  try {
+    const cacheKey = `storefront:diamond:${req.params.id}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return res.json({ success: true, data: cached });
+
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(`
+      SELECT p.*, d.*,
+        json_agg(json_build_object('file_url', m.file_url, 'thumb_url', m.thumb_url, 'is_primary', m.is_primary))
+          FILTER (WHERE m.id IS NOT NULL) as media
+      FROM products p
+      LEFT JOIN diamond_details d ON d.product_id = p.id
+      LEFT JOIN media m ON m.product_id = p.id
+      WHERE p.id = $1 AND p.deleted_at IS NULL
+      GROUP BY p.id, d.id
+    `, [req.params.id]);
+
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Diamond not found' });
+
+    // Related diamonds (same shape, similar carat)
+    const d = rows[0];
+    const [related] = await db.query(`
+      SELECT p.id, p.name, p.final_price, p.currency, d2.shape, d2.carat, d2.color, d2.clarity,
+             m.file_url as thumb_url
+      FROM products p
+      LEFT JOIN diamond_details d2 ON d2.product_id = p.id
+      LEFT JOIN media m ON m.product_id = p.id AND m.is_primary = true
+      WHERE p.inventory_type IN ('NATURAL_DIAMOND','LAB_GROWN_DIAMOND')
+        AND p.id != $1 AND p.deleted_at IS NULL
+        AND d2.shape = $2
+        AND d2.is_available = true
+      ORDER BY ABS(d2.carat - $3) ASC
+      LIMIT 4
+    `, [req.params.id, d.shape, d.carat || 1]);
+
+    const data = { ...d, related };
+    await cache.set(cacheKey, data, 120);
+    res.json({ success: true, data });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── GEMSTONE DETAIL (public) ─────────────────────────────────
+router.get('/gemstones/:id', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(`
+      SELECT p.*, g.*,
+        json_agg(json_build_object('file_url', m.file_url, 'is_primary', m.is_primary))
+          FILTER (WHERE m.id IS NOT NULL) as media
+      FROM products p
+      LEFT JOIN gemstone_details g ON g.product_id = p.id
+      LEFT JOIN media m ON m.product_id = p.id
+      WHERE p.id = $1 AND p.deleted_at IS NULL
+      GROUP BY p.id, g.id
+    `, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── PEARL DETAIL (public) ────────────────────────────────────
+router.get('/pearls/:id', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(`
+      SELECT p.*, pd.*,
+        json_agg(json_build_object('file_url', m.file_url, 'is_primary', m.is_primary))
+          FILTER (WHERE m.id IS NOT NULL) as media
+      FROM products p
+      LEFT JOIN pearl_details pd ON pd.product_id = p.id
+      LEFT JOIN media m ON m.product_id = p.id
+      WHERE p.id = $1 AND p.deleted_at IS NULL
+      GROUP BY p.id, pd.id
+    `, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── MOUNTING DETAIL (public) ─────────────────────────────────
+router.get('/mountings/:id', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(`
+      SELECT p.*, md.*,
+        json_agg(json_build_object('file_url', m.file_url, 'is_primary', m.is_primary))
+          FILTER (WHERE m.id IS NOT NULL) as media
+      FROM products p
+      LEFT JOIN mounting_details md ON md.product_id = p.id
+      LEFT JOIN media m ON m.product_id = p.id
+      WHERE p.id = $1 AND p.deleted_at IS NULL
+      GROUP BY p.id, md.id
+    `, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+
+    // Compatible diamonds (by shape + carat range)
+    const mt = rows[0];
+    const shapes = typeof mt.compatible_shapes === 'string' ? JSON.parse(mt.compatible_shapes) : (mt.compatible_shapes || []);
+    let compatible = [];
+    if (shapes.length && mt.min_carat && mt.max_carat) {
+      const dbPool = require('../../config/db.pool');
+      const [comp] = await dbPool.query(`
+        SELECT p.id, p.name, p.final_price, p.currency, d.shape, d.carat, d.color, d.clarity,
+               m2.file_url as thumb_url
+        FROM products p
+        LEFT JOIN diamond_details d ON d.product_id = p.id
+        LEFT JOIN media m2 ON m2.product_id = p.id AND m2.is_primary = true
+        WHERE p.inventory_type IN ('NATURAL_DIAMOND','LAB_GROWN_DIAMOND')
+          AND p.deleted_at IS NULL AND d.is_available = true
+          AND d.shape = ANY($1) AND d.carat BETWEEN $2 AND $3
+        ORDER BY d.carat ASC LIMIT 6
+      `, [shapes, parseFloat(mt.min_carat), parseFloat(mt.max_carat)]);
+      compatible = comp;
+    }
+    res.json({ success: true, data: { ...mt, compatible_diamonds: compatible } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── RING BUILDER: combine diamond + mounting ─────────────────
+router.post('/ring-builder', async (req, res) => {
+  try {
+    const { diamond_id, mounting_id, metal } = req.body;
+    if (!diamond_id || !mounting_id)
+      return res.status(422).json({ success: false, message: 'diamond_id and mounting_id required' });
+
+    const db = require('../../config/db.pool');
+    const [diamonds] = await db.query(
+      'SELECT p.*, d.* FROM products p LEFT JOIN diamond_details d ON d.product_id = p.id WHERE p.id = $1',
+      [diamond_id]
+    );
+    const [mountings] = await db.query(
+      'SELECT p.*, md.* FROM products p LEFT JOIN mounting_details md ON md.product_id = p.id WHERE p.id = $1',
+      [mounting_id]
+    );
+    if (!diamonds.length || !mountings.length)
+      return res.status(404).json({ success: false, message: 'Diamond or mounting not found' });
+
+    const diamond  = diamonds[0];
+    const mounting = mountings[0];
+    const metalOptions = typeof mounting.metal_options === 'string' ? JSON.parse(mounting.metal_options) : (mounting.metal_options || []);
+    const selectedMetal = metalOptions.find(m => m.metal === metal) || metalOptions[0] || { price_add: 0 };
+
+    const diamondPrice  = parseFloat(diamond.final_price) || 0;
+    const mountingPrice = parseFloat(mounting.final_price) || 0;
+    const metalAddon    = parseFloat(selectedMetal.price_add) || 0;
+    const totalPrice    = diamondPrice + mountingPrice + metalAddon;
+
+    res.json({ success: true, data: {
+      diamond:       { id: diamond.id, name: diamond.name, shape: diamond.shape, carat: diamond.carat, color: diamond.color, clarity: diamond.clarity, price: diamondPrice, currency: diamond.currency, cert_lab: diamond.primary_cert_lab, cert_no: diamond.primary_cert_no },
+      mounting:      { id: mounting.id, name: mounting.name, type: mounting.mounting_type, style: mounting.style, metal_options: metalOptions, price: mountingPrice, currency: mounting.currency },
+      selected_metal: selectedMetal.metal || 'Standard',
+      pricing: { diamond: diamondPrice, mounting: mountingPrice, metal_addon: metalAddon, total: totalPrice, currency: diamond.currency },
+    }});
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── BLOG (public) ────────────────────────────────────────────
+router.get('/blog', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const { page = 1, limit = 12, category } = req.query;
+    const offset = (page - 1) * limit;
+    const params = ["published"];
+    let where = "WHERE status = $1";
+    if (category) { params.push(category); where += ` AND category = $${params.length}`; }
+    params.push(parseInt(limit), parseInt(offset));
+    const [rows] = await db.query(
+      `SELECT id, title, slug, excerpt, cover_image, category, tags, author_name, published_at
+       FROM blog_posts ${where} ORDER BY published_at DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+    const [cnt] = await db.query(`SELECT COUNT(*) as total FROM blog_posts ${where}`, params.slice(0, -2));
+    res.json({ success: true, data: { data: rows, total: +cnt[0]?.total || 0 } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+router.get('/blog/:slug', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const [rows] = await db.query(
+      "SELECT * FROM blog_posts WHERE slug = $1 AND status = 'published'",
+      [req.params.slug]
+    );
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Post not found' });
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ─── ENQUIRY (public) ─────────────────────────────────────────
+router.post('/enquiry', async (req, res) => {
+  try {
+    const db = require('../../config/db.pool');
+    const { customer_name, customer_email, customer_phone, message, product_id, product_name, channel = 'website' } = req.body;
+    if (!customer_phone && !customer_email)
+      return res.status(422).json({ success: false, message: 'Phone or email required' });
+
+    const [r] = await db.execute(
+      `INSERT INTO enquiries (customer_name, customer_email, customer_phone, message, product_id, product_name, channel, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,'new') RETURNING id`,
+      [customer_name || null, customer_email || null, customer_phone || null,
+       message || null, product_id || null, product_name || null, channel]
+    );
+    res.json({ success: true, data: { id: r[0]?.id || r.rows?.[0]?.id }, message: 'Enquiry submitted' });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});

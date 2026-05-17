@@ -36,7 +36,6 @@ import DiamondFormPage from './pages/DiamondFormPage';
 import GemstonesPage from './pages/GemstonesPage';
 import GemstoneFormPage from './pages/GemstoneFormPage';
 import MountingsPage from './pages/MountingsPage';
-import SuppliersPage from './pages/SuppliersPage';
 import CustomOrdersPage from './pages/CustomOrdersPage';
 import FeatureFlagsPage from './pages/FeatureFlagsPage';
 
@@ -89,8 +88,7 @@ function AppRoutes() {
         <Route path="mountings" element={<MountingsPage />} />
               <Route path="mountings/new" element={<MountingFormPage />} />
               <Route path="mountings/:id" element={<MountingFormPage />} />
-        <Route path="suppliers" element={<SuppliersPage />} />
-        <Route path="custom-orders" element={<CustomOrdersPage />} />
+                <Route path="custom-orders" element={<CustomOrdersPage />} />
         <Route path="feature-flags" element={<FeatureFlagsPage />} />
               <Route path="appearance" element={<AppearancePage />} />
               <Route path="pearls" element={<PearlsPage />} />
