@@ -138,7 +138,7 @@ export default function LoginPage() {
           LEFT PANEL — 65% showcase
           ════════════════════════════════════════════════════ */}
       <div style={{
-        width:'65%', minHeight:'100vh', position:'relative', overflow:'hidden',
+        width:'60%', minHeight:'100vh', position:'relative', overflow:'hidden',
         background:'linear-gradient(160deg,#0c0b08 0%,#161410 45%,#1e1a10 100%)',
         display:'flex', flexDirection:'column',
       }} className="left-panel">
@@ -300,7 +300,7 @@ export default function LoginPage() {
           RIGHT PANEL — 35% login form
           ════════════════════════════════════════════════════ */}
       <div style={{
-        width:'35%', minHeight:'100vh', display:'flex', flexDirection:'column',
+        width:'40%', minHeight:'100vh', display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center',
         background:'#fafaf8', padding:'40px 32px',
       }} className="right-panel">
