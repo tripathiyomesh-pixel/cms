@@ -104,3 +104,13 @@ router.post('/bulk', authenticate, authorize(['super_admin','admin']), async (re
 });
 
 module.exports = router;
+// Appearance settings endpoint
+router.get('/appearance', authenticate, async (req, res) => {
+  try {
+    const keys = ['theme', 'sidebar_collapsed', 'primary_color', 'logo_url', 'favicon_url', 'store_name', 'date_format', 'currency_display'];
+    const settings = await Setting.findAll({ where: { key: keys } });
+    const map = {};
+    settings.forEach(s => { map[s.key] = s.value; });
+    res.json({ success: true, data: map });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});

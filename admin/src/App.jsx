@@ -1,3 +1,4 @@
+import AppearancePage from './pages/AppearancePage';
 import PearlsPage from './pages/PearlsPage';
 import PearlFormPage from './pages/PearlFormPage';
 import ImportEnginePage from './pages/ImportEnginePage';
@@ -91,6 +92,7 @@ function AppRoutes() {
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="custom-orders" element={<CustomOrdersPage />} />
         <Route path="feature-flags" element={<FeatureFlagsPage />} />
+              <Route path="appearance" element={<AppearancePage />} />
               <Route path="pearls" element={<PearlsPage />} />
               <Route path="pearls/new" element={<PearlFormPage />} />
               <Route path="pearls/:id" element={<PearlFormPage />} />
