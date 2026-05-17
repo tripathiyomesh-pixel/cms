@@ -1,3 +1,4 @@
+import MountingFormPage from './pages/MountingFormPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -81,6 +82,8 @@ function AppRoutes() {
         <Route path="gemstones/new" element={<GemstoneFormPage />} />
         <Route path="gemstones/:id" element={<GemstoneFormPage />} />
         <Route path="mountings" element={<MountingsPage />} />
+              <Route path="mountings/new" element={<MountingFormPage />} />
+              <Route path="mountings/:id" element={<MountingFormPage />} />
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="custom-orders" element={<CustomOrdersPage />} />
         <Route path="feature-flags" element={<FeatureFlagsPage />} />

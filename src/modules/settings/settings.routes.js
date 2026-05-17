@@ -91,4 +91,16 @@ router.delete('/:key', authenticate, authorize(['super_admin']), async (req, res
   } catch (e) { error(res, e.message); }
 });
 
+router.post('/bulk', authenticate, authorize(['super_admin','admin']), async (req, res) => {
+  try {
+    const { settings } = req.body;
+    if (!Array.isArray(settings)) return res.status(422).json({ success:false, message:'settings must be an array' });
+    for (const s of settings) {
+      if (!s.key) continue;
+      await Setting.upsert({ key: s.key, value: String(s.value ?? ''), is_public: false });
+    }
+    return res.json({ success:true, message:settings.length + ' settings saved' });
+  } catch(e) { return res.status(500).json({ success:false, message:e.message }); }
+});
+
 module.exports = router;
