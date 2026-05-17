@@ -105,21 +105,6 @@ export default function Sidebar({ collapsed }) {
       overflow: 'hidden',
     }}>
 
-      {/* Logo */}
-      <div style={{ padding: collapsed ? '16px 0' : '16px 16px', borderBottom: '0.5px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', gap: 10, minHeight: 56 }}>
-        <div style={{ width: 28, height: 28, background: '#c9a84c', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="#fff" strokeWidth="1.5"/>
-          </svg>
-        </div>
-        {!collapsed && (
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>JewelCMS</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 1 }}>Admin panel</div>
-          </div>
-        )}
-      </div>
-
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}
         className="hide-scrollbar">
