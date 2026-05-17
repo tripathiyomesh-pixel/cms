@@ -44,10 +44,7 @@ async function up() {
       (gen_random_uuid(), 'erp_sync_interval', '"15"'::json,     false)
     ON CONFLICT (key) DO NOTHING;
 
-    -- Jewellery specs: ensure product_id unique
-    DO $$ BEGIN
-      ALTER TABLE jewellery_specs ADD CONSTRAINT jewellery_specs_product_id_unique UNIQUE (product_id);
-    EXCEPTION WHEN duplicate_table THEN null; END $$;
+    -- Jewellery specs constraint skipped — table created separately
 
   `);
 
