@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, Layers, FolderTree, Image, Megaphone,
-  ShoppingCart, BarChart3, Layout, Users, Settings, Shield, LogOut, Puzzle, Layout, Activity, MapPin, ShieldCheck, UserCheck, ClipboardList, Gem, Truck, Hammer, ToggleLeft, Sparkles, Hexagon, Circle, Upload, BookOpen, Paintbrush, Zap,
+  ShoppingCart, BarChart3, Layout, Users, Settings, Shield, LogOut, Puzzle, Activity, MapPin, ShieldCheck, UserCheck, ClipboardList, Gem, Truck, Hammer, ToggleLeft, Sparkles, Hexagon, Circle, Upload, BookOpen, Paintbrush, Zap,
 } from 'lucide-react';
 
 const NAV = [
