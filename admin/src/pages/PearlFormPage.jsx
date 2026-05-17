@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -80,9 +81,7 @@ export default function PearlFormPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <div onClick={()=>set('is_strand',!form.is_strand)} className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer ${form.is_strand?'bg-gold-500':'bg-ink-300'}`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${form.is_strand?'translate-x-5':'translate-x-1'}`}/>
-                  </div>
+                  <Toggle checked={!!form.is_strand} onChange={v=>set("is_strand",v)}/>
                   <span className="text-sm text-ink-600 dark:text-ink-300">This is a strand / necklace</span>
                 </label>
               </div>

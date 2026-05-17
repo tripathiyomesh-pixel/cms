@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -165,9 +166,7 @@ export default function ExhibitionsPage() {
                   ].map(item=>(
                     <div key={item.k} className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
                       <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">{item.l}</p><p className="text-xs text-ink-400">{item.d}</p></div>
-                      <button type="button" onClick={()=>set(item.k,!form[item.k])} className={`w-10 h-6 rounded-full transition-colors relative ${form[item.k]?'bg-gold-500':'bg-ink-300 dark:bg-ink-600'}`}>
-                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form[item.k]?'translate-x-5':'translate-x-1'}`}/>
-                      </button>
+                      <Toggle checked={!!form[item.k]} onChange={v=>set(item.k,v)}/>
                     </div>
                   ))}
                 </div>

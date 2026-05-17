@@ -1,3 +1,4 @@
+import Toggle from '../ui/Toggle';
 import { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, Bell, ChevronDown, User, Settings, LogOut, Shield, Eye } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -264,9 +265,7 @@ function UserDropdown() {
                       <p className="text-xs font-medium text-ink-700 dark:text-ink-200">Dark mode</p>
                       <p className="text-[11px] text-ink-400">Switch admin panel theme</p>
                     </div>
-                    <button onClick={toggleTheme} className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${dark ? 'bg-gold-500' : 'bg-ink-300 dark:bg-ink-600'}`}>
-                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${dark ? 'translate-x-5' : 'translate-x-1'}`}/>
-                    </button>
+                    <Toggle checked={dark} onChange={toggleTheme}/>
                   </div>
                 </div>
               </div>

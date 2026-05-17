@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -334,10 +335,7 @@ export default function DiamondFormPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <div onClick={()=>set('is_available',!form.is_available)}
-                      className={`w-10 h-6 rounded-full transition-colors relative ${form.is_available?'bg-green-500':'bg-ink-300'}`}>
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${form.is_available?'translate-x-5':'translate-x-1'}`}/>
-                    </div>
+                    <Toggle checked={!!form.is_available} onChange={v=>set("is_available",v)}/>
                     <span className="text-sm text-ink-600 dark:text-ink-300">Available for sale</span>
                   </label>
                 </div>

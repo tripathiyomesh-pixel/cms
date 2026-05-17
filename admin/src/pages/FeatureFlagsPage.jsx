@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -78,13 +79,10 @@ export default function FeatureFlagsPage() {
                         <p className="text-sm text-ink-700 dark:text-ink-200">{f.label}</p>
                         <p className="text-[10px] font-mono text-ink-400">{f.flag_key}</p>
                       </div>
-                      <button onClick={()=>toggle(f)} disabled={saving===f.flag_key}
-                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${f.is_enabled?'bg-green-500':'bg-ink-300 dark:bg-ink-600'} disabled:opacity-60`}>
-                        {saving===f.flag_key
-                          ? <span className="absolute inset-0 flex items-center justify-center"><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin"/></span>
-                          : <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 shadow-sm ${f.is_enabled?'translate-x-5':'translate-x-1'}`}/>
-                        }
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {saving===f.flag_key && <span className="w-3 h-3 border border-ink-300 border-t-gold-500 rounded-full animate-spin"/>}
+                        <Toggle checked={!!f.is_enabled} onChange={()=>toggle(f)} disabled={saving===f.flag_key}/>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -194,10 +195,7 @@ export default function AppearancePage() {
                     <p className="text-sm font-medium text-ink-700 dark:text-ink-200">{item.l}</p>
                     <p className="text-xs text-ink-400 mt-0.5">{item.d}</p>
                   </div>
-                  <button onClick={() => set(item.k, !prefs[item.k])}
-                    className={`relative w-10 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${prefs[item.k] ? 'bg-gold-500' : 'bg-ink-300 dark:bg-ink-600'}`}>
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${prefs[item.k] ? 'translate-x-5' : 'translate-x-1'}`}/>
-                  </button>
+                  <Toggle checked={!!prefs[item.k]} onChange={v => set(item.k, v)}/>
                 </div>
               ))}
             </div>

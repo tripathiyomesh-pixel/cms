@@ -1,3 +1,4 @@
+import Toggle from '../components/ui/Toggle';
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
@@ -40,10 +41,7 @@ export default function PageBuilderPage() {
   const inp = 'input-field';
   const sel = 'input-field';
   const tog = (k) => (
-    <button type="button" onClick={()=>set(k, settings[k]==='true'?'false':'true')}
-      className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${settings[k]==='true'?'bg-gold-500':'bg-ink-300 dark:bg-ink-600'}`}>
-      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${settings[k]==='true'?'translate-x-5':'translate-x-1'}`}/>
-    </button>
+    <Toggle checked={settings[k]==='true'} onChange={v=>set(k,v?'true':'false')}/>
   );
 
   return (
