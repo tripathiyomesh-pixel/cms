@@ -136,6 +136,7 @@ export default function LoginPage() {
   };
 
   return (
+    <>
     <div style={{ minHeight:'100vh', display:'flex', fontFamily:'Inter, sans-serif' }}>
 
       {/* ════════════════════════════════════════════════════
@@ -475,5 +476,6 @@ export default function LoginPage() {
           </div>
         </div>
       )}
+    </>
   );
 }
