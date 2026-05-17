@@ -124,6 +124,24 @@ function DiamondsContent() {
 
   return (
     <div className="pt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Source tabs */}
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <button onClick={()=>setSource('own')}
+          className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${source==='own'?'bg-ink-800 text-white':'bg-white border border-ink-200 text-ink-500 hover:border-gold-400'}`}>
+          Our Inventory
+        </button>
+        <button onClick={()=>setSource('rapnet')}
+          className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${source==='rapnet'?'bg-blue-700 text-white':'bg-white border border-ink-200 text-ink-500 hover:border-blue-400'}`}>
+          <span className="w-2 h-2 rounded-full bg-current opacity-80"/>
+          Extended Search (RapNet)
+        </button>
+        {source==='rapnet' && (
+          <div className="flex items-center text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+            Live from RapNet · Not stored · Price + markup
+          </div>
+        )}
+      </div>
+
       <div className="mb-8">
         <h1 className="font-serif text-3xl lg:text-4xl text-ink-800 mb-2">
           {filters.diamond_type==='LAB_GROWN'?'Lab-Grown Diamonds':filters.diamond_type==='NATURAL'?'Natural Diamonds':'All Diamonds'}

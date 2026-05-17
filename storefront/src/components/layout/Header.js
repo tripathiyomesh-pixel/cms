@@ -1,7 +1,9 @@
 'use client';
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Heart, Phone } from 'lucide-react';
+import { Menu, X, Heart, Phone, Search } from 'lucide-react';
 
 const NAV = [
   { label:'High Jewellery', href:'/jewellery?is_featured=true', sub:[
@@ -113,6 +115,14 @@ export default function Header({ template }) {
 
         {/* Right actions */}
         <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+          <form onSubmit={e=>{e.preventDefault();const q=e.target.q.value.trim();if(q)window.location='/search?q='+encodeURIComponent(q);}} className="hidden lg:flex items-center">
+            <div className="relative">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"/>
+              <input name="q" placeholder="Search…" className="pl-8 pr-3 py-1.5 text-xs border border-ink-200 rounded-full outline-none focus:border-gold-400 w-32 focus:w-48 transition-all duration-300 bg-ink-50"/>
+            </div>
+          </form>
+          <CurrencySwitcher/>
+          <LanguageSwitcher/>
           <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP||''}`} target="_blank" rel="noreferrer"
             style={{ display:'flex', alignItems:'center', gap:6, background:'#25d366', color:'#fff', padding:'7px 14px', borderRadius:50, fontSize:12, fontWeight:600, textDecoration:'none' }}>
             <Phone size={12}/> WhatsApp

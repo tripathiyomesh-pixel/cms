@@ -88,3 +88,6 @@ async function up() {
   await client.end();
 }
 up().catch(e=>{ console.error('❌',e.message); process.exit(1); });
+
+// Password resets table — run this manually if already applied
+// ALTER TABLE: add after existing migration

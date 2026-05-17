@@ -79,6 +79,10 @@ export default function LoginPage() {
   const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
   const [remember,    setRemember]    = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [fpEmail, setFpEmail] = useState('');
+  const [fpSent, setFpSent] = useState(false);
+  const [fpLoading, setFpLoading] = useState(false);
   const [showPw,      setShowPw]      = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [activeCard,  setActiveCard]  = useState(0);
@@ -438,5 +442,38 @@ export default function LoginPage() {
         }
       `}</style>
     </div>
+
+      {/* Forgot password modal */}
+      {showForgot && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-ink-900 rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            {fpSent ? (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 14l8 8L24 6" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <h3 className="text-base font-semibold text-ink-700 mb-2">Check your email</h3>
+                <p className="text-sm text-ink-400 mb-6">If this email is registered, you will receive a password reset link.</p>
+                <button onClick={()=>{ setShowForgot(false); setFpSent(false); setFpEmail(''); }} className="btn-gold w-full justify-center">Done</button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-base font-semibold text-ink-700 mb-2">Reset your password</h3>
+                <p className="text-sm text-ink-400 mb-6">Enter your email address and we will send you a reset link.</p>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <input type="email" required value={fpEmail} onChange={e=>setFpEmail(e.target.value)}
+                    className="input-field" placeholder="your@email.com"/>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={()=>setShowForgot(false)} className="btn-ghost flex-1 justify-center text-sm">Cancel</button>
+                    <button type="submit" disabled={fpLoading} className="btn-gold flex-1 justify-center text-sm disabled:opacity-50">
+                      {fpLoading ? 'Sending…' : 'Send reset link'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
   );
 }

@@ -62,6 +62,15 @@ async function up() {
       created_at      TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Password reset tokens
+    CREATE TABLE IF NOT EXISTS password_resets (
+      user_id    UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+      token      VARCHAR(128) NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token);
+
     CREATE INDEX IF NOT EXISTS idx_exhibitions_dates    ON exhibitions(start_date, end_date);
     CREATE INDEX IF NOT EXISTS idx_exhibitions_slug     ON exhibitions(slug);
     CREATE INDEX IF NOT EXISTS idx_exhibitions_active   ON exhibitions(is_active, is_published);

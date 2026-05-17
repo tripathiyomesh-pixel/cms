@@ -1,4 +1,5 @@
 'use client';
+import { CurrencyProvider } from '@/components/ui/CurrencySwitcher';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { TEMPLATES, getTemplate } from '@/lib/templates';
 import Header from './Header';
@@ -48,7 +49,7 @@ export default function TemplateLayout({ children }) {
         <main>{children}</main>
         <Footer template={template} />
         <WhatsAppButton />
-        {/* Template preview bar (dev mode only) */}
+        {/* Template preview bar (dev mode only) */
         {process.env.NEXT_PUBLIC_SHOW_TEMPLATE_SWITCHER === 'true' && hydrated && (
           <TemplateSwitcherBar current={template} onSwitch={switchTemplate}/>
         )}

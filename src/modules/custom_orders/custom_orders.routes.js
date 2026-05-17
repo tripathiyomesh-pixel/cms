@@ -38,6 +38,16 @@ router.post('/', async (req, res) => {
     );
 
     const id = r[0]?.id || r.rows?.[0]?.id;
+
+    // Push to Vantix ERP if configured
+    if (process.env.ERP_API_URL && process.env.ERP_WEBHOOK_SECRET) {
+      fetch(`${process.env.ERP_API_URL}/crm/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'x-webhook-secret': process.env.ERP_WEBHOOK_SECRET },
+        body: JSON.stringify({ source:'cms_custom_order', order_number, customer_name, customer_phone, customer_email, description, metal_preference, stone_preference, budget_min, budget_max, currency }),
+      }).catch(e => console.log('ERP push skipped:', e.message));
+    }
+
     res.json({ success: true, data: { id, order_number }, message: 'Request received. We will contact you shortly.' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });

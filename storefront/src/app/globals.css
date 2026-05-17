@@ -22,3 +22,20 @@
   .badge-cert { @apply badge bg-green-100 text-green-700; }
   .input-field { @apply w-full border border-ink-200 rounded-xl px-4 py-3 text-sm text-ink-700 outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-100 transition-all; }
 }
+
+/* ── RTL Arabic support ── */
+[dir="rtl"] {
+  font-family: 'Segoe UI', Tahoma, 'Noto Kufi Arabic', sans-serif;
+}
+[dir="rtl"] .font-serif {
+  font-family: 'Noto Naskh Arabic', Georgia, serif;
+}
+[dir="rtl"] .flex        { flex-direction: row-reverse; }
+[dir="rtl"] .text-left   { text-align: right; }
+[dir="rtl"] .text-right  { text-align: left; }
+[dir="rtl"] .ml-auto     { margin-left: unset; margin-right: auto; }
+[dir="rtl"] .mr-auto     { margin-right: unset; margin-left: auto; }
+[dir="rtl"] .pl-4        { padding-left: unset; padding-right: 1rem; }
+[dir="rtl"] .pr-4        { padding-right: unset; padding-left: 1rem; }
+[dir="rtl"] .rounded-l-xl { border-radius: 0 .75rem .75rem 0; }
+[dir="rtl"] .rounded-r-xl { border-radius: .75rem 0 0 .75rem; }
