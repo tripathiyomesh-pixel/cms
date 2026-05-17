@@ -108,7 +108,8 @@ const MEGA_MENU = [
         items: [
           { to:'/users',      icon:Users,        label:'Users & roles' },
           { to:'/audit-log',  icon:ClipboardList,label:'Audit log' },
-          { to:'/dev-status', icon:Activity,     label:'Dev status' },
+          { to:'/dev-status',        icon:Activity,     label:'Dev status' },
+          { to:'/erp-integration',  icon:Zap,          label:'ERP Integration' },
         ],
       },
     ],
