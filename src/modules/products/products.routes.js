@@ -242,3 +242,53 @@ router.post('/:id/media', authenticate, authorize(['super_admin', 'admin', 'mana
 });
 
 module.exports = router;
+
+// ─── VARIANTS ─────────────────────────────────────────────────
+router.get('/:productId/variants', authenticate, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM product_variants WHERE product_id=$1 AND is_active=true ORDER BY sort_order ASC',
+      [req.params.productId]
+    );
+    res.json({ success: true, data: rows });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+router.post('/:productId/variants', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  try {
+    const { name, sku, attributes={}, price_delta=0, stock=0, weight, image_url, sort_order=0 } = req.body;
+    if (!name) return res.status(422).json({ success: false, message: 'name required' });
+    const autoSku = sku || `${req.params.productId.slice(-4).toUpperCase()}-V${Date.now().toString(36).toUpperCase().slice(-3)}`;
+    const [r] = await db.execute(
+      `INSERT INTO product_variants (product_id,name,sku,attributes,price_delta,stock,weight,image_url,sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [req.params.productId, name, autoSku, JSON.stringify(attributes), price_delta, stock, weight||null, image_url||null, sort_order]
+    );
+    res.json({ success: true, data: { id: r[0]?.id || r.rows?.[0]?.id }, message: 'Variant created' });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+router.patch('/:productId/variants/:variantId', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  try {
+    const fields = ['name','sku','price_delta','stock','weight','image_url','sort_order','is_active'];
+    const updates = fields.filter(f => req.body[f] !== undefined);
+    if (req.body.attributes !== undefined) updates.push('attributes');
+    if (!updates.length) return res.json({ success: true, message: 'Nothing to update' });
+    const vals = updates.map(f => f==='attributes' ? JSON.stringify(req.body[f]) : req.body[f]);
+    vals.push(req.params.variantId, req.params.productId);
+    await db.query(
+      `UPDATE product_variants SET ${updates.map((f,i)=>`${f}=$${i+1}`).join(',')},updated_at=NOW()
+       WHERE id=$${vals.length-1} AND product_id=$${vals.length}`,
+      vals
+    );
+    res.json({ success: true, message: 'Variant updated' });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+router.delete('/:productId/variants/:variantId', authenticate, authorize(['super_admin','admin']), async (req, res) => {
+  try {
+    await db.query('UPDATE product_variants SET is_active=false,updated_at=NOW() WHERE id=$1 AND product_id=$2',
+      [req.params.variantId, req.params.productId]);
+    res.json({ success: true, message: 'Variant removed' });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});

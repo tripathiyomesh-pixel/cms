@@ -17,3 +17,4 @@ docker compose exec backend node src/database/migrations/007_relax_product_colum
 docker compose exec backend node src/database/migrations/008_inventory_engine.js
 docker compose exec backend node src/database/migrations/009_blog.js
 docker compose exec backend node src/database/migrations/010_erp_integration.js
+docker compose exec backend node src/database/migrations/011_complete_backend.js

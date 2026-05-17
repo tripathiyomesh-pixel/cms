@@ -57,3 +57,4 @@ async function up() {
   await client.end();
 }
 up().catch(e => { console.error('❌', e.message); process.exit(1); });
+// NOTE: run after main migration
