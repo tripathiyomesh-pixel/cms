@@ -99,6 +99,11 @@ router.post('/bulk', authenticate, authorize(['super_admin','admin']), async (re
       if (!s.key) continue;
       await Setting.upsert({ key: s.key, value: String(s.value ?? ''), is_public: false });
     }
+    // Clear storefront cache so template change takes effect immediately
+    try { 
+      const redis = require('../../config/redis');
+      await redis.cache.del('storefront:store');
+    } catch(e) { /* redis optional */ }
     return res.json({ success:true, message:settings.length + ' settings saved' });
   } catch(e) { return res.status(500).json({ success:false, message:e.message }); }
 });

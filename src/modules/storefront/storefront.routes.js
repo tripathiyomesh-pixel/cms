@@ -22,7 +22,8 @@ router.get('/store', async (req, res) => {
     settings.forEach(s => { map[s.key] = s.value; });
     const [locations] = await db.query(`SELECT * FROM store_locations WHERE is_active = true ORDER BY is_primary DESC`);
     const [badges] = await db.query(`SELECT * FROM trust_badges WHERE is_active = true ORDER BY sort_order`);
-    const data = { settings: map, locations, badges };
+    // Include storefront template setting at top level for easy access
+    const data = { settings: map, locations, badges, storefront_template: map.storefront_template || 'luxury-dark' };
     await cache.set('storefront:store', data, TTL);
     res.json({ success: true, data });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }

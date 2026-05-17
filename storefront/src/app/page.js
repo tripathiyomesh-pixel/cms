@@ -1,28 +1,24 @@
-import { TEMPLATES, getTemplate } from '@/lib/templates';
+'use client';
+import { useEffect, useState } from 'react';
+import { useTemplateContext } from '@/components/layout/TemplateLayout';
+import dynamic from 'next/dynamic';
 
-// Dynamic template import based on env
-async function getTemplateComponent() {
-  const template = getTemplate();
-  switch(template.id) {
-    case 'luxury-dark':
-      const { default: LuxuryDark }    = await import('@/templates/luxury-dark/HomePage');
-      return LuxuryDark;
-    case 'clean-minimal':
-      const { default: CleanMinimal }  = await import('@/templates/clean-minimal/HomePage');
-      return CleanMinimal;
-    case 'boutique-warm':
-      const { default: BoutiqueWarm }  = await import('@/templates/boutique-warm/HomePage');
-      return BoutiqueWarm;
-    case 'diamond-dealer':
-      const { default: DiamondDealer } = await import('@/templates/diamond-dealer/HomePage');
-      return DiamondDealer;
-    default:
-      const { default: Default }       = await import('@/templates/luxury-dark/HomePage');
-      return Default;
-  }
-}
+// Load all templates but only render the active one
+const LuxuryDark    = dynamic(()=>import('@/templates/luxury-dark/HomePage'),    { ssr:false });
+const CleanMinimal  = dynamic(()=>import('@/templates/clean-minimal/HomePage'),  { ssr:false });
+const BoutiqueWarm  = dynamic(()=>import('@/templates/boutique-warm/HomePage'),  { ssr:false });
+const DiamondDealer = dynamic(()=>import('@/templates/diamond-dealer/HomePage'), { ssr:false });
 
-export default async function HomePage() {
-  const TemplateComponent = await getTemplateComponent();
-  return <TemplateComponent />;
+const TEMPLATE_COMPONENTS = {
+  'luxury-dark':    LuxuryDark,
+  'clean-minimal':  CleanMinimal,
+  'boutique-warm':  BoutiqueWarm,
+  'diamond-dealer': DiamondDealer,
+};
+
+export default function HomePage() {
+  const ctx = useTemplateContext();
+  const templateId = ctx?.template?.id || 'luxury-dark';
+  const Component  = TEMPLATE_COMPONENTS[templateId] || LuxuryDark;
+  return <Component />;
 }
