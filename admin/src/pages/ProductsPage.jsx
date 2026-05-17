@@ -54,8 +54,6 @@ export default function ProductsPage() {
       <Topbar
         title="Products"
         subtitle={`${pagination.total || 0} total products`}
-        collapsed={collapsed}
-        onToggle={toggleSidebar}
         actions={
           <button onClick={() => navigate('/products/new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={14} /> Add product

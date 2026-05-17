@@ -173,7 +173,6 @@ export default function ProductFormPage() {
       <Topbar
         title={isEdit ? 'Edit product' : 'New product'}
         subtitle={activePlugins.length > 0 ? `Active plugins: ${activePlugins.join(', ')}` : 'No plugins installed — showing universal fields only'}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <div className="flex gap-2">
             <button onClick={() => navigate('/products')} className="btn-outline flex items-center gap-1.5 text-xs">

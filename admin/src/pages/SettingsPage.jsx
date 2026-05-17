@@ -132,8 +132,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <Topbar title="Settings" subtitle="Store configuration and preferences"
-        collapsed={collapsed} onToggle={toggleSidebar}/>
+      <Topbar title="Settings" subtitle="Store configuration and preferences"/>
 
       <div className="flex-1 overflow-y-auto p-5">
         <div className="max-w-3xl flex gap-5">

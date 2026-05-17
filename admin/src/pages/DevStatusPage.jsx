@@ -370,7 +370,6 @@ export default function DevStatusPage() {
   return (
     <>
       <Topbar title="System status" subtitle={`${PLATFORM} ${VERSION} · ${LAST_UPDATED}`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={check} className="btn-outline flex items-center gap-1.5 text-xs">
             <i className={`ti ti-refresh ${refreshing?"animate-spin":""}`} aria-hidden="true"/>

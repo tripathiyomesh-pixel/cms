@@ -5,7 +5,7 @@ export function PlaceholderPage({ title, subtitle }) {
   const { collapsed, toggleSidebar } = useOutletContext();
   return (
     <>
-      <Topbar title={title} subtitle={subtitle} collapsed={collapsed} onToggle={toggleSidebar} />
+      <Topbar title={title} subtitle={subtitle} />
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-gold-50 dark:bg-gold-900/20 flex items-center justify-center mx-auto mb-4">

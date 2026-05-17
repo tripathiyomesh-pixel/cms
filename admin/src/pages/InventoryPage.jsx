@@ -41,7 +41,6 @@ export default function InventoryPage() {
   return (
     <>
       <Topbar title="Inventory" subtitle="Stock levels and alerts"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <div className="flex gap-2">
             {bulkMode ? (

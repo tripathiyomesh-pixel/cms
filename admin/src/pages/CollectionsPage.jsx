@@ -34,7 +34,6 @@ export default function CollectionsPage() {
   return (
     <>
       <Topbar title="Collections" subtitle={`${collections.length} collections`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={() => setModal('new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={14} /> New collection

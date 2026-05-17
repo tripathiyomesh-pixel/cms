@@ -55,8 +55,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <Topbar title="Orders" subtitle={`${total} orders`}
-        collapsed={collapsed} onToggle={toggleSidebar} />
+      <Topbar title="Orders" subtitle={`${total} orders`} />
 
       <div className="flex-1 overflow-y-auto p-5">
         {/* Filters */}

@@ -65,7 +65,6 @@ export default function TrustBadgesPage() {
   return (
     <>
       <Topbar title="Trust badges" subtitle="Displayed on your storefront to build customer confidence"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<button onClick={() => setShowForm(true)} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14} /> Add badge</button>} />
 
       <div className="flex-1 overflow-y-auto p-5">

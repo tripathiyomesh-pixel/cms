@@ -43,7 +43,6 @@ export default function CustomersPage() {
   return (
     <>
       <Topbar title="Customers" subtitle={`${total} customers`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={handleImport} disabled={importing}
             className="btn-gold flex items-center gap-1.5 text-xs">

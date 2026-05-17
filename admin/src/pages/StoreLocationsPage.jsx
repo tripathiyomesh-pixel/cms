@@ -61,7 +61,6 @@ export default function StoreLocationsPage() {
   return (
     <>
       <Topbar title="Store locations" subtitle={`${locations.length} boutique${locations.length !== 1 ? 's' : ''}`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<button onClick={() => setShowForm(true)} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14} /> Add location</button>} />
 
       <div className="flex-1 overflow-y-auto p-5">

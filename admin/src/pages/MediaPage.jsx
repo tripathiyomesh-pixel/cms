@@ -76,7 +76,6 @@ export default function MediaPage() {
   return (
     <>
       <Topbar title="Media library" subtitle={`${media.length} files`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <div className="flex items-center gap-2">
             <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}

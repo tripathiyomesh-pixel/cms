@@ -36,7 +36,6 @@ export default function GemstonesPage() {
   return (
     <>
       <Topbar title="Gemstones" subtitle={`${total} coloured stones in inventory`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<button onClick={()=>navigate('/gemstones/new')} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>Add gemstone</button>}/>
       <div className="flex-1 overflow-y-auto p-5">
         <div className="card p-4 mb-4 flex gap-3">

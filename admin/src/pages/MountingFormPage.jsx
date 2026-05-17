@@ -106,7 +106,6 @@ export default function MountingFormPage() {
   return (
     <>
       <Topbar title={isEdit?'Edit mounting':'Add mounting'} subtitle="Mounting catalogue"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<div className="flex gap-2">
           <button onClick={()=>navigate('/mountings')} className="btn-outline flex items-center gap-1.5 text-xs"><ArrowLeft size={13}/>Back</button>
           <button onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs disabled:opacity-50"><Save size={13}/>{saving?'Saving…':'Save mounting'}</button>

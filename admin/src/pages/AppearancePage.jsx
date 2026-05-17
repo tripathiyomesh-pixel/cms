@@ -77,7 +77,6 @@ export default function AppearancePage() {
   return (
     <>
       <Topbar title="Appearance" subtitle="Customise how the admin panel looks"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs">
             <Save size={13}/>{saving ? 'Saving…' : 'Save preferences'}

@@ -69,7 +69,7 @@ export default function ExhibitionsPage() {
 
   return (
     <>
-      <Topbar title="Exhibitions" subtitle="Trade shows, VIP events and exhibitions" collapsed={collapsed} onToggle={toggleSidebar}
+      <Topbar title="Exhibitions" subtitle="Trade shows, VIP events and exhibitions"
         actions={<button onClick={openNew} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>Add exhibition</button>}/>
 
       <div className="flex-1 overflow-y-auto p-5">

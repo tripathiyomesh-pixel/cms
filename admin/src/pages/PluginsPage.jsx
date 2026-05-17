@@ -80,8 +80,7 @@ export default function PluginsPage() {
 
   return (
     <>
-      <Topbar title="Plugin marketplace" subtitle={`${installed.length} installed · ${available.length} available`}
-        collapsed={collapsed} onToggle={toggleSidebar}/>
+      <Topbar title="Plugin marketplace" subtitle={`${installed.length} installed · ${available.length} available`}/>
 
       <div className="flex-1 overflow-y-auto p-5">
 

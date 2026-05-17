@@ -70,7 +70,6 @@ export default function DashboardPage() {
   return (
     <>
       <Topbar title="Dashboard" subtitle={`Welcome back, ${user?.name || 'Admin'} 👋`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={() => navigate('/products/new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={14} /> Add product

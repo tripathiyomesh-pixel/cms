@@ -83,7 +83,6 @@ export default function UsersPage() {
   return (
     <>
       <Topbar title="Users & permissions" subtitle={`${users.length} team members`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={isAdmin && (
           <button onClick={() => setModal('new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <UserPlus size={14}/> Invite user

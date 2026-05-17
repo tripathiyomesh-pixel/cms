@@ -59,8 +59,7 @@ export default function CustomOrdersPage() {
 
   return (
     <>
-      <Topbar title="Custom jewellery orders" subtitle={`${total} custom orders`}
-        collapsed={collapsed} onToggle={toggleSidebar}/>
+      <Topbar title="Custom jewellery orders" subtitle={`${total} custom orders`}/>
 
       <div className="flex-1 overflow-y-auto p-5">
         {/* Filters */}

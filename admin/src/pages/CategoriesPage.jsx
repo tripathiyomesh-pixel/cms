@@ -63,7 +63,6 @@ export default function CategoriesPage() {
   return (
     <>
       <Topbar title="Categories" subtitle={`${flatList.length} categories`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={() => setModal('new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={14} /> Add category

@@ -47,7 +47,6 @@ export default function PageBuilderPage() {
   return (
     <>
       <Topbar title="Page builder" subtitle="Customise every section of your storefront"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs">
             <Save size={13}/>{saving?'Saving…':'Save all changes'}

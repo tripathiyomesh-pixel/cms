@@ -49,7 +49,6 @@ export default function DiamondsPage() {
   return (
     <>
       <Topbar title="Diamonds" subtitle={`${total} stones in inventory`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<div className="flex gap-2">
           <button onClick={()=>setShowFilters(!showFilters)} className="btn-outline flex items-center gap-1.5 text-xs"><Filter size={13}/>Filters</button>
           <button onClick={()=>navigate('/diamonds/new')} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>Add diamond</button>

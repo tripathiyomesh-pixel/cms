@@ -50,8 +50,7 @@ export default function RapNetSettingsPage() {
 
   return (
     <>
-      <Topbar title="RapNet settings" subtitle="Instant Inventory integration — live diamond feed"
-        collapsed={collapsed} onToggle={toggleSidebar}/>
+      <Topbar title="RapNet settings" subtitle="Instant Inventory integration — live diamond feed"/>
 
       <div className="flex-1 overflow-y-auto p-5">
         <div className="max-w-2xl space-y-4">

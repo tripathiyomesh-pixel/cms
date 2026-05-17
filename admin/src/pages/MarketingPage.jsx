@@ -40,7 +40,6 @@ export default function MarketingPage() {
   return (
     <>
       <Topbar title="Marketing" subtitle="Banners and promo codes"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={
           <button onClick={() => setModal(tab === 'banners' ? 'banner' : 'promo')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={14} /> {tab === 'banners' ? 'New banner' : 'New promo code'}

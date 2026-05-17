@@ -32,7 +32,7 @@ export default function PearlsPage() {
 
   return (
     <>
-      <Topbar title="Pearls" subtitle={`${total} pearls in inventory`} collapsed={collapsed} onToggle={toggleSidebar}
+      <Topbar title="Pearls" subtitle={`${total} pearls in inventory`}
         actions={<button onClick={()=>navigate('/pearls/new')} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>Add pearl</button>}/>
       <div className="flex-1 overflow-y-auto p-5">
         <div className="card p-4 mb-4 flex gap-3 flex-wrap">

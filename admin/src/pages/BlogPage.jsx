@@ -59,7 +59,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <Topbar title="Blog & content" subtitle={`${total} posts`} collapsed={collapsed} onToggle={toggleSidebar}
+      <Topbar title="Blog & content" subtitle={`${total} posts`}
         actions={<button onClick={openNew} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>New post</button>}/>
 
       <div className="flex-1 overflow-y-auto p-5">

@@ -34,7 +34,6 @@ export default function MountingsPage() {
   return (
     <>
       <Topbar title="Mountings" subtitle={`${total} mountings in catalogue`}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<button onClick={()=>navigate('/mountings/new')} className="btn-gold flex items-center gap-1.5 text-xs"><Plus size={14}/>Add mounting</button>}/>
       <div className="flex-1 overflow-y-auto p-5">
         <div className="card p-4 mb-4 flex gap-3">

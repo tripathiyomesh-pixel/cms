@@ -49,8 +49,7 @@ export default function FeatureFlagsPage() {
 
   return (
     <>
-      <Topbar title="Feature flags" subtitle="Enable or disable modules per client installation"
-        collapsed={collapsed} onToggle={toggleSidebar}/>
+      <Topbar title="Feature flags" subtitle="Enable or disable modules per client installation"/>
 
       <div className="flex-1 overflow-y-auto p-5">
         {loading ? <p className="text-sm text-ink-400">Loading…</p> : (

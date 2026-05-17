@@ -40,8 +40,7 @@ export default function AuditLogPage() {
 
   return (
     <>
-      <Topbar title="Audit log" subtitle={`${total} events recorded`}
-        collapsed={collapsed} onToggle={toggleSidebar} />
+      <Topbar title="Audit log" subtitle={`${total} events recorded`} />
 
       <div className="flex-1 overflow-y-auto p-5">
         {/* Filters */}

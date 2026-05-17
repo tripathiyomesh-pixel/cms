@@ -68,7 +68,6 @@ export default function ImportEnginePage() {
   return (
     <>
       <Topbar title="Import engine" subtitle="Bulk import diamonds, gemstones, jewellery via CSV"
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<button onClick={loadJobs} className="btn-outline flex items-center gap-1.5 text-xs"><RefreshCw size={13}/>Refresh jobs</button>}/>
 
       <div className="flex-1 overflow-y-auto p-5 space-y-5">

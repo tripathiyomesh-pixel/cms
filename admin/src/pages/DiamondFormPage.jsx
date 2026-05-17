@@ -93,7 +93,6 @@ export default function DiamondFormPage() {
     <>
       <Topbar title={isEdit?'Edit diamond':'Add diamond'}
         subtitle={isEdit?`SKU: ${form.sku||id}`:'New loose diamond inventory'}
-        collapsed={collapsed} onToggle={toggleSidebar}
         actions={<div className="flex gap-2">
           <button onClick={()=>navigate('/diamonds')} className="btn-outline flex items-center gap-1.5 text-xs"><ArrowLeft size={13}/>Back</button>
           <button onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs disabled:opacity-50"><Save size={13}/>{saving?'Saving…':'Save diamond'}</button>
