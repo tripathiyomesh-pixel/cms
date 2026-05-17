@@ -1,24 +1,8 @@
-import GemstonesPage from './pages/GemstonesPage';
-import GemstoneFormPage from './pages/GemstoneFormPage';
-import MountingsPage from './pages/MountingsPage';
-import DiamondsPage from './pages/DiamondsPage';
-import DiamondFormPage from './pages/DiamondFormPage';
-import SuppliersPage from './pages/SuppliersPage';
-import CustomOrdersPage from './pages/CustomOrdersPage';
-import FeatureFlagsPage from './pages/FeatureFlagsPage';
-import CustomersPage from './pages/CustomersPage';
-import AuditLogPage from './pages/AuditLogPage';
-import StoreLocationsPage from './pages/StoreLocationsPage';
-import TrustBadgesPage from './pages/TrustBadgesPage';
-import DevStatusPage from './pages/DevStatusPage';
-import AppointmentsAdminPage from './pages/AppointmentsAdminPage';
-import AppointmentBookingModal from './pages/AppointmentBookingModal';
-import JewellerySpecsForm from './pages/JewellerySpecsForm';
-import EnquiriesPage from './pages/EnquiriesPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+
 import AppLayout from './components/layout/AppLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -28,20 +12,31 @@ import CollectionsPage from './pages/CollectionsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import InventoryPage from './pages/InventoryPage';
 import MarketingPage from './pages/MarketingPage';
+import MediaPage from './pages/MediaPage';
 import UsersPage from './pages/UsersPage';
 import SettingsPage from './pages/SettingsPage';
 import PluginsPage from './pages/PluginsPage';
-import MediaPage from './pages/MediaPage';
+import EnquiriesPage from './pages/EnquiriesPage';
+import AppointmentsAdminPage from './pages/AppointmentsAdminPage';
+import JewellerySpecsForm from './pages/JewellerySpecsForm';
+import StoreLocationsPage from './pages/StoreLocationsPage';
+import TrustBadgesPage from './pages/TrustBadgesPage';
+import CustomersPage from './pages/CustomersPage';
 import OrdersPage from './pages/OrdersPage';
-import PageBuilderPage from './pages/PageBuilderPage';
+import AuditLogPage from './pages/AuditLogPage';
+import DevStatusPage from './pages/DevStatusPage';
+import DiamondsPage from './pages/DiamondsPage';
+import DiamondFormPage from './pages/DiamondFormPage';
+import GemstonesPage from './pages/GemstonesPage';
+import GemstoneFormPage from './pages/GemstoneFormPage';
+import MountingsPage from './pages/MountingsPage';
+import SuppliersPage from './pages/SuppliersPage';
+import CustomOrdersPage from './pages/CustomOrdersPage';
+import FeatureFlagsPage from './pages/FeatureFlagsPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="h-screen flex items-center justify-center bg-ink-50 dark:bg-ink-900">
-      <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-    </div>
-  );
+  if (loading) return <div className="flex items-center justify-center h-screen text-sm text-ink-400">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
@@ -53,63 +48,57 @@ function GuestRoute({ children }) {
   return children;
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route index element={<DashboardPage />} />
+        <Route path="products" element={<ProductsPage />} />
+        <Route path="products/new" element={<ProductFormPage />} />
+        <Route path="products/:id" element={<ProductFormPage />} />
+        <Route path="jewellery-specs/:productId" element={<JewellerySpecsForm />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="collections" element={<CollectionsPage />} />
+        <Route path="media" element={<MediaPage />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="marketing" element={<MarketingPage />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="enquiries" element={<EnquiriesPage />} />
+        <Route path="appointments" element={<AppointmentsAdminPage />} />
+        <Route path="customers" element={<CustomersPage />} />
+        <Route path="locations" element={<StoreLocationsPage />} />
+        <Route path="trust-badges" element={<TrustBadgesPage />} />
+        <Route path="plugins" element={<PluginsPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="audit-log" element={<AuditLogPage />} />
+        <Route path="dev-status" element={<DevStatusPage />} />
+        <Route path="diamonds" element={<DiamondsPage />} />
+        <Route path="diamonds/new" element={<DiamondFormPage />} />
+        <Route path="diamonds/:id" element={<DiamondFormPage />} />
+        <Route path="gemstones" element={<GemstonesPage />} />
+        <Route path="gemstones/new" element={<GemstoneFormPage />} />
+        <Route path="gemstones/:id" element={<GemstoneFormPage />} />
+        <Route path="mountings" element={<MountingsPage />} />
+        <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="custom-orders" element={<CustomOrdersPage />} />
+        <Route path="feature-flags" element={<FeatureFlagsPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
-    <ThemeProvider>
+    <BrowserRouter>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Auth */}
-            <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-
-            {/* Protected CMS */}
-            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route index element={<DashboardPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="products/new" element={<ProductFormPage />} />
-              <Route path="products/:id" element={<ProductFormPage />} />
-              <Route path="collections" element={<CollectionsPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
-              <Route path="pages" element={<PageBuilderPage />} />
-              <Route path="media" element={<MediaPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="marketing" element={<MarketingPage />} />
-              <Route path="orders" element={<OrdersPage />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="plugins" element={<PluginsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="dev-status" element={<DevStatusPage />} />
-              <Route path="locations" element={<StoreLocationsPage />} />
-              <Route path="trust-badges" element={<TrustBadgesPage />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="audit-log" element={<AuditLogPage />} />
-              <Route path="diamonds" element={<DiamondsPage />} />
-              <Route path="diamonds/new" element={<DiamondFormPage />} />
-              <Route path="diamonds/:id" element={<DiamondFormPage />} />
-              <Route path="suppliers" element={<SuppliersPage />} />
-              <Route path="custom-orders" element={<CustomOrdersPage />} />
-              <Route path="feature-flags" element={<FeatureFlagsPage />} />
-              <Route path="gemstones" element={<GemstonesPage />} />
-              <Route path="gemstones/new" element={<GemstoneFormPage />} />
-              <Route path="gemstones/:id" element={<GemstoneFormPage />} />
-              <Route path="mountings" element={<MountingsPage />} />
-            </Route>
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/jewellery-specs/:productId" element={<JewellerySpecsForm />} />
-          <Route path="/enquiries" element={<EnquiriesPage />} />
-          <Route path="/appointments" element={<AppointmentsAdminPage />} />
-        </Routes>
-        </BrowserRouter>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: { fontSize: '13px', borderRadius: '10px', padding: '10px 16px' },
-            success: { iconTheme: { primary: '#B8973E', secondary: '#fff' } },
-          }}
-        />
+        <ThemeProvider>
+          <AppRoutes />
+          <Toaster position="top-right" toastOptions={{ duration: 3000, style: { fontSize: 13 } }} />
+        </ThemeProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </BrowserRouter>
   );
 }
