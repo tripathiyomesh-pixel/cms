@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
-import { toggleAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
