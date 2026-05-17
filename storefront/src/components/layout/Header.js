@@ -30,6 +30,8 @@ const NAV = [
   ]},
   { label:'Mountings',  href:'/mountings' },
   { label:'Custom',     href:'/custom' },
+  { label:'Ring builder',href:'/ring-builder' },
+  { label:'Blog',        href:'/blog' },
 ];
 
 export default function Header() {

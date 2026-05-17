@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import Topbar from "../components/layout/Topbar";
 import api from "../services/api";
 
-const LAST_UPDATED = "2026-05-17 — RapNet Instant Inventory added";
+const LAST_UPDATED = "2026-05-17 — All detail pages + ring builder + blog built";
 const PLATFORM     = "Jewellery Commerce OS";
 const VERSION      = "v0.9";
 
@@ -211,7 +211,7 @@ const BACKEND = [
       { n:"RapNet subscription required (Instant Inventory add-on)", s:1, note:true },
       { n:"Fancy color diamonds search", s:1 },
       { n:"Jewellery feed (widget only — no API per RapNet)", s:0 },
-      { n:"Admin page — RapNet settings (token, markup, supplier selection)", s:0 },
+      { n:"Admin page — RapNet settings (token, markup, supplier selection)", s:1 },
       { n:"Storefront — /diamonds?source=rapnet combined view with own inventory", s:0 },
     ]},
   { id:"erp",       phase:"Commerce",   icon:"ti-refresh",        name:"Vantix ERP Integration",
@@ -281,16 +281,16 @@ const STOREFRONT = [
   { n:"Metal rates bar — live from API", s:1 },
   { n:"Appointment CTA section", s:1 },
   // PENDING
-  { n:"Diamond detail page — /diamonds/:id (gallery, 4Cs, cert, WhatsApp, related)", s:0 },
-  { n:"Gemstone detail page — /gemstones/:id", s:0 },
-  { n:"Pearl detail page — /pearls/:id", s:0 },
-  { n:"Mounting detail page — /mountings/:id + compatible diamonds", s:0 },
-  { n:"Jewellery detail page — /jewellery/:slug (gallery, specs, variants, WhatsApp)", s:0 },
-  { n:"Ring builder UI — pick diamond + mounting = combined price", s:0 },
-  { n:"Blog listing page — /blog", s:0 },
-  { n:"Blog single post — /blog/:slug", s:0 },
+  { n:"Diamond detail page — /diamonds/:id (gallery, 4Cs, cert, WhatsApp, related)", s:1 },
+  { n:"Gemstone detail page — /gemstones/:id", s:1 },
+  { n:"Pearl detail page — /pearls/:id", s:1 },
+  { n:"Mounting detail page — /mountings/:id + compatible diamonds", s:1 },
+  { n:"Jewellery detail page — /jewellery/:slug (gallery, specs, variants, WhatsApp)", s:1 },
+  { n:"Ring builder UI — pick diamond + mounting = combined price", s:1 },
+  { n:"Blog listing page — /blog", s:1 },
+  { n:"Blog single post — /blog/:slug", s:1 },
   { n:"About page — brand story, locations, certifications", s:0 },
-  { n:"SEO — metadata per page, Open Graph, schema.org injection", s:0 },
+  { n:"SEO — metadata per page, Open Graph, schema.org injection", s:1 },
   { n:"Arabic RTL support — dir=rtl on html tag", s:0 },
   { n:"Multi-currency display — AED / USD / SAR switcher", s:0 },
   { n:"Wishlist page — saved items (session + localStorage)", s:0 },
