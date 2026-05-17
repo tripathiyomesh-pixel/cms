@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, Layers, FolderTree, Image, Megaphone,
-  ShoppingCart, BarChart3, Users, Shield, LogOut, Puzzle, Activity,
+  ShoppingCart, BarChart3, Users, Shield, Puzzle, Activity,
   MapPin, ShieldCheck, ClipboardList, Upload, BookOpen, Paintbrush,
   Zap, ToggleLeft, Calendar, Hexagon, Circle, Star, MessageSquare,
   UserCheck, Settings, ChevronDown, ChevronRight, Layout,
@@ -79,7 +79,7 @@ const NAV_SECTIONS = [
 
 // ─── SIDEBAR COMPONENT ────────────────────────────────────────
 export default function Sidebar({ collapsed }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const [collapsedSections, setCollapsedSections] = useState({});
 
@@ -189,28 +189,12 @@ export default function Sidebar({ collapsed }) {
         })}
       </nav>
 
-      {/* User + logout */}
-      <div style={{ borderTop: '0.5px solid var(--color-border-tertiary)', padding: collapsed ? '10px 4px' : '10px 12px' }}>
-        {!collapsed && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#c9a84c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-              {user?.name?.[0]?.toUpperCase() || 'A'}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>{user?.role?.replace('_',' ')}</div>
-            </div>
-          </div>
-        )}
-        <button onClick={logout}
-          title={collapsed ? 'Logout' : undefined}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: collapsed ? '8px 0' : '7px 8px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-secondary)', transition: 'all .15s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-secondary)'; }}>
-          <LogOut size={14} style={{ flexShrink: 0 }}/>
-          {!collapsed && <span style={{ fontSize: 12 }}>Log out</span>}
-        </button>
-      </div>
+      {/* Bottom — version only */}
+      {!collapsed && (
+        <div style={{ borderTop: '0.5px solid var(--color-border-tertiary)', padding: '8px 14px' }}>
+          <p style={{ fontSize: 9, color: 'var(--color-text-secondary)', opacity: 0.5, letterSpacing: '0.05em' }}>JewelCMS v0.9 · KenTech</p>
+        </div>
+      )}
     </aside>
   );
 }
