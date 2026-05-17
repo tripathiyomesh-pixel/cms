@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import Topbar from "../components/layout/Topbar";
 import api from "../services/api";
 
-const LAST_UPDATED = "2026-05-17 — Backend 100% · Frontend starting";
+const LAST_UPDATED = "2026-05-17 — RapNet Instant Inventory added";
 const PLATFORM     = "Jewellery Commerce OS";
 const VERSION      = "v0.9";
 
@@ -197,6 +197,23 @@ const BACKEND = [
       { n:"Wishlist — add, get, remove (session-based)", s:1 },
     ]},
 
+
+  { id:"rapnet",    phase:"Commerce",   icon:"ti-diamond",        name:"RapNet Instant Inventory",
+    items:[
+      { n:"POST /api/rapnet/diamonds — live diamond search from RapNet global suppliers", s:1 },
+      { n:"GET /api/rapnet/diamonds/:id — single diamond detail (live)", s:1 },
+      { n:"GET /api/rapnet/diamonds/:id/certificate — cert download URL", s:1 },
+      { n:"GET /api/rapnet/price-list — Rapaport price list API", s:1 },
+      { n:"GET /api/rapnet/status — check if RapNet is connected", s:1 },
+      { n:"RAPNET_TOKEN env var — Bearer token from RapNet account", s:1 },
+      { n:"RAPNET_MARKUP_PCT env var — markup % applied to RapNet prices", s:1 },
+      { n:"NOTE: Diamonds are NEVER stored in local DB (per RapNet terms)", s:1, note:true },
+      { n:"RapNet subscription required (Instant Inventory add-on)", s:1, note:true },
+      { n:"Fancy color diamonds search", s:1 },
+      { n:"Jewellery feed (widget only — no API per RapNet)", s:0 },
+      { n:"Admin page — RapNet settings (token, markup, supplier selection)", s:0 },
+      { n:"Storefront — /diamonds?source=rapnet combined view with own inventory", s:0 },
+    ]},
   { id:"erp",       phase:"Commerce",   icon:"ti-refresh",        name:"Vantix ERP Integration",
     items:[
       { n:"POST /api/orders/erp-sync — order status from ERP → CMS", s:1 },
@@ -277,6 +294,7 @@ const STOREFRONT = [
   { n:"Arabic RTL support — dir=rtl on html tag", s:0 },
   { n:"Multi-currency display — AED / USD / SAR switcher", s:0 },
   { n:"Wishlist page — saved items (session + localStorage)", s:0 },
+  { n:"RapNet diamonds integration — /diamonds?source=rapnet shows live RapNet feed alongside own inventory", s:0 },
   { n:"Search results page — /search?q=", s:0 },
   { n:"Homepage templates — luxury, modern, minimal (3 variants)", s:0 },
   { n:"Product page templates — 2 layout options", s:0 },
