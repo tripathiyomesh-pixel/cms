@@ -140,7 +140,7 @@ function DiamondsContent() {
               {k.replace(/_/g,' ')}: {v} <X size={10}/>
             </button>
           ))}
-          <button onClick={()=>setFilters(Object.fromEntries(Object.keys(filters).map(k=>[k,''))))} className="text-xs text-ink-400 hover:text-red-500 px-2">Clear all</button>
+          <button onClick={()=>setFilters(Object.fromEntries(Object.keys(filters).map(k=>[k,''])))} className="text-xs text-ink-400 hover:text-red-500 px-2">Clear all</button>
         </div>
       )}
 
