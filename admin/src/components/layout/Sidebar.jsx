@@ -1,108 +1,215 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, Layers, FolderTree, Image, Megaphone,
-  ShoppingCart, BarChart3, Layout, Users, Settings, Shield, LogOut, Puzzle, Activity, MapPin, ShieldCheck, UserCheck, ClipboardList, Gem, Truck, Hammer, ToggleLeft, Sparkles, Hexagon, Circle, Upload, BookOpen, Paintbrush, Zap,
+  ShoppingCart, BarChart3, Users, Shield, LogOut, Puzzle, Activity,
+  MapPin, ShieldCheck, ClipboardList, Upload, BookOpen, Paintbrush,
+  Zap, ToggleLeft, Calendar, Hexagon, Circle, Star, MessageSquare,
+  UserCheck, Settings, ChevronDown, ChevronRight, Layout,
 } from 'lucide-react';
 
-const NAV = [
-  { label: 'Main', items: [
-    { to: '/',            icon: LayoutDashboard, text: 'Dashboard' },
-    { to: '/pages',       icon: Layout,          text: 'Page builder' },
-    { to: '/products',    icon: Package,         text: 'Products' },
-    { to: '/collections', icon: Layers,          text: 'Collections' },
-    { to: '/categories',  icon: FolderTree,      text: 'Categories' },
-    { to: '/media',       icon: Image,           text: 'Media library' },
-  ]},
-  { label: 'Commerce', items: [
-    { to: '/inventory',   icon: BarChart3,       text: 'Inventory' },
-    { to: '/marketing',   icon: Megaphone,       text: 'Marketing' },
-    { to: '/orders',      icon: ShoppingCart,     text: 'Orders' },
-  ]},
-  { label: 'System', items: [
-    { to: '/plugins',     icon: Puzzle,          text: 'Plugins' },
-    { to: '/users',       icon: Users,           text: 'Users' },
-    { to: '/settings',    icon: Settings,        text: 'Settings' },
-    { to: '/appearance',  icon: Paintbrush,      text: 'Appearance' },
-    { to: '/rapnet',      icon: Zap,             text: 'RapNet settings' },
-    { to: '/exhibitions', icon: MapPin,           text: 'Exhibitions' },
-    { to: '/page-builder', icon: Layout,           text: 'Page builder' },
-    { to: '/dev-status',  icon: Activity,        text: 'Dev status' },
-    { to: '/audit-log',   icon: ClipboardList,   text: 'Audit log' },
-    { to: '/feature-flags',icon: ToggleLeft,     text: 'Feature flags' },
-    { to: '/locations',   icon: MapPin,           text: 'Locations' },
-    { to: '/trust-badges',icon: ShieldCheck,      text: 'Trust badges' },
-  ]},
+// ─── NAVIGATION STRUCTURE ────────────────────────────────────
+// Settings / Appearance / RapNet / Feature flags / Users / Audit
+// are NOT in the main sidebar — they belong under Settings
+// Only operational modules appear as main nav items
+
+const NAV_SECTIONS = [
+  {
+    label: 'Main',
+    items: [
+      { to: '/',            icon: LayoutDashboard, text: 'Dashboard' },
+      { to: '/products',    icon: Package,         text: 'Products / Jewellery' },
+      { to: '/diamonds',    icon: Hexagon,         text: 'Diamonds' },
+      { to: '/gemstones',   icon: Circle,             text: 'Gemstones' },
+      { to: '/pearls',      icon: Star,            text: 'Pearls' },
+      { to: '/mountings',   icon: Layers,          text: 'Mountings' },
+    ],
+  },
+  {
+    label: 'Catalogue',
+    items: [
+      { to: '/categories',  icon: FolderTree,      text: 'Categories' },
+      { to: '/collections', icon: Layers,          text: 'Collections' },
+      { to: '/media',       icon: Image,           text: 'Media library' },
+      { to: '/inventory',   icon: BarChart3,       text: 'Stock & inventory' },
+      { to: '/import',      icon: Upload,          text: 'Bulk import' },
+    ],
+  },
+  {
+    label: 'Commerce',
+    items: [
+      { to: '/orders',          icon: ShoppingCart,  text: 'Orders' },
+      { to: '/custom-orders',   icon: Package,       text: 'Custom orders' },
+      { to: '/enquiries',       icon: MessageSquare, text: 'Enquiries' },
+      { to: '/appointments',    icon: Calendar,      text: 'Appointments' },
+      { to: '/customers',       icon: UserCheck,     text: 'Customers' },
+      { to: '/exhibitions',     icon: MapPin,        text: 'Exhibitions' },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { to: '/marketing',   icon: Megaphone,   text: 'Banners & promos' },
+      { to: '/blog',        icon: BookOpen,    text: 'Blog & content' },
+      { to: '/locations',   icon: MapPin,      text: 'Store locations' },
+      { to: '/trust-badges',icon: ShieldCheck, text: 'Trust badges' },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
+      { to: '/settings',      icon: Settings,   text: 'Store settings' },
+      { to: '/page-builder',  icon: Layout,     text: 'Page builder' },
+      { to: '/appearance',    icon: Paintbrush, text: 'Appearance' },
+      { to: '/rapnet',        icon: Zap,        text: 'RapNet' },
+      { to: '/plugins',       icon: Puzzle,     text: 'Plugins' },
+      { to: '/feature-flags', icon: ToggleLeft, text: 'Feature flags' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { to: '/users',       icon: Users,         text: 'Users & roles' },
+      { to: '/audit-log',   icon: ClipboardList, text: 'Audit log' },
+      { to: '/dev-status',  icon: Activity,      text: 'Dev status' },
+    ],
+  },
 ];
 
-const navClass = ({ isActive }) =>
-  `flex items-center gap-2.5 px-4 py-2 text-[13px] rounded-lg transition-all duration-150 border-l-2 ${
-    isActive
-      ? 'bg-gold-50 dark:bg-gold-900/20 text-gold-700 dark:text-gold-300 border-gold-500 font-medium'
-      : 'text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-ink-100/60 dark:hover:bg-ink-800 border-transparent'
-  }`;
-
+// ─── SIDEBAR COMPONENT ────────────────────────────────────────
 export default function Sidebar({ collapsed }) {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const [collapsedSections, setCollapsedSections] = useState({});
+
+  const toggleSection = (label) => {
+    setCollapsedSections(s => ({ ...s, [label]: !s[label] }));
+  };
+
+  // Check if any item in section is active
+  const isSectionActive = (items) =>
+    items.some(item => item.to === '/'
+      ? location.pathname === '/'
+      : location.pathname.startsWith(item.to));
 
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-56'} flex-shrink-0 h-screen bg-white dark:bg-ink-900 border-r border-ink-200/60 dark:border-ink-700 flex flex-col transition-all duration-200`}>
+    <aside style={{
+      width: collapsed ? 56 : 220,
+      flexShrink: 0,
+      background: 'var(--color-background-primary)',
+      borderRight: '0.5px solid var(--color-border-tertiary)',
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'width .2s ease',
+      overflow: 'hidden',
+    }}>
+
       {/* Logo */}
-      <div className="h-14 flex items-center gap-2.5 px-4 border-b border-ink-200/60 dark:border-ink-700 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gold-500 flex items-center justify-center flex-shrink-0">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="#fff" strokeWidth="1.4"/>
-            <polyline points="1,5 8,9 15,5" fill="none" stroke="#fff" strokeWidth="1"/>
-            <line x1="8" y1="9" x2="8" y2="15" stroke="#fff" strokeWidth="1"/>
+      <div style={{ padding: collapsed ? '16px 0' : '16px 16px', borderBottom: '0.5px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', gap: 10, minHeight: 56 }}>
+        <div style={{ width: 28, height: 28, background: '#c9a84c', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="#fff" strokeWidth="1.5"/>
           </svg>
         </div>
         {!collapsed && (
           <div>
-            <div className="font-display text-lg font-semibold text-ink-800 dark:text-ink-100 leading-none">
-              Jewel<span className="text-gold-500">CMS</span>
-            </div>
-            <div className="text-[9px] tracking-[2px] uppercase text-ink-300 dark:text-ink-600">Admin</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>JewelCMS</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 1 }}>Admin panel</div>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {NAV.map((group) => (
-          <div key={group.label}>
-            {!collapsed && (
-              <div className="px-3 mb-1 text-[9px] tracking-[1.5px] uppercase font-medium text-ink-300 dark:text-ink-600">
-                {group.label}
-              </div>
-            )}
-            <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavLink key={item.to} to={item.to} end={item.to === '/'} className={navClass}>
-                  <item.icon size={16} strokeWidth={1.6} />
-                  {!collapsed && <span>{item.text}</span>}
+      {/* Nav */}
+      <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}
+        className="hide-scrollbar">
+        {NAV_SECTIONS.map(section => {
+          const sectionActive = isSectionActive(section.items);
+          const isCollapsed   = collapsedSections[section.label];
+
+          return (
+            <div key={section.label}>
+              {/* Section label / toggle */}
+              {!collapsed && (
+                <button
+                  onClick={() => toggleSection(section.label)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '8px 14px 4px', border: 'none', background: 'transparent', cursor: 'pointer',
+                  }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: sectionActive ? '#c9a84c' : 'var(--color-text-secondary)', opacity: 0.7 }}>
+                    {section.label}
+                  </span>
+                  {isCollapsed
+                    ? <ChevronRight size={10} style={{ color: 'var(--color-text-secondary)' }}/>
+                    : <ChevronDown  size={10} style={{ color: 'var(--color-text-secondary)' }}/>}
+                </button>
+              )}
+
+              {/* Items */}
+              {!isCollapsed && section.items.map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/'}
+                  title={collapsed ? item.text : undefined}
+                  style={({ isActive }) => ({
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: collapsed ? '9px 0' : '7px 12px',
+                    margin: collapsed ? '1px 4px' : '1px 6px',
+                    borderRadius: 8,
+                    textDecoration: 'none',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    background: isActive ? 'var(--color-gold-subtle, rgba(201,168,76,0.1))' : 'transparent',
+                    color: isActive ? '#c9a84c' : 'var(--color-text-secondary)',
+                    transition: 'all .15s',
+                  })}
+                  onMouseEnter={e => { if (!e.currentTarget.style.color.includes('c9a84c')) e.currentTarget.style.background = 'var(--color-background-secondary)'; }}
+                  onMouseLeave={e => { if (!e.currentTarget.style.color.includes('c9a84c')) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <item.icon size={15} style={{ flexShrink: 0, opacity: isActive ? 1 : 0.7 }}/>
+                      {!collapsed && (
+                        <span style={{ fontSize: 12, fontWeight: isActive ? 600 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.text}
+                        </span>
+                      )}
+                    </>
+                  )}
                 </NavLink>
               ))}
+
+              {/* Divider between sections */}
+              {!collapsed && (
+                <div style={{ height: 1, background: 'var(--color-border-tertiary)', margin: '4px 12px 2px', opacity: 0.5 }}/>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-ink-200/60 dark:border-ink-700 p-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
-            {user?.name?.charAt(0) || 'A'}
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-ink-700 dark:text-ink-200 truncate">{user?.name}</div>
-              <div className="text-[10px] text-ink-400 dark:text-ink-500 truncate">{user?.role}</div>
+      {/* User + logout */}
+      <div style={{ borderTop: '0.5px solid var(--color-border-tertiary)', padding: collapsed ? '10px 4px' : '10px 12px' }}>
+        {!collapsed && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#c9a84c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              {user?.name?.[0]?.toUpperCase() || 'A'}
             </div>
-          )}
-          <button onClick={logout} className="p-1.5 rounded-md hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400" title="Logout">
-            <LogOut size={14} />
-          </button>
-        </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>{user?.role?.replace('_',' ')}</div>
+            </div>
+          </div>
+        )}
+        <button onClick={logout}
+          title={collapsed ? 'Logout' : undefined}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: collapsed ? '8px 0' : '7px 8px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-secondary)', transition: 'all .15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-secondary)'; }}>
+          <LogOut size={14} style={{ flexShrink: 0 }}/>
+          {!collapsed && <span style={{ fontSize: 12 }}>Log out</span>}
+        </button>
       </div>
     </aside>
   );
