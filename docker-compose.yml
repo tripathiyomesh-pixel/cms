@@ -83,6 +83,26 @@ services:
       - backend
     command: npm run dev -- --host 0.0.0.0 --port 3000
 
+  # ── Storefront (Next.js) ────────────────────────────────────
+  storefront:
+    build:
+      context: ./storefront
+      dockerfile: Dockerfile.storefront
+    container_name: cms_storefront
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:4000/api
+      NEXT_PUBLIC_WHATSAPP: ""
+      NEXT_PUBLIC_STORE_NAME: "Luxury Jewellery"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./storefront:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+
   # ── pgAdmin (DB GUI in browser) ────────────────────────────
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -103,23 +123,3 @@ volumes:
   postgres_data:
   redis_data:
   pgadmin_data:
-
-  # ── Storefront (Next.js) ────────────────────────────────────
-  storefront:
-    build:
-      context: ./storefront
-      dockerfile: Dockerfile.storefront
-    container_name: cms_storefront
-    restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000/api
-      NEXT_PUBLIC_WHATSAPP: ""
-      NEXT_PUBLIC_STORE_NAME: "Luxury Jewellery"
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./storefront:/app
-      - /app/node_modules
-      - /app/.next
-    depends_on:
-      - backend
