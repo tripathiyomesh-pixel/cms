@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, Layers, FolderTree, Image, Megaphone,
   ShoppingCart, BarChart3, Users, Shield, Puzzle, Activity,
-  MapPin, ShieldCheck, ClipboardList, Upload, BookOpen, Paintbrush,
+  MapPin, ShieldCheck, ClipboardList, Upload, BookOpen, Paintbrush, DollarSign,
   Zap, ToggleLeft, Calendar, Hexagon, Circle, Star, MessageSquare,
   UserCheck, Settings, ChevronDown, ChevronRight, Layout,
 } from 'lucide-react';

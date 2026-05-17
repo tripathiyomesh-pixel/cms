@@ -10,7 +10,7 @@ import {
   ShoppingCart, BarChart3, Users, Puzzle, Activity, MapPin,
   ShieldCheck, ClipboardList, Upload, BookOpen, Paintbrush,
   Zap, ToggleLeft, Calendar, Hexagon, Circle, Star, MessageSquare,
-  UserCheck, Settings, ChevronDown, Layout, LayoutList,
+  UserCheck, Settings, ChevronDown, Layout, LayoutList, DollarSign,
   Bell, Sun, Moon, User, LogOut, Shield, Eye, PanelLeft,
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -109,6 +109,7 @@ const MEGA_MENU = [
           { to:'/users',      icon:Users,        label:'Users & roles' },
           { to:'/audit-log',  icon:ClipboardList,label:'Audit log' },
           { to:'/dev-status',        icon:Activity,     label:'Dev status' },
+          { to:'/payments',          icon:DollarSign,   label:'Payments' },
           { to:'/erp-integration',  icon:Zap,          label:'ERP Integration' },
         ],
       },

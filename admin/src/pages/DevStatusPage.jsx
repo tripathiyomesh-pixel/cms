@@ -124,7 +124,7 @@ const BACKEND = [
       { n:"Order statuses — pending · confirmed · processing · shipped · delivered · cancelled", s:1 },
       { n:"ERP webhook — POST /api/orders/erp-sync (status push from Vantix ERP)", s:1 },
       { n:"Order stats — by status + today revenue", s:1 },
-      { n:"Payment gateway integration (Stripe/Telr/Tabby/Tamara)", s:0 },
+      { n:"Payment gateways — Tap, Geidea, Tabby, Tamara, Razorpay, Stripe", s:1 },
       { n:"Shipping integration (Aramex/DHL)", s:0 },
     ]},
 
