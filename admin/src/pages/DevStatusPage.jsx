@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import Topbar from "../components/layout/Topbar";
 import api from "../services/api";
 
-const LAST_UPDATED = "2026-05-17 — All detail pages + ring builder + blog built";
+const LAST_UPDATED = "2026-05-17 — 4 homepage templates built";
 const PLATFORM     = "Jewellery Commerce OS";
 const VERSION      = "v0.9";
 
@@ -296,8 +296,8 @@ const STOREFRONT = [
   { n:"Wishlist page — saved items (session + localStorage)", s:0 },
   { n:"RapNet diamonds integration — /diamonds?source=rapnet shows live RapNet feed alongside own inventory", s:0 },
   { n:"Search results page — /search?q=", s:0 },
-  { n:"Homepage templates — luxury, modern, minimal (3 variants)", s:0 },
-  { n:"Product page templates — 2 layout options", s:0 },
+  { n:"Homepage templates — luxury-dark, clean-minimal, boutique-warm, diamond-dealer", s:1 },
+  { n:"Template switcher in admin Appearance page", s:1 },
 ];
 
 const PHASE_COLORS = {

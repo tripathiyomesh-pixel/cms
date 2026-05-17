@@ -1,21 +1,28 @@
-import HeroBanner from '@/components/ui/HeroBanner';
-import CategoryGrid from '@/components/ui/CategoryGrid';
-import DiamondSearchTeaser from '@/components/diamond/DiamondSearchTeaser';
-import FeaturedProducts from '@/components/product/FeaturedProducts';
-import TrustBadges from '@/components/ui/TrustBadges';
-import MetalRates from '@/components/ui/MetalRates';
-import AppointmentCTA from '@/components/ui/AppointmentCTA';
+import { TEMPLATES, getTemplate } from '@/lib/templates';
 
-export default function HomePage() {
-  return (
-    <div className="animate-fade-in">
-      <HeroBanner />
-      <CategoryGrid />
-      <DiamondSearchTeaser />
-      <FeaturedProducts title="Featured Jewellery" type="JEWELLERY" />
-      <TrustBadges />
-      <MetalRates />
-      <AppointmentCTA />
-    </div>
-  );
+// Dynamic template import based on env
+async function getTemplateComponent() {
+  const template = getTemplate();
+  switch(template.id) {
+    case 'luxury-dark':
+      const { default: LuxuryDark }    = await import('@/templates/luxury-dark/HomePage');
+      return LuxuryDark;
+    case 'clean-minimal':
+      const { default: CleanMinimal }  = await import('@/templates/clean-minimal/HomePage');
+      return CleanMinimal;
+    case 'boutique-warm':
+      const { default: BoutiqueWarm }  = await import('@/templates/boutique-warm/HomePage');
+      return BoutiqueWarm;
+    case 'diamond-dealer':
+      const { default: DiamondDealer } = await import('@/templates/diamond-dealer/HomePage');
+      return DiamondDealer;
+    default:
+      const { default: Default }       = await import('@/templates/luxury-dark/HomePage');
+      return Default;
+  }
+}
+
+export default async function HomePage() {
+  const TemplateComponent = await getTemplateComponent();
+  return <TemplateComponent />;
 }

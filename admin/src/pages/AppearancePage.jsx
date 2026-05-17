@@ -40,6 +40,7 @@ export default function AppearancePage() {
     show_breadcrumbs:   true,
     table_striped:      true,
     animate_transitions:true,
+    storefront_template:'luxury-dark',
   });
 
   useEffect(() => {
@@ -149,6 +150,33 @@ export default function AppearancePage() {
                 </button>
               ))}
             </div>
+          </div>
+
+
+          {/* Storefront Template */}
+          <div className="card p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <i className="ti ti-layout text-gold-500" style={{fontSize:16}} aria-hidden="true"/>
+              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200">Storefront template</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { id:'luxury-dark',    name:'Luxury Dark',    desc:'Cartier/Graff style — dark, editorial, gold accents', preview:'🖤' },
+                { id:'clean-minimal',  name:'Clean Minimal',  desc:'Blue Nile/Mejuri style — white, spacious, modern', preview:'⬜' },
+                { id:'boutique-warm',  name:'Boutique Warm',  desc:'GCC boutique — warm cream, WhatsApp-first', preview:'🤎' },
+                { id:'diamond-dealer', name:'Diamond Dealer', desc:'Search-first — navy, data-rich, RapNet', preview:'💙' },
+              ].map(t=>(
+                <button key={t.id}
+                  onClick={()=>set('storefront_template',t.id)}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${prefs.storefront_template===t.id?'border-gold-500 bg-gold-50 dark:bg-gold-900/20':'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
+                  <div className="text-2xl mb-2">{t.preview}</div>
+                  <div className={`text-sm font-semibold ${prefs.storefront_template===t.id?'text-gold-700 dark:text-gold-400':'text-ink-700 dark:text-ink-200'}`}>{t.name}</div>
+                  <div className="text-xs text-ink-400 mt-1 leading-relaxed">{t.desc}</div>
+                  {prefs.storefront_template===t.id && <div className="text-xs text-gold-600 mt-2 font-medium">✓ Active template</div>}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-ink-400 mt-3">Change takes effect after restarting the storefront container. Set <code className="bg-ink-100 dark:bg-ink-800 px-1 rounded">NEXT_PUBLIC_TEMPLATE</code> in storefront/.env.local</p>
           </div>
 
           {/* Preferences toggles */}
