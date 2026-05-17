@@ -12,13 +12,13 @@ const PHASE_COLORS = {
 };
 
 const MODULES = [
-  { id:"infra",         icon:"ti-server-2",        name:"Infrastructure",      phase:"Core",       total:12, done:6  },
+  { id:"infra",         icon:"ti-server-2",        name:"Infrastructure",      phase:"Core",       total:12, done:7  },
   { id:"auth",          icon:"ti-shield-lock",      name:"Auth & Users",        phase:"Core",       total:9,  done:6  },
   { id:"inventory",     icon:"ti-database",         name:"Inventory Engine",    phase:"Inventory",  total:8,  done:3  },
   { id:"jewellery",     icon:"ti-diamond",          name:"Jewellery Module",    phase:"Inventory",  total:8,  done:6  },
   { id:"diamonds",      icon:"ti-hexagon",          name:"Diamond Module",      phase:"Inventory",  total:11, done:5  },
   { id:"gemstones",     icon:"ti-oval",             name:"Gemstone Module",     phase:"Inventory",  total:4,  done:3  },
-  { id:"pearls",        icon:"ti-circle",           name:"Pearl Module",        phase:"Inventory",  total:3,  done:2  },
+  { id:"pearls",        icon:"ti-circle",           name:"Pearl Module",        phase:"Inventory",  total:3,  done:3  },
   { id:"mountings",     icon:"ti-ring",             name:"Mounting Module",     phase:"Inventory",  total:5,  done:3  },
   { id:"certs",         icon:"ti-certificate",      name:"Certificate Engine",  phase:"Trust",      total:5,  done:3  },
   { id:"suppliers",     icon:"ti-building-store",   name:"Supplier & Memo",     phase:"Operations", total:5,  done:4  },
@@ -26,7 +26,7 @@ const MODULES = [
   { id:"pricing",       icon:"ti-currency-dollar",  name:"Pricing Engine",      phase:"Commerce",   total:8,  done:4  },
   { id:"crm",           icon:"ti-messages",         name:"CRM & Appointments",  phase:"Commerce",   total:8,  done:6  },
   { id:"commerce",      icon:"ti-shopping-cart",    name:"Commerce Engine",     phase:"Commerce",   total:8,  done:2  },
-  { id:"admin_ui",      icon:"ti-layout-dashboard", name:"Admin Panel UI",      phase:"Frontend",   total:32, done:19 },
+  { id:"admin_ui",      icon:"ti-layout-dashboard", name:"Admin Panel UI",      phase:"Frontend",   total:32, done:32 },
   { id:"storefront",    icon:"ti-world",            name:"Next.js Storefront",  phase:"Frontend",   total:16, done:0  },
 ];
 

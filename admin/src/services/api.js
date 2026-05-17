@@ -271,3 +271,29 @@ export const featureFlagsAPI = {
 export const certVerifyAPI = {
   verify: (certNo) => api.get(`/verify/${certNo}`),
 };
+
+// ─── PEARLS ───────────────────────────────────────────────────
+export const pearlsAPI = {
+  list:   (p)    => api.get('/pearls', { params: p }),
+  get:    (id)   => api.get(`/pearls/${id}`),
+  create: (d)    => api.post('/pearls', d),
+  update: (id,d) => api.patch(`/pearls/${id}`, d),
+  delete: (id)   => api.delete(`/pearls/${id}`),
+};
+
+// ─── IMPORT ENGINE ────────────────────────────────────────────
+export const importAPI = {
+  jobs:      ()      => api.get('/import/jobs'),
+  job:       (id)    => api.get(`/import/jobs/${id}`),
+  preview:   (fd)    => api.post('/import/preview', fd, { headers:{ 'Content-Type':'multipart/form-data' } }),
+  templates: (type)  => api.get(`/import/templates/${type}`),
+};
+
+// ─── BLOG ─────────────────────────────────────────────────────
+export const blogAPI = {
+  list:   (p)    => api.get('/blog', { params: p }),
+  get:    (id)   => api.get(`/blog/${id}`),
+  create: (d)    => api.post('/blog', d),
+  update: (id,d) => api.patch(`/blog/${id}`, d),
+  delete: (id)   => api.delete(`/blog/${id}`),
+};

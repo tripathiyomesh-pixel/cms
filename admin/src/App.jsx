@@ -1,3 +1,7 @@
+import PearlsPage from './pages/PearlsPage';
+import PearlFormPage from './pages/PearlFormPage';
+import ImportEnginePage from './pages/ImportEnginePage';
+import BlogPage from './pages/BlogPage';
 import MountingFormPage from './pages/MountingFormPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -87,6 +91,11 @@ function AppRoutes() {
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="custom-orders" element={<CustomOrdersPage />} />
         <Route path="feature-flags" element={<FeatureFlagsPage />} />
+              <Route path="pearls" element={<PearlsPage />} />
+              <Route path="pearls/new" element={<PearlFormPage />} />
+              <Route path="pearls/:id" element={<PearlFormPage />} />
+              <Route path="import" element={<ImportEnginePage />} />
+              <Route path="blog" element={<BlogPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
