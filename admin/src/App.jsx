@@ -1,3 +1,11 @@
+import GemstonesPage from './pages/GemstonesPage';
+import GemstoneFormPage from './pages/GemstoneFormPage';
+import MountingsPage from './pages/MountingsPage';
+import DiamondsPage from './pages/DiamondsPage';
+import DiamondFormPage from './pages/DiamondFormPage';
+import SuppliersPage from './pages/SuppliersPage';
+import CustomOrdersPage from './pages/CustomOrdersPage';
+import FeatureFlagsPage from './pages/FeatureFlagsPage';
 import CustomersPage from './pages/CustomersPage';
 import AuditLogPage from './pages/AuditLogPage';
 import StoreLocationsPage from './pages/StoreLocationsPage';
@@ -75,6 +83,16 @@ export default function App() {
               <Route path="trust-badges" element={<TrustBadgesPage />} />
               <Route path="customers" element={<CustomersPage />} />
               <Route path="audit-log" element={<AuditLogPage />} />
+              <Route path="diamonds" element={<DiamondsPage />} />
+              <Route path="diamonds/new" element={<DiamondFormPage />} />
+              <Route path="diamonds/:id" element={<DiamondFormPage />} />
+              <Route path="suppliers" element={<SuppliersPage />} />
+              <Route path="custom-orders" element={<CustomOrdersPage />} />
+              <Route path="feature-flags" element={<FeatureFlagsPage />} />
+              <Route path="gemstones" element={<GemstonesPage />} />
+              <Route path="gemstones/new" element={<GemstoneFormPage />} />
+              <Route path="gemstones/:id" element={<GemstoneFormPage />} />
+              <Route path="mountings" element={<MountingsPage />} />
             </Route>
 
             {/* Fallback */}

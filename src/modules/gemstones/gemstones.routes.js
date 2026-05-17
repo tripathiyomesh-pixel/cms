@@ -1,0 +1,78 @@
+const express = require('express');
+const router  = express.Router();
+const { authenticate, authorize } = require('../../common/guards/auth.guard');
+const db = require('../../config/db.pool');
+const ROLES = ['super_admin','admin','manager'];
+
+router.get('/', authenticate, async (req, res) => {
+  try {
+    const { page=1, limit=20, gemstone_type, origin, search } = req.query;
+    const offset = (page-1)*limit;
+    const params = [];
+    let where = "WHERE p.deleted_at IS NULL AND p.inventory_type='GEMSTONE'";
+    if (gemstone_type) { params.push(gemstone_type); where += ` AND g.gemstone_type=$${params.length}`; }
+    if (origin)        { params.push(`%${origin}%`); where += ` AND g.country_of_origin ILIKE $${params.length}`; }
+    if (search)        { params.push(`%${search}%`); where += ` AND (p.name ILIKE $${params.length} OR g.gemstone_type ILIKE $${params.length})`; }
+    const qp = [...params, parseInt(limit), parseInt(offset)];
+    const [rows] = await db.query(`
+      SELECT p.id,p.name,p.sku,p.final_price,p.currency,p.status,
+             g.gemstone_type,g.species,g.variety,g.country_of_origin,g.treatment,
+             g.is_treated,g.shape,g.carat,g.color_description,g.saturation,
+             g.cert_lab,g.cert_number,m.file_url as thumb_url
+      FROM products p
+      LEFT JOIN gemstone_details g ON g.product_id=p.id
+      LEFT JOIN media m ON m.product_id=p.id AND m.is_primary=true
+      ${where} ORDER BY p.created_at DESC
+      LIMIT $${qp.length-1} OFFSET $${qp.length}
+    `, qp);
+    const [cnt] = await db.query(`SELECT COUNT(*) as total FROM products p LEFT JOIN gemstone_details g ON g.product_id=p.id ${where}`, params);
+    res.json({ success:true, data:{ data:rows, total:+cnt[0]?.total||0, page:+page } });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT p.*,g.* FROM products p LEFT JOIN gemstone_details g ON g.product_id=p.id WHERE p.id=$1 AND p.deleted_at IS NULL`, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success:false, message:'Not found' });
+    res.json({ success:true, data:rows[0] });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.post('/', authenticate, authorize(ROLES), async (req, res) => {
+  try {
+    const { name, gemstone_type, species, variety, country_of_origin, treatment,
+            is_treated=false, shape, carat, dimensions_mm, transparency,
+            color_description, color_hue, saturation, tone, luster,
+            cert_lab, cert_number, cert_url, base_price=0, final_price,
+            currency='USD', status='draft', inventory_mode='IN_HOUSE', internal_notes } = req.body;
+    if (!name || !gemstone_type) return res.status(422).json({ success:false, message:'name and gemstone_type required' });
+    const autoSku  = `GEM-${gemstone_type.slice(0,3).toUpperCase()}-${Date.now().toString(36).toUpperCase().slice(-5)}`;
+    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + autoSku.toLowerCase();
+    const [r] = await db.execute(
+      `INSERT INTO products (name,sku,slug,base_price,final_price,currency,status,inventory_type,inventory_mode,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,'GEMSTONE',$8,$9) RETURNING id`,
+      [name,autoSku,autoSlug,base_price,final_price||base_price,currency,status,inventory_mode,req.user.id]
+    );
+    const productId = r[0]?.id || r.rows?.[0]?.id;
+    await db.execute(
+      `INSERT INTO gemstone_details (product_id,gemstone_type,species,variety,country_of_origin,treatment,is_treated,shape,carat,dimensions_mm,transparency,color_description,color_hue,saturation,tone,luster,cert_lab,cert_number,cert_url,internal_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)`,
+      [productId,gemstone_type,species||null,variety||null,country_of_origin||null,treatment||null,is_treated,shape||null,carat||null,dimensions_mm||null,transparency||null,color_description||null,color_hue||null,saturation||null,tone||null,luster||null,cert_lab||null,cert_number||null,cert_url||null,internal_notes||null]
+    );
+    res.json({ success:true, data:{ id:productId, sku:autoSku }, message:'Gemstone created' });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.patch('/:id', authenticate, authorize(ROLES), async (req, res) => {
+  try {
+    const fields = ['gemstone_type','species','variety','country_of_origin','treatment','is_treated','shape','carat','dimensions_mm','transparency','color_description','saturation','tone','cert_lab','cert_number','cert_url','internal_notes'];
+    const updates = fields.filter(f=>req.body[f]!==undefined);
+    if (updates.length) { const vals=[...updates.map(f=>req.body[f]),req.params.id]; await db.query(`UPDATE gemstone_details SET ${updates.map((f,i)=>`${f}=$${i+1}`).join(',')},updated_at=NOW() WHERE product_id=$${vals.length}`,vals); }
+    res.json({ success:true, message:'Updated' });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.delete('/:id', authenticate, authorize(['super_admin','admin']), async (req, res) => {
+  try { await db.query('UPDATE products SET deleted_at=NOW() WHERE id=$1',[req.params.id]); res.json({ success:true, message:'Deleted' }); }
+  catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+module.exports = router;

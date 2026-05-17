@@ -220,3 +220,54 @@ export const storefrontAPI = {
   page:        (slug)   => api.get(`/storefront/pages/${slug}`),
   metalRates:  ()       => api.get('/storefront/metal-rates'),
 };
+
+// ─── DIAMONDS ─────────────────────────────────────────────────
+export const diamondsAPI = {
+  list:    (p)    => api.get('/diamonds', { params: p }),
+  get:     (id)   => api.get(`/diamonds/${id}`),
+  create:  (d)    => api.post('/diamonds', d),
+  update:  (id,d) => api.patch(`/diamonds/${id}`, d),
+  delete:  (id)   => api.delete(`/diamonds/${id}`),
+  compare: (ids)  => api.post('/diamonds/compare', { ids }),
+};
+
+// ─── GEMSTONES ────────────────────────────────────────────────
+export const gemstonesAPI = {
+  list:   (p)    => api.get('/gemstones', { params: p }),
+  get:    (id)   => api.get(`/gemstones/${id}`),
+  create: (d)    => api.post('/gemstones', d),
+  update: (id,d) => api.patch(`/gemstones/${id}`, d),
+  delete: (id)   => api.delete(`/gemstones/${id}`),
+};
+
+// ─── MOUNTINGS ────────────────────────────────────────────────
+export const mountingsAPI = {
+  list:   (p)    => api.get('/mountings', { params: p }),
+  get:    (id)   => api.get(`/mountings/${id}`),
+  create: (d)    => api.post('/mountings', d),
+  update: (id,d) => api.patch(`/mountings/${id}`, d),
+  delete: (id)   => api.delete(`/mountings/${id}`),
+};
+
+// ─── CUSTOM ORDERS ────────────────────────────────────────────
+export const customOrdersAPI = {
+  list:         (p)          => api.get('/custom-orders', { params: p }),
+  get:          (id)         => api.get(`/custom-orders/${id}`),
+  create:       (d)          => api.post('/custom-orders', d),
+  updateStatus: (id,d)       => api.patch(`/custom-orders/${id}/status`, d),
+  uploadCAD:    (id,d)       => api.post(`/custom-orders/${id}/cad`, d),
+  approveCAD:   (id,cadId,d) => api.patch(`/custom-orders/${id}/cad/${cadId}/approve`, d),
+  stats:        ()           => api.get('/custom-orders/stats/summary'),
+};
+
+// ─── FEATURE FLAGS ────────────────────────────────────────────
+export const featureFlagsAPI = {
+  list:       ()      => api.get('/feature-flags'),
+  toggle:     (key,v) => api.patch(`/feature-flags/${key}`, { is_enabled: v }),
+  bulkUpdate: (flags) => api.patch('/feature-flags', { flags }),
+};
+
+// ─── CERTIFICATE VERIFY (public) ─────────────────────────────
+export const certVerifyAPI = {
+  verify: (certNo) => api.get(`/verify/${certNo}`),
+};
