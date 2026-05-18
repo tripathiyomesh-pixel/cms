@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const { collapsed, toggleSidebar } = useOutletContext();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({ products:{total:0,active:0,low_stock:0,out_of_stock:0}, enquiries:{total:0,unread:0,today:0}, appointments:{total:0,pending:0,today:0}, orders:{total:0,revenue:0,pending:0}, custom_orders:{total:0,new_leads:0}, users:0, inventory_by_type:[] });
   const [activity, setActivity] = useState([]);
   const [lowStock, setLowStock] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +49,14 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  const kpis = stats ? [
+  const kpis = [
     { icon: Package,        label: 'Total products',     value: stats.products?.total || 0,        sub: `${stats.products?.active || 0} active`,         color: 'bg-gold-50 dark:bg-gold-900/20 text-gold-600',     nav: '/products' },
     { icon: MessageCircle,  label: 'Enquiries',          value: stats.enquiries?.total || 0,       sub: `${stats.enquiries?.unread || 0} unread`,          color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600',     nav: '/enquiries' },
     { icon: Calendar,       label: 'Appointments',       value: stats.appointments?.total || 0,    sub: `${stats.appointments?.pending || 0} pending`,      color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600',nav: '/appointments' },
     { icon: ShoppingBag,    label: 'Orders',             value: stats.orders?.total || 0,          sub: `AED ${Number(stats.orders?.revenue||0).toLocaleString()}`,color: 'bg-green-50 dark:bg-green-900/20 text-green-600',  nav: '/orders' },
     { icon: AlertTriangle,  label: 'Low stock',          value: stats.products?.low_stock || 0,    sub: `${stats.products?.out_of_stock || 0} out of stock`,color: 'bg-red-50 dark:bg-red-900/20 text-red-500',        nav: '/inventory' },
     { icon: Users,          label: 'Users',              value: stats.users || 0,                  sub: 'Team members',                                    color: 'bg-ink-50 dark:bg-ink-800 text-ink-500',           nav: '/users' },
-  ] : [];
+  ];
 
   const quickActions = [
     { label: 'Add product',       sub: 'Create new jewellery item',   icon: Plus,    color: 'text-gold-600 bg-gold-50 dark:bg-gold-900/20',     nav: '/products/new' },
