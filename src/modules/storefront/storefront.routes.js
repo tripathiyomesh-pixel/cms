@@ -492,3 +492,25 @@ router.get('/exhibitions', async (req, res) => {
     res.json({ success:true, data:rows });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
+
+// ─── PUBLIC FRONTEND CONFIG (preloader, cookie, popup, analytics) ────
+router.get('/frontend-config', async (req, res) => {
+  try {
+    const keys = [
+      'preloader_enabled','preloader_style','preloader_color',
+      'cookie_enabled','cookie_message','cookie_accept_label','cookie_decline_label','cookie_more_link',
+      'popup_enabled','popup_type','popup_title','popup_message','popup_image','popup_delay','popup_cta_text','popup_cta_url',
+      'maintenance_enabled','maintenance_message',
+      'google_analytics_id','custom_head_code','custom_body_code',
+      'homepage_sections','homepage_sections_config',
+      'storefront_theme','theme_accent_color','theme_heading_font','theme_body_font','theme_button_radius',
+      'theme_nav_topbar','theme_topbar_text','theme_topbar_bg',
+      'site_logo','site_white_logo','site_name','site_phone','site_whatsapp',
+      'social_instagram','social_facebook','social_whatsapp',
+    ];
+    const [rows] = await db.query(`SELECT key,value FROM settings WHERE key = ANY($1)`, [keys]);
+    const map = {};
+    rows.forEach(r => { map[r.key] = typeof r.value === 'string' ? r.value.replace(/^"|"$/g,'') : String(r.value||''); });
+    res.json({ success: true, data: map });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});

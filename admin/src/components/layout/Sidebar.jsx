@@ -5,7 +5,7 @@ import {
   ShoppingCart, BarChart3, Users, Puzzle, Activity,
   MapPin, ClipboardList, Upload, BookOpen,
   Calendar, Hexagon, Circle, Star, MessageSquare,
-  UserCheck, Settings, ChevronDown, ChevronRight,
+  UserCheck, Settings, ChevronDown, ChevronRight, Globe,
   Megaphone, ShieldCheck, DollarSign, Zap, Paintbrush,
 } from 'lucide-react';
 import React from 'react';
@@ -46,7 +46,8 @@ const NAV_SECTIONS = [
   {
     label: 'Config',
     items: [
-      { to:'/theme-editor',   icon:Paintbrush,      text:'Theme editor' },
+      { to:'/theme-editor',    icon:Paintbrush,     text:'Theme editor' },
+      { to:'/frontend-settings',icon:Globe,          text:'Frontend settings' },
       { to:'/payments',       icon:DollarSign,      text:'Payments' },
       { to:'/erp-integration',icon:Zap,             text:'ERP sync' },
       { to:'/settings',       icon:Settings,        text:'Settings' },
