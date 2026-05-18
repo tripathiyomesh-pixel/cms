@@ -97,7 +97,7 @@ const MEGA_MENU = [
         items: [
           { to:'/settings',      icon:Settings,  label:'Store settings' },
           { to:'/theme-editor',       icon:Paintbrush, label:'Theme editor' },
-          { to:'/frontend-settings', icon:Globe,       label:'Frontend settings' },
+          { to:'/frontend-settings', icon:Settings,    label:'Frontend settings' },
           { to:'/page-builder',  icon:Layout,    label:'Page builder' },
           { to:'/appearance',    icon:Paintbrush,label:'Appearance' },
           { to:'/rapnet',        icon:Zap,       label:'RapNet' },

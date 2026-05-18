@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import Toggle from '../components/ui/Toggle';
 import api from '../services/api';
-import { Save, Globe, Cookie, Bell, Wrench, Code, Loader } from 'lucide-react';
+import { Save, Settings, Cookie, Bell, Wrench, Code, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TABS = [
@@ -11,7 +11,7 @@ const TABS = [
   { id:'cookie',       label:'Cookie',       icon:Cookie },
   { id:'popup',        label:'Popup',        icon:Bell },
   { id:'maintenance',  label:'Maintenance',  icon:Wrench },
-  { id:'analytics',    label:'Analytics',    icon:Globe },
+  { id:'analytics',    label:'Analytics',    icon:Settings },
   { id:'custom_code',  label:'Custom code',  icon:Code },
 ];
 

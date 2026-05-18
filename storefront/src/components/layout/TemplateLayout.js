@@ -16,6 +16,7 @@ export default function TemplateLayout({ children }) {
   const [template,  setTemplate]  = useState(getThemeById('cartier-noir'));
   const [config,    setConfig]    = useState({});
   const [hydrated,  setHydrated]  = useState(false);
+  const [maintenance, setMaintenance] = useState(null);
 
   useEffect(() => {
     setHydrated(true);
@@ -67,16 +68,9 @@ export default function TemplateLayout({ children }) {
         root.style.setProperty('--font-heading',       cfg.theme_heading_font    || t.fonts.heading);
         root.style.setProperty('--font-body',          cfg.theme_body_font       || t.fonts.body);
 
-        // Maintenance mode check (storefront)
+        // Maintenance mode — set via state (never touch document.body directly)
         if (cfg.maintenance_enabled === 'true') {
-          document.body.innerHTML = `
-            <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;font-family:Georgia,serif;text-align:center;padding:40px">
-              <div>
-                <div style="font-size:48px;margin-bottom:24px">💎</div>
-                <h1 style="color:#c9a84c;font-size:32px;font-weight:400;margin-bottom:16px">We'll be back shortly</h1>
-                <p style="color:#888;font-size:16px;max-width:400px;line-height:1.6">${cfg.maintenance_message||'We are updating our collection.'}</p>
-              </div>
-            </div>`;
+          setMaintenance(cfg.maintenance_message || 'We are updating our collection. Back soon.');
         }
       })
       .catch(() => {});
@@ -115,9 +109,20 @@ export default function TemplateLayout({ children }) {
         {/* Popup */}
         {hydrated && <PopupBuilder settings={config}/>}
 
-        {/* Custom body code */}
+        {/* Custom body code — only inject if it's a script tag or safe HTML */}
         {hydrated && config.custom_body_code && (
-          <div dangerouslySetInnerHTML={{ __html: config.custom_body_code }}/>
+          <div id="custom-body-code" dangerouslySetInnerHTML={{ __html: config.custom_body_code }}/>
+        )}
+
+        {/* Maintenance overlay */}
+        {maintenance && (
+          <div style={{ position:'fixed',inset:0,zIndex:99999,background:'#0a0a0a',display:'flex',alignItems:'center',justifyContent:'center',padding:40,textAlign:'center',fontFamily:'Georgia,serif' }}>
+            <div>
+              <div style={{ fontSize:48,marginBottom:24 }}>💎</div>
+              <h1 style={{ color:'#c9a84c',fontSize:32,fontWeight:400,marginBottom:16 }}>We'll be back shortly</h1>
+              <p style={{ color:'#888',fontSize:16,maxWidth:400,lineHeight:1.6 }}>{maintenance}</p>
+            </div>
+          </div>
         )}
 
         {/* Dev template switcher */}
