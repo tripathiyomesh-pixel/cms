@@ -8,6 +8,8 @@ module.exports = {
         ink:  { 50:'#fafaf8',100:'#f0ede8',200:'#e0dad2',300:'#c8bfb4',400:'#a09488',500:'#7d7068',600:'#5a4e46',700:'#3d332c',800:'#241e18',900:'#141008' },
       },
       fontFamily: {
+        cormorant: ['Cormorant Garamond', 'Georgia', 'serif'],
+        inter: ['Inter', 'system-ui', 'sans-serif'],
         sans:  ['var(--font-inter)','system-ui','sans-serif'],
         serif: ['var(--font-playfair)','Georgia','serif'],
       },
