@@ -71,12 +71,12 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile.admin
-    container_name: cms_admin
+    container_name: admin_app
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:4000/api
     ports:
-      - "3010:3000"
+      # port exposed via nginx
     volumes:
       - ./admin:/app
       - /app/node_modules
@@ -89,20 +89,38 @@ services:
     build:
       context: ./storefront
       dockerfile: Dockerfile.storefront
-    container_name: cms_storefront
+    container_name: storefront_app
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://backend:4000/api
       NEXT_PUBLIC_WHATSAPP: ""
       NEXT_PUBLIC_STORE_NAME: "Luxury Jewellery"
     ports:
-      - "3011:3001"
+      # port exposed via nginx
     volumes:
       - ./storefront:/app
       - /app/node_modules
       - /app/.next
     depends_on:
       - backend
+
+
+  # ── Nginx reverse proxy ─────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: cms_nginx
+    ports:
+      - "3010:3010"
+      - "3011:3011"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - admin
+      - storefront
+    networks:
+      - cms_network
+    restart: unless-stopped
 
   # ── pgAdmin (DB GUI in browser) ────────────────────────────
   pgadmin:
