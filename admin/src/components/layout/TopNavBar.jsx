@@ -96,6 +96,7 @@ const MEGA_MENU = [
         heading: 'Configuration',
         items: [
           { to:'/settings',      icon:Settings,  label:'Store settings' },
+          { to:'/theme-editor',  icon:Paintbrush,label:'Theme editor' },
           { to:'/page-builder',  icon:Layout,    label:'Page builder' },
           { to:'/appearance',    icon:Paintbrush,label:'Appearance' },
           { to:'/rapnet',        icon:Zap,       label:'RapNet' },
@@ -311,7 +312,7 @@ function UserMenu() {
 }
 
 // ── MAIN TOPNAVBAR ────────────────────────────────────────────
-export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, onToggleSidebar }) {
+export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, onToggleSidebar, bp="desktop" }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const menuRef = useRef();
 
@@ -328,8 +329,8 @@ export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, 
       style={{ height: 52 }}>
       <div className="flex items-center h-full px-3 gap-2">
 
-        {/* Hamburger (sidebar mode) or nothing (topbar mode has mega menu) */}
-        {isSidebar && (
+        {/* Hamburger — always on mobile, only in sidebar mode on desktop */}
+        {(isSidebar || bp === 'mobile') && (
           <button onClick={onToggleSidebar}
             className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 transition-colors flex-shrink-0">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -352,8 +353,8 @@ export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, 
           </span>
         </NavLink>
 
-        {/* MEGA MENU (topbar mode only) */}
-        {!isSidebar && (
+        {/* MEGA MENU (topbar mode only, desktop only) */}
+        {!isSidebar && bp === 'desktop' && (
           <nav ref={menuRef} className="flex items-center gap-0.5 flex-1">
             {/* Dashboard */}
             <NavLink to="/" end
@@ -404,15 +405,14 @@ export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, 
 
         {/* Right side — always visible */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Nav mode toggle */}
-          <button
+          {/* Nav mode toggle — desktop only */}
+          {bp !== 'mobile' && <button
             onClick={onToggleNavMode}
             title={isSidebar ? 'Switch to top navigation' : 'Switch to sidebar navigation'}
             className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-gold-600 transition-colors"
           >
             {isSidebar ? <LayoutList size={16}/> : <PanelLeft size={16}/>}
-          </button>
-
+          </button>}
           <NotificationBell/>
           <UserMenu/>
         </div>
