@@ -146,3 +146,32 @@ router.get('/page-builder', authenticate, async (req, res) => {
     res.json({ success: true, data: map });
   } catch(e) { res.status(500).json({ success: false, message: e.message }); }
 });
+
+// ─── PAGE CONTENT — save/load page builder output ────────────
+router.get('/page/:page', async (req, res) => {
+  try {
+    const key = `page_content_${req.params.page}`;
+    const [rows] = await db.query('SELECT value FROM settings WHERE key=$1',[key]);
+    const val = rows[0]?.value;
+    res.json({ success:true, data: val ? (typeof val==='string'?JSON.parse(val):val) : null });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.post('/page/:page', authenticate, async (req, res) => {
+  try {
+    const key  = `page_content_${req.params.page}`;
+    const html = JSON.stringify(req.body);
+    const [ex] = await db.query('SELECT id FROM settings WHERE key=$1',[key]);
+    if (ex.length) {
+      await db.query('UPDATE settings SET value=$1,updated_at=NOW() WHERE key=$2',[html,key]);
+    } else {
+      await db.execute(
+        'INSERT INTO settings (id,key,value,is_public) VALUES (gen_random_uuid(),$1,$2,true)',
+        [key, html]
+      );
+    }
+    // Clear storefront cache
+    try { const redis=require('../../config/redis'); await redis.cache.del(`page:${req.params.page}`); } catch{}
+    res.json({ success:true, message:'Page saved' });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});

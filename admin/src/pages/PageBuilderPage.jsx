@@ -1,280 +1,462 @@
-import Toggle from '../components/ui/Toggle';
-import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import api from '../services/api';
-import { Save, Eye, Layout, Type, Palette, Grid, Filter, Square } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Save, Eye, Smartphone, Tablet, Monitor, RotateCcw, Plus } from 'lucide-react';
 
-const SECTIONS = [
-  { id:'template',  label:'Template',      icon:Layout   },
-  { id:'header',    label:'Header',        icon:Square   },
-  { id:'hero',      label:'Hero section',  icon:Eye      },
-  { id:'grid',      label:'Product grid',  icon:Grid     },
-  { id:'filters',   label:'Filters',       icon:Filter   },
-  { id:'footer',    label:'Footer',        icon:Square   },
-  { id:'colors',    label:'Colors & fonts',icon:Palette  },
+// ── TEJORI BLOCKS (pre-designed sections) ────────────────────
+const TEJORI_BLOCKS = [
+  {
+    id: 'tejori-hero',
+    label: 'Hero Banner',
+    category: 'Tejori Sections',
+    content: `
+      <section style="position:relative;min-height:80vh;background:#1a1a1a;display:flex;align-items:center;overflow:hidden">
+        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1800&q=80"
+          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.6"/>
+        <div style="position:relative;z-index:1;padding:60px 80px;max-width:700px">
+          <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:16px">New Collection</p>
+          <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:72px;font-weight:300;color:#fff;line-height:1.05;margin-bottom:20px">Frost Yourself</h1>
+          <p style="font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:32px;line-height:1.7;max-width:440px">Dazzling pear and marquise diamonds, sculpted to mirror the wild beauty of ice crystals.</p>
+          <a href="/jewellery" style="font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,0.5);padding-bottom:3px">Discover the selection →</a>
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-categories',
+    label: 'Category Grid',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:60px 40px;background:#fff;text-align:center">
+        <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:400;color:#1a1a1a;margin-bottom:40px;letter-spacing:0.02em">Top Categories</h2>
+        <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:16px;max-width:1200px;margin:0 auto">
+          ${['Bracelets','Diamonds','Earrings','High Jewellery','Jewellery','Lab Grown','Necklaces','Bridal'].map(cat=>
+            `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer">
+              <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid #e5e0d8">
+                <img src="https://images.unsplash.com/photo-1573408301185-9519f94ae069?w=200&q=80" style="width:100%;height:100%;object-fit:cover"/>
+              </div>
+              <span style="font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#4a4a4a">${cat}</span>
+            </div>`
+          ).join('')}
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-products',
+    label: 'Product Grid',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:60px 40px;background:#fdf8f3">
+        <div style="max-width:1200px;margin:0 auto">
+          <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:8px">Featured</p>
+          <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:400;color:#1a1a1a;margin-bottom:40px">Our Selection</h2>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px">
+            ${[
+              {name:'Croissant Dome Hoops',badge:'-10%'},
+              {name:'Diamond Celestial Studs',badge:'-17%'},
+              {name:'Medium Flat Hoops',badge:''},
+              {name:'Organic Pearl Stacked Hoops',badge:''},
+            ].map(p=>`
+              <div style="background:#fff;border:1px solid #e5e0d8">
+                <div style="position:relative;aspect-ratio:1;overflow:hidden;background:#f5ede2">
+                  <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400&q=80" style="width:100%;height:100%;object-fit:cover"/>
+                  ${p.badge?`<span style="position:absolute;top:12px;left:12px;background:#1a1a1a;color:#fff;font-size:10px;padding:3px 8px;letter-spacing:0.08em">${p.badge}</span>`:''}
+                </div>
+                <div style="padding:16px">
+                  <h3 style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:#1a1a1a;margin-bottom:12px">${p.name}</h3>
+                  <button style="width:100%;padding:12px;background:#1a1a1a;color:#fff;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;border:none;cursor:pointer">Inquiry Now</button>
+                </div>
+              </div>`
+            ).join('')}
+          </div>
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-brand-story',
+    label: 'Brand Story',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:80px 40px;background:#fff">
+        <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+          <div>
+            <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:16px">Our Promise</p>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:#1a1a1a;line-height:1.1;margin-bottom:24px">Handcrafted &<br/>Ethically Sourced</h2>
+            <div style="width:40px;height:1px;background:#b8860b;margin-bottom:32px"></div>
+            <p style="font-size:13px;color:#6b6b6b;line-height:1.9;margin-bottom:32px">With a legacy spanning 60 years, TEJORI is dedicated to offering a wide range of exquisite jewellery pieces and personalized customization services.</p>
+            <a href="/about" style="font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#1a1a1a;border-bottom:1px solid #1a1a1a;padding-bottom:2px">Learn More →</a>
+          </div>
+          <div>
+            <img src="https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=700&q=80" style="width:100%;aspect-ratio:4/5;object-fit:cover"/>
+          </div>
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-testimonials',
+    label: 'Testimonials',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:80px 40px;background:#fdf8f3;text-align:center">
+        <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:40px">What Our Clients Say</p>
+        <div style="color:#b8860b;font-size:20px;letter-spacing:4px;margin-bottom:24px">★★★★★</div>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;font-style:italic;color:#1a1a1a;max-width:700px;margin:0 auto 32px;line-height:1.6">"An extraordinary experience from the moment we walked in. The craftsmanship is beyond compare."</p>
+        <p style="font-size:13px;font-weight:600;color:#1a1a1a;letter-spacing:0.08em;margin-bottom:4px">Saitama One</p>
+        <p style="font-size:12px;color:#b8860b">"Fabulous Grounds"</p>
+      </section>`,
+  },
+  {
+    id: 'tejori-collection-banner',
+    label: 'Collection Banner',
+    category: 'Tejori Sections',
+    content: `
+      <div style="display:grid;grid-template-columns:1fr 1fr">
+        <div style="position:relative;height:400px;overflow:hidden">
+          <img src="https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=900&q=80" style="width:100%;height:100%;object-fit:cover"/>
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#fff;margin-bottom:12px">Summer Collections</h3>
+            <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:24px">Freshwater pearl necklace and earrings</p>
+            <a href="/jewellery" style="font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,0.5);padding-bottom:2px">Explore</a>
+          </div>
+        </div>
+        <div style="position:relative;height:400px;overflow:hidden">
+          <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80" style="width:100%;height:100%;object-fit:cover"/>
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#fff;margin-bottom:12px">Make it memorable</h3>
+            <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:24px">Bespoke jewellery for life's most important moments</p>
+            <a href="/custom" style="font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,0.5);padding-bottom:2px">Explore</a>
+          </div>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'tejori-newsletter',
+    label: 'Newsletter',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:60px 40px;background:#1a1a1a;text-align:center">
+        <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:12px">Stay Connected</p>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#fff;margin-bottom:12px">Stay in the world of Tejori</h2>
+        <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:32px;letter-spacing:0.05em">Subscribe for 10% off your first purchase. Plus new arrivals and exclusive offers.</p>
+        <form style="display:flex;gap:0;max-width:420px;margin:0 auto">
+          <input type="email" placeholder="Your email address" style="flex:1;padding:14px 18px;border:1px solid rgba(255,255,255,0.15);border-right:none;background:rgba(255,255,255,0.05);color:#fff;font-size:12px;outline:none"/>
+          <button style="padding:14px 24px;background:#b8860b;color:#fff;border:none;cursor:pointer;font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;white-space:nowrap">Subscribe</button>
+        </form>
+      </section>`,
+  },
+  {
+    id: 'tejori-about',
+    label: 'About / Heritage',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:80px 40px;background:#fff">
+        <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+          <div style="position:relative">
+            <img src="https://images.unsplash.com/photo-1573408301185-9519f94ae069?w=700&q=80" style="width:100%;aspect-ratio:4/5;object-fit:cover"/>
+            <div style="position:absolute;bottom:0;right:0;background:#1a1a1a;padding:20px 24px;min-width:120px">
+              <p style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#b8860b">60+</p>
+              <p style="font-size:9px;color:#888;letter-spacing:0.12em;text-transform:uppercase;margin-top:4px">Years of Legacy</p>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:16px">About us</p>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:#1a1a1a;margin-bottom:24px;line-height:1.1">Our Heritage</h2>
+            <div style="width:40px;height:1px;background:#b8860b;margin-bottom:24px"></div>
+            <p style="font-size:13px;color:#6b6b6b;line-height:1.9;margin-bottom:16px">With a legacy spanning 60 years, TEJORI is dedicated to offering a wide range of exquisite jewellery pieces and personalized customization services.</p>
+            <p style="font-size:13px;color:#6b6b6b;line-height:1.9;margin-bottom:32px">Founded in 2004, Tejori has become one of the most respected brands in the GCC.</p>
+            <a href="/about" style="font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#1a1a1a;border-bottom:1px solid #1a1a1a;padding-bottom:2px">Learn More →</a>
+          </div>
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-why',
+    label: 'Why Choose Tejori',
+    category: 'Tejori Sections',
+    content: `
+      <section style="padding:80px 40px;background:#fdf8f3;text-align:center">
+        <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:12px">Our Difference</p>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#1a1a1a;margin-bottom:60px">Why choose TEJORI?</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:48px;max-width:1000px;margin:0 auto">
+          ${[
+            {icon:'🏆',title:'Authenticity Guaranteed',desc:'Every piece is handpicked and meticulously inspected. We guarantee authenticity.'},
+            {icon:'💎',title:'Rare & Iconic Jewellery',desc:'Our rare jewellery is not just timeless — it\'s a valuable investment.'},
+            {icon:'✨',title:'Heritage of Craftsmanship',desc:'With heritage since 1964, we create masterpieces that last a lifetime.'},
+          ].map(p=>`
+            <div>
+              <div style="font-size:40px;margin-bottom:20px">${p.icon}</div>
+              <h3 style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1a1a1a;margin-bottom:12px">${p.title}</h3>
+              <p style="font-size:13px;color:#6b6b6b;line-height:1.8">${p.desc}</p>
+            </div>`
+          ).join('')}
+        </div>
+      </section>`,
+  },
+  {
+    id: 'tejori-promo-strip',
+    label: 'Promo Strip',
+    category: 'Tejori Sections',
+    content: `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+        <a href="/jewellery?is_new=true" style="display:flex;align-items:center;justify-content:center;padding:28px;background:#1a1a1a;color:#c9a84c;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;text-align:center;text-decoration:none;letter-spacing:0.03em">New Arrivals</a>
+        <a href="/jewellery?sort=featured" style="display:flex;align-items:center;justify-content:center;padding:28px;background:#b8860b;color:#fff;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;text-align:center;text-decoration:none;letter-spacing:0.03em">Best Seller</a>
+        <a href="/jewellery?on_sale=true" style="display:flex;align-items:center;justify-content:center;padding:28px;background:#3d2b1a;color:#e8d5bc;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;text-align:center;text-decoration:none;letter-spacing:0.03em">Clearance Sale</a>
+      </div>`,
+  },
+  {
+    id: 'tejori-editorial',
+    label: 'Editorial Full-Width',
+    category: 'Tejori Sections',
+    content: `
+      <div style="position:relative;height:560px;overflow:hidden">
+        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1400&q=80" style="width:100%;height:100%;object-fit:cover"/>
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:80px 80px">
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:72px;font-weight:300;color:#fff;line-height:1.05;margin-bottom:16px">Classics</h2>
+          <p style="font-size:14px;color:rgba(255,255,255,0.65);max-width:440px;margin-bottom:32px;line-height:1.7">Timeless and elegant jewellery that never goes out of style.</p>
+          <a href="/jewellery?collection=classics" style="font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,0.4);padding-bottom:2px;width:fit-content">Discover the selection →</a>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'tejori-learning',
+    label: 'Learning Center',
+    category: 'Tejori Sections',
+    content: `
+      <div style="position:relative;height:320px;overflow:hidden">
+        <img src="https://images.unsplash.com/photo-1544376798-89aa6b0de868?w=1400&q=80" style="width:100%;height:100%;object-fit:cover"/>
+        <div style="position:absolute;inset:0;background:rgba(10,10,10,0.58)"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
+          <p style="font-size:10px;font-weight:500;letter-spacing:0.25em;text-transform:uppercase;color:#b8860b;margin-bottom:16px">Education</p>
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#fff;margin-bottom:16px">The Learning Center</h2>
+          <p style="font-size:13px;color:rgba(255,255,255,0.65);max-width:440px;margin-bottom:28px;line-height:1.8">Whether you're buying jewellery for the first time or need a refresher, we've got you covered.</p>
+          <a href="/blog" style="font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,0.4);padding-bottom:2px">Learn more →</a>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'tejori-divider',
+    label: 'Section Divider',
+    category: 'Tejori Sections',
+    content: `<div style="display:flex;align-items:center;gap:20px;padding:32px 80px;background:#fff"><div style="flex:1;height:0.5px;background:#e5e0d8"></div><span style="font-size:18px;color:#b8860b">✦</span><div style="flex:1;height:0.5px;background:#e5e0d8"></div></div>`,
+  },
+  {
+    id: 'tejori-spacer',
+    label: 'Spacer',
+    category: 'Tejori Sections',
+    content: `<div style="height:80px;background:#fff"></div>`,
+  },
+];
+
+const PAGES = [
+  { id:'homepage',   label:'Homepage' },
+  { id:'about',      label:'About / Heritage' },
+  { id:'lab-grown',  label:'Lab Grown' },
+  { id:'custom',     label:'Bespoke Services' },
 ];
 
 export default function PageBuilderPage() {
-  const { collapsed, toggleSidebar } = useOutletContext();
-  const [active, setActive] = useState('template');
-  const [settings, setSettings] = useState({});
-  const [saving, setSaving] = useState(false);
+  const { collapsed } = useOutletContext()||{};
+  const editorRef  = useRef(null);
+  const containerRef = useRef(null);
+  const [editor,   setEditor]   = useState(null);
+  const [saving,   setSaving]   = useState(false);
+  const [loading,  setLoading]  = useState(true);
+  const [activePage, setActivePage] = useState('homepage');
+  const [device,   setDevice]   = useState('desktop');
+  const [searchParams] = useSearchParams();
 
-  useEffect(()=>{
-    api.get('/settings/page-builder').then(r=>setSettings(r.data.data||{})).catch(()=>{});
-  },[]);
+  // Load GrapesJS dynamically
+  useEffect(() => {
+    const page = searchParams.get('page') || 'homepage';
+    setActivePage(page);
+  }, []);
 
-  const set = (k,v) => setSettings(s=>({...s,[k]:v}));
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-  const handleSave = async() => {
+    let gjs;
+    (async () => {
+      // Dynamic import GrapesJS
+      const grapes = await import('grapesjs');
+      const GrapesJS = grapes.default;
+
+      // Load saved content
+      let savedHtml = '';
+      let savedCss  = '';
+      try {
+        const res = await api.get(`/settings/page/${activePage}`);
+        if (res.data.data) {
+          savedHtml = res.data.data.html || '';
+          savedCss  = res.data.data.css  || '';
+        }
+      } catch {}
+
+      // Init GrapesJS
+      gjs = GrapesJS.init({
+        container: containerRef.current,
+        height: '100%',
+        storageManager: false,
+        panels: { defaults: [] }, // we build our own panels
+        deviceManager: {
+          devices: [
+            { name:'Desktop',  width:'' },
+            { name:'Tablet',   width:'768px' },
+            { name:'Mobile',   width:'390px' },
+          ],
+        },
+        blockManager: {
+          appendTo: '#gjs-blocks',
+          blocks: TEJORI_BLOCKS,
+        },
+        styleManager: {
+          appendTo: '#gjs-styles',
+          sectors: [
+            { name:'Typography', open:false, properties:['font-family','font-size','font-weight','color','text-align','letter-spacing','line-height','text-transform'] },
+            { name:'Spacing',    open:false, properties:['padding','padding-top','padding-bottom','padding-left','padding-right','margin','margin-top','margin-bottom'] },
+            { name:'Background', open:false, properties:['background-color','background-image','background-size','background-position'] },
+            { name:'Dimension',  open:false, properties:['width','min-height','max-width'] },
+            { name:'Border',     open:false, properties:['border','border-radius'] },
+          ],
+        },
+        layerManager: { appendTo: '#gjs-layers' },
+        traitManager: { appendTo: '#gjs-traits' },
+        canvas: {
+          styles: [
+            'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap',
+          ],
+        },
+        components: savedHtml,
+        style: savedCss,
+      });
+
+      editorRef.current = gjs;
+      setEditor(gjs);
+      setLoading(false);
+    })();
+
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+    };
+  }, [activePage]);
+
+  // Device switching
+  useEffect(() => {
+    if (!editor) return;
+    const deviceMap = { desktop:'Desktop', tablet:'Tablet', mobile:'Mobile' };
+    editor.setDevice(deviceMap[device]);
+  }, [device, editor]);
+
+  const handleSave = async () => {
+    if (!editor) return;
     setSaving(true);
     try {
-      await api.post('/settings/bulk',{ settings: Object.entries(settings).map(([key,value])=>({ key, value:String(value) })) });
-      toast.success('Page builder settings saved');
+      const html = editor.getHtml();
+      const css  = editor.getCss();
+      await api.post(`/settings/page/${activePage}`, { html, css });
+      toast.success(`${PAGES.find(p=>p.id===activePage)?.label || activePage} saved`);
     } catch { toast.error('Save failed'); }
     setSaving(false);
   };
 
-  const lbl = 'block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5 uppercase tracking-wide';
-  const inp = 'input-field';
-  const sel = 'input-field';
-  const tog = (k) => (
-    <Toggle checked={settings[k]==='true'} onChange={v=>set(k,v?'true':'false')}/>
-  );
+  const handleReset = () => {
+    if (!editor) return;
+    if (confirm('Reset page to empty? This cannot be undone.')) {
+      editor.setComponents('');
+      editor.setStyle('');
+    }
+  };
 
   return (
-    <>
-      <Topbar title="Page builder" subtitle="Customise every section of your storefront"
-        actions={
-          <button onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs">
-            <Save size={13}/>{saving?'Saving…':'Save all changes'}
-          </button>
-        }/>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Section nav */}
-        <div className="w-44 border-r border-ink-200/60 dark:border-ink-800 bg-ink-50 dark:bg-ink-900/50 flex-shrink-0 py-3">
-          {SECTIONS.map(s=>(
-            <button key={s.id} onClick={()=>setActive(s.id)}
-              className={`w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium text-left transition-all ${active===s.id?'bg-white dark:bg-ink-800 text-gold-600 border-r-2 border-gold-500':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}`}>
-              <s.icon size={14}/>
-              {s.label}
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Topbar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-ink-900 border-b border-ink-200/60 dark:border-ink-800 flex-shrink-0 h-14 gap-3">
+        {/* Page selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-ink-600 dark:text-ink-300 mr-2">Page:</span>
+          {PAGES.map(p => (
+            <button key={p.id} onClick={() => setActivePage(p.id)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${activePage===p.id?'bg-gold-500 text-white':'text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800'}`}>
+              {p.label}
             </button>
           ))}
         </div>
 
-        {/* Settings panel */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-xl space-y-5">
+        {/* Device */}
+        <div className="flex items-center gap-1 bg-ink-100 dark:bg-ink-800 rounded-lg p-1">
+          {[['desktop',Monitor],['tablet',Tablet],['mobile',Smartphone]].map(([d,Icon]) => (
+            <button key={d} onClick={() => setDevice(d)}
+              className={`p-1.5 rounded-md transition-all ${device===d?'bg-white dark:bg-ink-700 shadow-sm text-gold-600':'text-ink-400 hover:text-ink-600'}`}>
+              <Icon size={14}/>
+            </button>
+          ))}
+        </div>
 
-            {active==='template' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Storefront template</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id:'luxury-dark',    name:'Luxury Dark',    desc:'Cartier/Graff — dark, gold', preview:'🖤' },
-                  { id:'clean-minimal',  name:'Clean Minimal',  desc:'Blue Nile — white, modern', preview:'⬜' },
-                  { id:'boutique-warm',  name:'Boutique Warm',  desc:'GCC boutique — warm cream', preview:'🤎' },
-                  { id:'diamond-dealer', name:'Diamond Dealer', desc:'Search-first — navy', preview:'💙' },
-                ].map(t=>(
-                  <button key={t.id} onClick={()=>set('storefront_template',t.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${settings.storefront_template===t.id?'border-gold-500 bg-gold-50 dark:bg-gold-900/20':'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
-                    <div className="text-2xl mb-2">{t.preview}</div>
-                    <div className={`text-xs font-semibold ${settings.storefront_template===t.id?'text-gold-700':'text-ink-700 dark:text-ink-200'}`}>{t.name}</div>
-                    <div className="text-[11px] text-ink-400 mt-0.5">{t.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </>}
-
-            {active==='header' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Header settings</h3>
-              <div><label className={lbl}>Logo URL (image)</label><input value={settings.header_logo_url||''} onChange={e=>set('header_logo_url',e.target.value)} className={inp} placeholder="https://... (leave blank to use text logo)"/></div>
-              <div><label className={lbl}>Logo text</label><input value={settings.header_logo_text||''} onChange={e=>set('header_logo_text',e.target.value)} className={inp} placeholder="Your store name"/></div>
-              <div className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">Top announcement bar</p><p className="text-xs text-ink-400">Strip above header with text</p></div>
-                {tog('header_show_topbar')}
-              </div>
-              {settings.header_show_topbar==='true' && <>
-                <div><label className={lbl}>Top bar text</label><input value={settings.header_topbar_text||''} onChange={e=>set('header_topbar_text',e.target.value)} className={inp} placeholder="Free shipping on orders above AED 500"/></div>
-                <div><label className={lbl}>Top bar background</label>
-                  <div className="flex gap-2">
-                    {['#c9a84c','#1a1a1a','#8b5e3c','#1d4ed8','#25d366'].map(c=>(
-                      <button key={c} onClick={()=>set('header_topbar_bg',c)} style={{background:c}} className={`w-8 h-8 rounded-full border-2 transition-all ${settings.header_topbar_bg===c?'border-gold-500 scale-110':'border-transparent'}`}/>
-                    ))}
-                  </div>
-                </div>
-              </>}
-              <div><label className={lbl}>Navigation style</label>
-                <select value={settings.header_nav_style||'transparent-scroll'} onChange={e=>set('header_nav_style',e.target.value)} className={sel}>
-                  <option value="transparent-scroll">Transparent → solid on scroll</option>
-                  <option value="always-solid">Always solid white/dark</option>
-                  <option value="always-transparent">Always transparent</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">Show WhatsApp button in header</p></div>
-                {tog('header_show_whatsapp')}
-              </div>
-            </>}
-
-            {active==='hero' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Hero section</h3>
-              <div><label className={lbl}>Hero layout</label>
-                <select value={settings.hero_layout||'fullscreen'} onChange={e=>set('hero_layout',e.target.value)} className={sel}>
-                  <option value="fullscreen">Fullscreen (100vh) — editorial</option>
-                  <option value="split-screen">Split screen — text left, image right</option>
-                  <option value="centered">Centered — text over image</option>
-                  <option value="minimal">Minimal — text only, no image</option>
-                  <option value="search-first">Search first — diamond search bar</option>
-                </select>
-              </div>
-              <div><label className={lbl}>Overlay opacity: {settings.hero_overlay_opacity||'60'}%</label>
-                <input type="range" min="0" max="90" step="5" value={settings.hero_overlay_opacity||'60'} onChange={e=>set('hero_overlay_opacity',e.target.value)} className="w-full accent-gold-500"/>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">Auto-slide</p><p className="text-xs text-ink-400">Automatically cycle hero slides</p></div>
-                {tog('hero_autoplay')}
-              </div>
-              {settings.hero_autoplay==='true' && (
-                <div><label className={lbl}>Slide interval (seconds)</label>
-                  <select value={settings.hero_autoplay_interval||'5'} onChange={e=>set('hero_autoplay_interval',e.target.value)} className={sel}>
-                    {['3','4','5','6','8','10'].map(v=><option key={v} value={v}>{v} seconds</option>)}
-                  </select>
-                </div>
-              )}
-              <div className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">Show stats bar</p><p className="text-xs text-ink-400">10,000+ diamonds · GIA/IGI · Custom creation</p></div>
-                {tog('hero_show_stats')}
-              </div>
-            </>}
-
-            {active==='grid' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Product grid</h3>
-              <div><label className={lbl}>Default columns</label>
-                <select value={settings.grid_columns||'4'} onChange={e=>set('grid_columns',e.target.value)} className={sel}>
-                  {[['2','2 columns — large cards'],['3','3 columns — balanced'],['4','4 columns — standard'],['5','5 columns — compact']].map(([v,l])=><option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div><label className={lbl}>Card style</label>
-                <select value={settings.grid_card_style||'standard'} onChange={e=>set('grid_card_style',e.target.value)} className={sel}>
-                  <option value="standard">Standard — image + name + price</option>
-                  <option value="minimal">Minimal — image + price only</option>
-                  <option value="detailed">Detailed — image + all specs</option>
-                  <option value="luxury">Luxury — large, editorial style</option>
-                </select>
-              </div>
-              {[
-                { k:'grid_show_price',        l:'Show price',             d:'Display price on product cards' },
-                { k:'grid_show_quick_enquire',l:'Show quick enquire',      d:'WhatsApp button on card hover' },
-                { k:'grid_show_new_badge',    l:'Show New badge',          d:'Badge on recently added products' },
-              ].map(item=>(
-                <div key={item.k} className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                  <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">{item.l}</p><p className="text-xs text-ink-400">{item.d}</p></div>
-                  {tog(item.k)}
-                </div>
-              ))}
-              <div><label className={lbl}>Default sort</label>
-                <select value={settings.grid_sort_default||'newest'} onChange={e=>set('grid_sort_default',e.target.value)} className={sel}>
-                  <option value="newest">Newest first</option>
-                  <option value="price_asc">Price: low to high</option>
-                  <option value="price_desc">Price: high to low</option>
-                  <option value="featured">Featured first</option>
-                </select>
-              </div>
-            </>}
-
-            {active==='filters' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Filter settings</h3>
-              <div><label className={lbl}>Filter position</label>
-                <select value={settings.filter_position||'sidebar'} onChange={e=>set('filter_position',e.target.value)} className={sel}>
-                  <option value="sidebar">Left sidebar (desktop)</option>
-                  <option value="top-bar">Top bar — horizontal</option>
-                  <option value="drawer">Slide-out drawer (mobile style)</option>
-                </select>
-              </div>
-              <div><label className={lbl}>Filter style</label>
-                <select value={settings.filter_style||'pills'} onChange={e=>set('filter_style',e.target.value)} className={sel}>
-                  <option value="pills">Pills — click to select</option>
-                  <option value="checkboxes">Checkboxes — traditional</option>
-                  <option value="dropdowns">Dropdowns — compact</option>
-                </select>
-              </div>
-              <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">Visible filters</p>
-              {[
-                { k:'filter_show_price',   l:'Price range slider' },
-                { k:'filter_show_carat',   l:'Carat range (diamonds)' },
-                { k:'filter_show_color',   l:'Color grade (diamonds)' },
-                { k:'filter_show_clarity', l:'Clarity grade (diamonds)' },
-                { k:'filter_show_cert',    l:'Certificate lab (GIA/IGI)' },
-              ].map(item=>(
-                <div key={item.k} className="flex items-center justify-between py-2 border-b border-ink-100 dark:border-ink-800 last:border-0">
-                  <span className="text-sm text-ink-600 dark:text-ink-300">{item.l}</span>
-                  {tog(item.k)}
-                </div>
-              ))}
-            </>}
-
-            {active==='footer' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Footer settings</h3>
-              <div><label className={lbl}>Columns</label>
-                <select value={settings.footer_columns||'4'} onChange={e=>set('footer_columns',e.target.value)} className={sel}>
-                  {[['2','2 columns'],['3','3 columns'],['4','4 columns (standard)']].map(([v,l])=><option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              {[
-                { k:'footer_show_newsletter', l:'Newsletter signup',  d:'Email subscription form in footer' },
-                { k:'footer_show_social',     l:'Social media links', d:'Instagram, WhatsApp, Facebook icons' },
-              ].map(item=>(
-                <div key={item.k} className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
-                  <div><p className="text-sm font-medium text-ink-700 dark:text-ink-200">{item.l}</p><p className="text-xs text-ink-400">{item.d}</p></div>
-                  {tog(item.k)}
-                </div>
-              ))}
-            </>}
-
-            {active==='colors' && <>
-              <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 mb-4">Colors & fonts</h3>
-              <div><label className={lbl}>Accent color</label>
-                <div className="flex gap-2 flex-wrap">
-                  {[['#c9a84c','Gold'],['#1a1a1a','Black'],['#8b5e3c','Copper'],['#1d4ed8','Blue'],['#6d28d9','Purple'],['#b76e79','Rose']].map(([c,n])=>(
-                    <button key={c} onClick={()=>set('color_accent',c)}
-                      className={`flex flex-col items-center gap-1 ${settings.color_accent===c?'opacity-100':'opacity-70 hover:opacity-100'}`}>
-                      <div style={{background:c}} className={`w-9 h-9 rounded-full border-2 ${settings.color_accent===c?'border-gold-500 scale-110':'border-transparent'} transition-all`}/>
-                      <span className="text-[10px] text-ink-400">{n}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div><label className={lbl}>Button style</label>
-                <select value={settings.button_style||'rounded'} onChange={e=>set('button_style',e.target.value)} className={sel}>
-                  <option value="pill">Pill — fully rounded</option>
-                  <option value="rounded">Rounded — slight radius</option>
-                  <option value="square">Square — no radius</option>
-                </select>
-              </div>
-              <div><label className={lbl}>Heading font</label>
-                <select value={settings.font_heading||'playfair'} onChange={e=>set('font_heading',e.target.value)} className={sel}>
-                  <option value="playfair">Playfair Display — luxury serif</option>
-                  <option value="cormorant">Cormorant Garamond — editorial</option>
-                  <option value="inter">Inter — modern sans-serif</option>
-                  <option value="dm-serif">DM Serif — elegant serif</option>
-                  <option value="josefin">Josefin Sans — geometric</option>
-                </select>
-              </div>
-              <div><label className={lbl}>Body font</label>
-                <select value={settings.font_body||'inter'} onChange={e=>set('font_body',e.target.value)} className={sel}>
-                  <option value="inter">Inter — clean, readable</option>
-                  <option value="source-sans">Source Sans — neutral</option>
-                  <option value="lato">Lato — friendly</option>
-                </select>
-              </div>
-            </>}
-
-          </div>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button onClick={handleReset} className="btn-ghost text-xs flex items-center gap-1.5">
+            <RotateCcw size={12}/> Reset
+          </button>
+          <a href="http://localhost:3011" target="_blank" rel="noreferrer" className="btn-ghost text-xs flex items-center gap-1.5">
+            <Eye size={12}/> Preview
+          </a>
+          <button onClick={handleSave} disabled={saving}
+            className="btn-gold flex items-center gap-1.5 text-xs disabled:opacity-50">
+            <Save size={13}/>{saving?'Saving…':'Save & Publish'}
+          </button>
         </div>
       </div>
-    </>
+
+      {/* Editor layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left — blocks + layers */}
+        <div className="w-56 flex-shrink-0 bg-white dark:bg-ink-900 border-r border-ink-200/60 dark:border-ink-800 flex flex-col overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-ink-100 dark:border-ink-800">
+            {['Blocks','Layers','Styles'].map((t,i) => (
+              <button key={t} onClick={() => {
+                  document.getElementById('gjs-blocks')?.style && (document.getElementById('gjs-blocks').style.display = i===0?'block':'none');
+                  document.getElementById('gjs-layers')?.style && (document.getElementById('gjs-layers').style.display = i===1?'block':'none');
+                  document.getElementById('gjs-styles')?.style && (document.getElementById('gjs-styles').style.display = i===2?'block':'none');
+                }}
+                className="flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-ink-400 hover:text-gold-600 transition-colors border-b-2 border-transparent hover:border-gold-400">
+                {t}
+              </button>
+            ))}
+          </div>
+          <div id="gjs-blocks"  className="flex-1 overflow-y-auto gjs-blocks-panel"/>
+          <div id="gjs-layers"  className="flex-1 overflow-y-auto hidden"/>
+          <div id="gjs-styles"  className="flex-1 overflow-y-auto hidden"/>
+          <div id="gjs-traits"  className="hidden"/>
+        </div>
+
+        {/* Center — canvas */}
+        <div className="flex-1 overflow-hidden relative bg-ink-100 dark:bg-ink-950">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-ink-50 dark:bg-ink-900">
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"/>
+                <p className="text-xs text-ink-400">Loading editor…</p>
+              </div>
+            </div>
+          )}
+          <div ref={containerRef} style={{ width:'100%', height:'100%' }}/>
+        </div>
+      </div>
+
+      {/* GrapesJS styles */}
+      <style>{`
+        .gjs-blocks-panel .gjs-block-category-title { font-size:9px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:10px 12px 4px; color:#b8860b; }
+        .gjs-blocks-panel .gjs-block { width:calc(50% - 8px); margin:4px; border:1px solid #e5e0d8; border-radius:4px; padding:10px 6px; text-align:center; cursor:grab; transition:all .15s; font-size:10px; }
+        .gjs-blocks-panel .gjs-block:hover { border-color:#b8860b; background:#fdf8f3; }
+        .gjs-blocks-panel .gjs-block-label { font-size:10px; font-weight:500; color:#4a4a4a; margin-top:4px; }
+        .gjs-cv-canvas { background:#f0ede8; }
+        .gjs-frame-wrapper { box-shadow:0 4px 32px rgba(0,0,0,0.12); }
+      `}</style>
+    </div>
   );
 }
