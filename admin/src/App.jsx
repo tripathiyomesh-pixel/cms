@@ -1,3 +1,5 @@
+import HomeBuilderPage from './pages/HomeBuilderPage';
+import MenuBuilderPage from './pages/MenuBuilderPage';
 import FrontendSettingsPage from './pages/FrontendSettingsPage';
 import ThemeEditorPage from './pages/ThemeEditorPage';
 import PaymentsPage from './pages/PaymentsPage';
@@ -104,6 +106,8 @@ function AppRoutes() {
               <Route path="erp-integration" element={<ERPIntegrationPage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="theme-editor" element={<ThemeEditorPage />} />
+              <Route path="home-builder" element={<HomeBuilderPage />} />
+              <Route path="menu-builder" element={<MenuBuilderPage />} />
               <Route path="frontend-settings" element={<FrontendSettingsPage />} />
               <Route path="pearls" element={<PearlsPage />} />
               <Route path="pearls/new" element={<PearlFormPage />} />

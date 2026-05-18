@@ -5,7 +5,7 @@ import {
   ShoppingCart, BarChart3, Users, Puzzle, Activity,
   MapPin, ClipboardList, Upload, BookOpen,
   Calendar, Hexagon, Circle, Star, MessageSquare,
-  UserCheck, Settings, ChevronDown, ChevronRight,
+  UserCheck, Settings, ChevronDown, ChevronRight, LayoutList, Square,
   Megaphone, ShieldCheck, DollarSign, Zap, Paintbrush,
 } from 'lucide-react';
 import React from 'react';
