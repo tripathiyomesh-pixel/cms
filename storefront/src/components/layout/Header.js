@@ -1,159 +1,186 @@
 'use client';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Menu, X, Heart, Search, ShoppingBag, ChevronDown } from 'lucide-react';
 import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Menu, X, Heart, Phone, Search } from 'lucide-react';
 
 const NAV = [
   { label:'High Jewellery', href:'/jewellery?is_featured=true', sub:[
-    { label:'Rings',         href:'/jewellery?category=rings' },
-    { label:'Necklaces',     href:'/jewellery?category=necklaces' },
-    { label:'Earrings',      href:'/jewellery?category=earrings' },
-    { label:'Bracelets',     href:'/jewellery?category=bracelets' },
-    { label:'Bridal Sets',   href:'/jewellery?category=bridal' },
+    { label:'Rings',          href:'/jewellery?category=rings' },
+    { label:'Necklaces',      href:'/jewellery?category=necklaces' },
+    { label:'Earrings',       href:'/jewellery?category=earrings' },
+    { label:'Bracelets',      href:'/jewellery?category=bracelets' },
+    { label:'Bridal Sets',    href:'/jewellery?category=bridal' },
+    { label:'All Collections',href:'/jewellery?is_featured=true' },
   ]},
-  { label:'Jewellery',      href:'/jewellery', sub:[
-    { label:'All Jewellery', href:'/jewellery' },
-    { label:'New Arrivals',  href:'/jewellery?is_new=true' },
-    { label:'On Sale',       href:'/jewellery?on_sale=true' },
+  { label:'Jewellery', href:'/jewellery' },
+  { label:'Lab Grown', href:'/diamonds?type=LAB_GROWN', sub:[
+    { label:'High Jewellery',    href:'/jewellery?type=lab' },
+    { label:'Jewellery',         href:'/jewellery' },
+    { label:'Certified Diamond', href:'/diamonds?type=LAB_GROWN' },
   ]},
-  { label:'Diamonds',  href:'/diamonds', sub:[
-    { label:'Natural Diamonds',   href:'/diamonds?type=NATURAL' },
-    { label:'Lab-Grown Diamonds', href:'/diamonds?type=LAB_GROWN' },
-  ]},
-  { label:'Gemstones', href:'/gemstones', sub:[
-    { label:'Ruby',      href:'/gemstones?type=Ruby' },
-    { label:'Sapphire',  href:'/gemstones?type=Sapphire' },
-    { label:'Emerald',   href:'/gemstones?type=Emerald' },
-    { label:'All stones',href:'/gemstones' },
-  ]},
-  { label:'Pearls',    href:'/pearls' },
   { label:'Customisation', href:'/custom' },
-  { label:'News',      href:'/blog' },
-  { label:'La Maison', href:'/about', sub:[
-    { label:'About us',          href:'/about' },
-    { label:'Boutique Finder',   href:'/boutiques' },
-    { label:'Exhibitions',       href:'/exhibitions' },
-    { label:'Ring Builder',      href:'/ring-builder' },
-    { label:'Verify Certificate',href:'/verify' },
-    { label:'Book Appointment',  href:'/appointment' },
+  { label:'News', href:'/blog' },
+  { label:'Our Heritage', href:'/about', sub:[
+    { label:'About Us',               href:'/about' },
+    { label:'Craftsmanship & Expertise', href:'/about#craftsmanship' },
+    { label:'Jewellery Care Guide',   href:'/blog?cat=care' },
+    { label:'Boutique Finder',        href:'/boutiques' },
+    { label:'Book Appointment',       href:'/appointment' },
+    { label:'Exhibitions',            href:'/exhibitions' },
   ]},
 ];
 
-export default function Header({ template }) {
-  const [open,     setOpen]     = useState(false);
-  const [active,   setActive]   = useState(null);
-  const [scrolled, setScrolled] = useState(false);
+export default function Header({ template, config }) {
+  const [scrolled,   setScrolled]   = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openMenu,   setOpenMenu]   = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query,      setQuery]      = useState('');
+  const headerRef = useRef();
 
-  useEffect(()=>{
-    const fn=()=>setScrolled(window.scrollY>40);
-    window.addEventListener('scroll',fn);
-    return()=>window.removeEventListener('scroll',fn);
-  },[]);
+  const accent    = template?.colors?.accent    || '#c9a84c';
+  const navBg     = template?.colors?.navBg     || '#fff';
+  const textColor = template?.colors?.text      || '#1a1a1a';
+  const topBarBg  = config?.theme_topbar_bg     || template?.nav?.topBarBg  || '#1a1a1a';
+  const topBarText= template?.nav?.topBarText   || '#fff';
+  const topBarTxt = config?.theme_topbar_text   || 'Free shipping on orders above AED 500 · GIA & IGI Certified';
+  const showTopBar= config?.theme_nav_topbar !== 'false' && template?.nav?.topBar !== false;
+  const heading   = template?.fonts?.heading    || "'Playfair Display', Georgia, serif";
 
-  const isDark   = ['luxury-dark','diamond-dealer'].includes(template?.id);
-  const isWarm   = template?.id === 'boutique-warm';
-  const textColor= isDark ? '#f5f0e8' : isWarm ? '#3d2b1a' : '#1a1a1a';
-  const accent   = template?.colors?.accent || '#c9a84c';
-  const navBg    = scrolled
-    ? (isDark ? 'rgba(10,10,10,0.97)' : isWarm ? '#fdf6ec' : '#ffffff')
-    : (isDark ? 'rgba(10,10,10,0.6)'  : isWarm ? '#fdf6ec' : '#ffffff');
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (query.trim()) window.location = `/search?q=${encodeURIComponent(query.trim())}`;
+  };
 
   return (
-    <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, backdropFilter:'blur(12px)', background:navBg, borderBottom:`1px solid ${isDark?'rgba(255,255,255,0.06)':isWarm?'#e8d5bc':'rgba(0,0,0,0.08)'}`, transition:'all .3s' }}>
-      {/* Top bar */}
-      <div style={{ background:isDark?'#c9a84c':isWarm?'#3d2b1a':'#1a1a1a', color:'#fff', textAlign:'center', padding:'6px 20px', fontSize:11, letterSpacing:'0.08em' }}>
-        GIA & IGI Certified · Worldwide Shipping · WhatsApp for instant support
-      </div>
+    <header ref={headerRef} style={{ position:'sticky', top:0, zIndex:200, fontFamily: template?.fonts?.body }}>
+      {/* Announcement bar */}
+      {showTopBar && (
+        <div style={{ background: topBarBg, color: topBarText, fontSize:11, fontWeight:500, letterSpacing:'0.08em', textAlign:'center', padding:'7px 16px' }}>
+          {topBarTxt}
+        </div>
+      )}
 
       {/* Main nav */}
-      <div style={{ maxWidth:1300, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:60 }}>
-        {/* Logo */}
-        <Link href="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', marginRight:40, flexShrink:0 }}>
-          <div style={{ width:32, height:32, background:accent, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="#fff" strokeWidth="1.5"/>
-            </svg>
-          </div>
-          <span style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:400, color:textColor, letterSpacing:'-0.01em' }}>
-            {process.env.NEXT_PUBLIC_STORE_NAME||'JewelCMS'}
-          </span>
-        </Link>
+      <div style={{
+        background: scrolled ? (navBg === 'rgba(10,10,10,0.95)' ? '#0a0a0a' : navBg) : navBg,
+        borderBottom: `0.5px solid ${template?.colors?.border || '#e5e5e5'}`,
+        transition: 'all .3s ease',
+        boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.08)' : 'none',
+      }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:64, gap:24 }}>
+          
+          {/* Mobile hamburger */}
+          <button className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} style={{ color: textColor }}>
+            {mobileOpen ? <X size={22}/> : <Menu size={22}/>}
+          </button>
 
-        {/* Desktop nav */}
-        <nav style={{ display:'flex', alignItems:'center', gap:2, flex:1, overflow:'hidden' }}>
-          {NAV.map(item=>(
-            <div key={item.label} style={{ position:'relative' }}
-              onMouseEnter={()=>setActive(item.label)}
-              onMouseLeave={()=>setActive(null)}>
-              <Link href={item.href}
-                style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:6, fontSize:13, fontWeight:500, color:textColor, textDecoration:'none', opacity:0.85, transition:'opacity .15s', whiteSpace:'nowrap' }}
-                onMouseEnter={e=>e.currentTarget.style.opacity='1'}
-                onMouseLeave={e=>e.currentTarget.style.opacity='0.85'}>
-                {item.label}
-                {item.sub && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-              </Link>
+          {/* Logo */}
+          <Link href="/" style={{ display:'flex', alignItems:'center', textDecoration:'none', flexShrink:0 }}>
+            <span style={{ fontFamily: heading, fontSize:22, fontWeight:400, color: textColor, letterSpacing:'0.05em' }}>
+              TEJORI
+            </span>
+          </Link>
 
-              {item.sub && active===item.label && (
-                <div style={{ position:'absolute', top:'100%', left:0, paddingTop:8, minWidth:200, zIndex:200 }}>
-                  <div style={{ background:'#fff', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.12)', border:'1px solid rgba(0,0,0,0.06)', overflow:'hidden', padding:'8px 0' }}>
-                    {item.sub.map(s=>(
+          {/* Desktop nav */}
+          <nav style={{ display:'flex', gap:4, flex:1, justifyContent:'center' }} className="hidden lg:flex">
+            {NAV.map(item => (
+              <div key={item.label} className="relative group"
+                onMouseEnter={() => setOpenMenu(item.label)}
+                onMouseLeave={() => setOpenMenu(null)}>
+                <Link href={item.href}
+                  style={{ display:'flex', alignItems:'center', gap:4, padding:'8px 12px', fontSize:12, fontWeight:500, color: textColor, textDecoration:'none', letterSpacing:'0.03em', whiteSpace:'nowrap', transition:'color .2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = accent}
+                  onMouseLeave={e => e.currentTarget.style.color = textColor}>
+                  {item.label}
+                  {item.sub && <ChevronDown size={11} style={{ opacity:0.5 }}/>}
+                </Link>
+
+                {/* Dropdown */}
+                {item.sub && openMenu === item.label && (
+                  <div style={{
+                    position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)',
+                    background:'#fff', border:'1px solid #e5e5e5', borderRadius:12,
+                    padding:'8px 0', minWidth:200, boxShadow:'0 8px 32px rgba(0,0,0,0.12)',
+                    zIndex:300,
+                  }}>
+                    {item.sub.map(s => (
                       <Link key={s.label} href={s.href}
-                        style={{ display:'block', padding:'10px 20px', fontSize:13, color:'#1a1a1a', textDecoration:'none', transition:'background .15s' }}
-                        onMouseEnter={e=>e.currentTarget.style.background='#f5f0ea'}
-                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                        style={{ display:'block', padding:'9px 18px', fontSize:12, color:'#4a4a4a', textDecoration:'none', transition:'all .15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = accent; e.currentTarget.style.background = '#fdf8f0'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#4a4a4a'; e.currentTarget.style.background = 'transparent'; }}>
                         {s.label}
                       </Link>
                     ))}
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </nav>
+                )}
+              </div>
+            ))}
+          </nav>
 
-        {/* Right actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-          <form onSubmit={e=>{e.preventDefault();const q=e.target.q.value.trim();if(q)window.location='/search?q='+encodeURIComponent(q);}} className="hidden lg:flex items-center">
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"/>
-              <input name="q" placeholder="Search…" className="pl-8 pr-3 py-1.5 text-xs border border-ink-200 rounded-full outline-none focus:border-gold-400 w-32 focus:w-48 transition-all duration-300 bg-ink-50"/>
-            </div>
-          </form>
-          <CurrencySwitcher/>
-          <LanguageSwitcher/>
-          <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP||''}`} target="_blank" rel="noreferrer"
-            style={{ display:'flex', alignItems:'center', gap:6, background:'#25d366', color:'#fff', padding:'7px 14px', borderRadius:50, fontSize:12, fontWeight:600, textDecoration:'none' }}>
-            <Phone size={12}/> WhatsApp
-          </a>
-          <Link href="/verify"
-            style={{ padding:'7px 14px', borderRadius:50, fontSize:12, fontWeight:500, color:textColor, textDecoration:'none', opacity:0.7, border:`1px solid ${isDark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.12)'}` }}>
-            Verify Cert
-          </Link>
-          <button onClick={()=>setOpen(!open)} style={{ display:'flex', padding:8, border:'none', background:'transparent', cursor:'pointer', color:textColor }}>
-            {open?<X size={20}/>:<Menu size={20}/>}
-          </button>
+          {/* Right actions */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            <div className="hidden sm:block"><CurrencySwitcher/></div>
+            <div className="hidden sm:block"><LanguageSwitcher/></div>
+
+            {/* Search */}
+            <button onClick={() => setSearchOpen(!searchOpen)} style={{ padding:8, color: textColor, background:'transparent', border:'none', cursor:'pointer', display:'flex' }}>
+              <Search size={18}/>
+            </button>
+
+            {/* Wishlist */}
+            <Link href="/wishlist" style={{ padding:8, color: textColor, display:'flex' }}>
+              <Heart size={18}/>
+            </Link>
+          </div>
         </div>
+
+        {/* Search bar */}
+        {searchOpen && (
+          <div style={{ borderTop:'0.5px solid #e5e5e5', padding:'12px 24px', background:'#fafaf8' }}>
+            <form onSubmit={handleSearch} style={{ maxWidth:600, margin:'0 auto', display:'flex', gap:8 }}>
+              <input value={query} onChange={e=>setQuery(e.target.value)} autoFocus
+                placeholder="Search diamonds, jewellery, gemstones…"
+                style={{ flex:1, padding:'10px 16px', border:'1px solid #e5e5e5', borderRadius:30, fontSize:13, outline:'none' }}/>
+              <button type="submit" style={{ padding:'10px 20px', background: accent, color:'#fff', border:'none', borderRadius:30, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                Search
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
-      {/* Mobile menu */}
-      {open && (
-        <div style={{ background:isDark?'#0a0a0a':isWarm?'#fdf6ec':'#fff', borderTop:`1px solid ${isDark?'#2a2a2a':isWarm?'#e8d5bc':'#f0f0f0'}`, padding:'16px 24px', maxHeight:'70vh', overflowY:'auto' }}>
-          {NAV.map(item=>(
-            <div key={item.label}>
-              <Link href={item.href} onClick={()=>setOpen(false)}
-                style={{ display:'block', padding:'12px 0', fontSize:15, fontWeight:500, color:textColor, textDecoration:'none', borderBottom:`1px solid ${isDark?'#1a1a1a':isWarm?'#f0e4d0':'#f5f5f5'}` }}>
-                {item.label}
-              </Link>
-              {item.sub?.map(s=>(
-                <Link key={s.label} href={s.href} onClick={()=>setOpen(false)}
-                  style={{ display:'block', padding:'8px 16px', fontSize:13, color:isDark?'rgba(245,240,232,0.5)':'#9a8a7a', textDecoration:'none' }}>
-                  {s.label}
-                </Link>
-              ))}
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div style={{ position:'fixed', inset:0, zIndex:400 }}>
+          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)' }} onClick={() => setMobileOpen(false)}/>
+          <div style={{ position:'absolute', top:0, left:0, bottom:0, width:280, background:'#fff', overflowY:'auto', padding:'20px 0' }}>
+            <div style={{ padding:'0 20px 16px', borderBottom:'1px solid #f0f0f0', marginBottom:8 }}>
+              <span style={{ fontFamily: heading, fontSize:20 }}>TEJORI</span>
             </div>
-          ))}
+            {NAV.map(item => (
+              <div key={item.label}>
+                <Link href={item.href} onClick={() => setMobileOpen(false)}
+                  style={{ display:'block', padding:'12px 20px', fontSize:13, fontWeight:500, color:'#1a1a1a', textDecoration:'none', borderBottom:'1px solid #f8f8f8' }}>
+                  {item.label}
+                </Link>
+                {item.sub?.map(s => (
+                  <Link key={s.label} href={s.href} onClick={() => setMobileOpen(false)}
+                    style={{ display:'block', padding:'9px 32px', fontSize:12, color:'#666', textDecoration:'none', borderBottom:'1px solid #f8f8f8' }}>
+                    {s.label}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </header>
