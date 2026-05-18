@@ -1,41 +1,128 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ── TEJORI DESIGN SYSTEM ─────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
-@layer base {
-  body { font-family: var(--font-inter), system-ui, sans-serif; color: #241e18; background: #fafaf8; -webkit-font-smoothing: antialiased; }
-  h1,h2,h3 { font-family: var(--font-playfair), Georgia, serif; }
+:root {
+  /* Brand colors — Tejori */
+  --tejori-white:       #ffffff;
+  --tejori-cream:       #fdf8f3;
+  --tejori-cream-dark:  #f5ede2;
+  --tejori-gold:        #b8860b;
+  --tejori-gold-light:  #d4a843;
+  --tejori-rose-gold:   #c9a87c;
+  --tejori-black:       #1a1a1a;
+  --tejori-dark:        #0d0d0d;
+  --tejori-grey:        #6b6b6b;
+  --tejori-grey-light:  #e8e4df;
+  --tejori-border:      #e5e0d8;
+  
+  /* Typography */
+  --font-heading:  'Cormorant Garamond', Georgia, serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  
+  /* Sizes */
+  --nav-height:    72px;
+  --max-width:     1320px;
+  --radius-card:   4px;
+  --radius-btn:    0px;
 }
 
-@layer components {
-  .btn-gold { @apply bg-gold-500 hover:bg-gold-600 text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 inline-flex items-center gap-2 text-sm; }
-  .btn-outline-gold { @apply border-2 border-gold-500 text-gold-600 hover:bg-gold-500 hover:text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 inline-flex items-center gap-2 text-sm; }
-  .btn-ghost { @apply bg-white border border-ink-200 text-ink-600 hover:border-gold-400 hover:text-gold-600 font-medium px-4 py-2 rounded-full transition-all text-sm inline-flex items-center gap-2; }
-  .card { @apply bg-white rounded-2xl border border-ink-100 shadow-sm; }
-  .section { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16; }
-  .section-title { @apply text-3xl lg:text-4xl font-serif text-ink-800 mb-2; }
-  .section-sub { @apply text-ink-400 mb-10 text-base; }
-  .badge { @apply text-xs font-semibold px-2.5 py-1 rounded-full; }
-  .badge-gold  { @apply badge bg-gold-100 text-gold-700; }
-  .badge-natural { @apply badge bg-amber-100 text-amber-700; }
-  .badge-lab  { @apply badge bg-blue-100 text-blue-700; }
-  .badge-cert { @apply badge bg-green-100 text-green-700; }
-  .input-field { @apply w-full border border-ink-200 rounded-xl px-4 py-3 text-sm text-ink-700 outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-100 transition-all; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--tejori-black);
+  background: var(--tejori-white);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── RTL Arabic support ── */
-[dir="rtl"] {
-  font-family: 'Segoe UI', Tahoma, 'Noto Kufi Arabic', sans-serif;
+/* ── Tejori heading style ── */
+h1,h2,h3,h4 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
-[dir="rtl"] .font-serif {
-  font-family: 'Noto Naskh Arabic', Georgia, serif;
+
+/* ── Links ── */
+a { color: inherit; text-decoration: none; }
+
+/* ── Tejori button styles ── */
+.btn-tejori {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 13px 32px;
+  background: var(--tejori-black);
+  color: var(--tejori-white);
+  font-family: var(--font-body);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  border: none; cursor: pointer;
+  transition: background .2s, color .2s;
 }
-[dir="rtl"] .flex        { flex-direction: row-reverse; }
-[dir="rtl"] .text-left   { text-align: right; }
-[dir="rtl"] .text-right  { text-align: left; }
-[dir="rtl"] .ml-auto     { margin-left: unset; margin-right: auto; }
-[dir="rtl"] .mr-auto     { margin-right: unset; margin-left: auto; }
-[dir="rtl"] .pl-4        { padding-left: unset; padding-right: 1rem; }
-[dir="rtl"] .pr-4        { padding-right: unset; padding-left: 1rem; }
-[dir="rtl"] .rounded-l-xl { border-radius: 0 .75rem .75rem 0; }
-[dir="rtl"] .rounded-r-xl { border-radius: .75rem 0 0 .75rem; }
+.btn-tejori:hover { background: var(--tejori-gold); color: var(--tejori-white); }
+
+.btn-tejori-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 32px;
+  background: transparent;
+  color: var(--tejori-black);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  border: 1px solid var(--tejori-black); cursor: pointer;
+  transition: all .2s;
+}
+.btn-tejori-outline:hover { background: var(--tejori-black); color: var(--tejori-white); }
+
+.btn-whatsapp {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px;
+  background: var(--tejori-black);
+  color: var(--tejori-white);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: none; cursor: pointer;
+  width: 100%;
+  transition: background .2s;
+}
+.btn-whatsapp:hover { background: #1a7a35; }
+
+/* ── Section label (small uppercase tag above headings) ── */
+.section-label {
+  display: block;
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--tejori-gold);
+  margin-bottom: 12px;
+}
+
+/* ── Tejori divider ── */
+.divider-gold {
+  width: 40px; height: 1px;
+  background: var(--tejori-gold);
+  margin: 16px 0;
+}
+
+/* ── Product card ── */
+.product-card {
+  background: var(--tejori-white);
+  border: 1px solid transparent;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.product-card:hover { border-color: var(--tejori-border); }
+
+/* ── RTL ── */
+[dir="rtl"] { font-family: 'Noto Kufi Arabic', var(--font-body); }
+[dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3 { font-family: 'Noto Naskh Arabic', var(--font-heading); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--tejori-grey-light); border-radius: 2px; }
+
+/* ── Animations ── */
+@keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn { from{transform:translateX(-100%)} to{transform:translateX(0)} }
+
+.animate-fade { animation: fadeIn .4s ease forwards; }
