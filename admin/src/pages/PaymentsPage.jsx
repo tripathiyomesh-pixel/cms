@@ -250,7 +250,7 @@ export default function PaymentsPage() {
                     <div className="mt-3 bg-white dark:bg-ink-900 rounded-xl p-3">
                       <p className="text-[10px] text-ink-400 mb-1">Webhook URL — paste this in {gw.name} dashboard</p>
                       <code className="text-[11px] text-green-600 font-mono">
-                        {window.location.origin.replace('3000','4000')}/api/payments/webhook/{gw.id}
+                        {window.location.origin.replace('3010','4000')}/api/payments/webhook/{gw.id}
                       </code>
                     </div>
                   </div>

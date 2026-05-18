@@ -8,7 +8,7 @@ const playfair = Playfair_Display({ subsets:['latin'], variable:'--font-playfair
 const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Luxury Jewellery';
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3001'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3011'),
   title: { default: storeName, template: `%s | ${storeName}` },
   description: `Certified diamonds, coloured gemstones, pearls and fine jewellery. GIA & IGI certified. ${storeName}.`,
   openGraph: { type:'website', locale:'en_AE', siteName: storeName },

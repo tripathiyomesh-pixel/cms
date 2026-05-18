@@ -153,7 +153,7 @@ export default function ERPIntegrationPage() {
                 <div className="bg-ink-50 dark:bg-ink-800 rounded-xl p-3">
                   <p className="text-[10px] text-ink-400 mb-1">Webhook URL (paste in ERP webhook settings)</p>
                   <code className="text-xs text-green-600 dark:text-green-400 font-mono break-all">
-                    {window.location.origin.replace('3000','4000')}/api/erp/webhook
+                    {window.location.origin.replace('3010','4000')}/api/erp/webhook
                   </code>
                 </div>
                 <div className="bg-ink-50 dark:bg-ink-800 rounded-xl p-3">
