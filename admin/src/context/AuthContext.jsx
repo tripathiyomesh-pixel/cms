@@ -14,8 +14,8 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(saved));
       // Validate token in background
       authAPI.me().then(r => {
-        setUser(r.data.data.user);
-        localStorage.setItem('jcms_user', JSON.stringify(r.data.data.user));
+        setUser(r.data.data.user || r.data.data);
+        localStorage.setItem('jcms_user', JSON.stringify(r.data.data.user || r.data.data.user));
       }).catch(() => logout());
     }
     setLoading(false);

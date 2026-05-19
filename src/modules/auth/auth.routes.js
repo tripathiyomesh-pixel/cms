@@ -46,9 +46,23 @@ router.post('/login', loginRules, validate, async (req, res) => {
     await user.update({ last_login: new Date() });
     const token = signToken(user);
 
+    // Build capabilities for frontend sidebar
+    const { buildPermissions } = require('../../engine/permissions');
+    const db = require('../../config/db.pool');
+    let profile = null; let policies = [];
+    try {
+      const res2 = await db.query('SELECT * FROM workforce_profiles WHERE user_id=$1',[user.id]);
+      profile = res2[0]?.[0] || null;
+      if (profile?.policy_ids?.length) {
+        const p2 = await db.query('SELECT * FROM permission_policies WHERE id=ANY($1) AND is_active=true',[profile.policy_ids]);
+        policies = p2[0] || [];
+      }
+    } catch {}
+    const perms = buildPermissions(user, profile, policies);
+
     return success(res, {
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, permissions: user.permissions },
+      user: { id:user.id, name:user.name, email:user.email, role:user.role, permissions:user.permissions, capabilities:perms.capabilities },
     }, 'Login successful');
   } catch (e) {
     return error(res, e.message);
