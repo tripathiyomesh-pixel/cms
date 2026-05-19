@@ -1,6 +1,6 @@
 const { buildPermissions } = require('../../engine/permissions');
 const jwt = require('jsonwebtoken');
-const { User } = require('../../database/models');
+// User lookup now done via raw SQL in authenticate middleware
 
 // ─── ROLE HIERARCHY ──────────────────────────────────────────
 const ROLE_HIERARCHY = {

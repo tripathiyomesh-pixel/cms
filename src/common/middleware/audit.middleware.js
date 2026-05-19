@@ -1,4 +1,4 @@
-const { AuditLog } = require('../../database/models');
+const db = require('../../config/db.pool');
 const logger = require('../../config/logger');
 
 /**
@@ -10,7 +10,7 @@ const auditLog = (action, resource) => async (req, res, next) => {
   res.json = async function (body) {
     if (body && body.success) {
       try {
-        await AuditLog.create({
+        try { await db.query(`INSERT INTO audit_logs(id,user_id,user_email,action,resource,resource_id,old_data,new_data,ip_address,user_agent,created_at) VALUES(gen_random_uuid(),$1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())`, [req.user?.id||null, req.user?.email||null, action, resource, resourceId, JSON.stringify(oldData)||null, JSON.stringify(newData)||null, req.ip||null, req.headers['user-agent']||null]); } catch(e){} //
           user_id:     req.user?.id,
           user_email:  req.user?.email,
           action,

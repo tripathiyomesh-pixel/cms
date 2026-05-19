@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt  = require('bcryptjs');
-const { User } = require('../../database/models');
+const db = require('../../config/db.pool');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { success, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 
