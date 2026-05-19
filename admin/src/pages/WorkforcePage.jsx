@@ -297,7 +297,10 @@ function StaffTab({ branches, departments, policies }) {
                       {s.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="py-3">
+                  <td className="py-3 flex items-center gap-1">
+                    {!s.has_profile && (
+                      <span title="No workforce profile" className="text-[9px] bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-semibold mr-1">Legacy</span>
+                    )}
                     <button className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition-colors"><Edit2 size={13}/></button>
                   </td>
                 </tr>
