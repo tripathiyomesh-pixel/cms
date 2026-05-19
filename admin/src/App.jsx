@@ -1,3 +1,4 @@
+import GoldRatePage from './pages/GoldRatePage';
 import WorkforcePage from './pages/WorkforcePage';
 import HomeBuilderPage from './pages/HomeBuilderPage';
 import MenuBuilderPage from './pages/MenuBuilderPage';
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Route path="plugins" element={<PluginsPage />} />
         <Route path="users" element={<Navigate to="/workforce" replace />} />
               <Route path="workforce" element={<WorkforcePage />} />
+              <Route path="gold-rates" element={<GoldRatePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="dev-status" element={<DevStatusPage />} />

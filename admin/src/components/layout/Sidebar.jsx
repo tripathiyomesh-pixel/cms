@@ -63,6 +63,7 @@ const NAV_SECTIONS = [
     label: 'System',
     items: [
       { to:'/workforce',       icon:Briefcase,       text:'Workforce',        capability:'workforce.view' },
+      { to:'/gold-rates',       icon:DollarSign,      text:'Gold rates',       capability:'gold_rates.view' },
       { to:'/users',           icon:Users,           text:'Users',            capability:'users.view' },
       { to:'/payments',        icon:DollarSign,      text:'Payments',         capability:'settings.manage' },
       { to:'/erp-integration', icon:Zap,             text:'ERP sync',         capability:'erp.view' },

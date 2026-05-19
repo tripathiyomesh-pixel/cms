@@ -397,3 +397,6 @@ export default function Header({ template, config }) {
     </>
   );
 }
+
+// Gold rate is now exported as a separate component for storefront use
+// Import and use: import { GoldRateBanner } from '@/components/layout/Header'

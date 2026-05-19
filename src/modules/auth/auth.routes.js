@@ -47,7 +47,7 @@ router.post('/login', loginRules, validate, async (req, res) => {
     const token = signToken(user);
 
     // Build capabilities for frontend sidebar
-    const { buildPermissions } = require('../../engine/permissions');
+    const { buildPermissions, loadRoleCapabilities } = require('../../engine/permissions');
     const db = require('../../config/db.pool');
     let profile = null; let policies = [];
     try {
@@ -58,7 +58,8 @@ router.post('/login', loginRules, validate, async (req, res) => {
         policies = p2[0] || [];
       }
     } catch {}
-    const perms = buildPermissions(user, profile, policies);
+    const roleCaps = await loadRoleCapabilities();
+    const perms = buildPermissions(user, profile, policies, roleCaps);
 
     return success(res, {
       token,
