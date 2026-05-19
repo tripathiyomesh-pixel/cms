@@ -47,9 +47,9 @@ async function up() {
     updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   });
 
-  await qi.safeIndex('installed_plugins', ['plugin_id']);
-  await qi.safeIndex('installed_plugins', ['license_id']);
-  await qi.safeIndex('product_extensions', ['product_id', 'plugin_id'], { unique: true });
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "installed_plugins_plugin_id" ON "installed_plugins" ("plugin_id")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "installed_plugins_license_id" ON "installed_plugins" ("license_id")'); } catch(e) {}
+  try { await sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "product_extensions_product_id_plugin_id" ON "product_extensions" ("product_id","plugin_id")'); } catch(e) {}
 
   console.log('✅ Plugin tables created');
 }

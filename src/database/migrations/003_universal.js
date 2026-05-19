@@ -97,11 +97,11 @@ async function up() {
     updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   });
 
-  await qi.safeIndex('product_variants', ['product_id']);
-  await qi.safeIndex('product_variants', ['sku']);
-  await qi.safeIndex('settings', ['key']);
-  await qi.safeIndex('settings', ['group']);
-  await qi.safeIndex('menus', ['location']);
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "product_variants_product_id" ON "product_variants" ("product_id")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "product_variants_sku" ON "product_variants" ("sku")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "settings_key" ON "settings" ("key")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "settings_group" ON "settings" ("group")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "menus_location" ON "menus" ("location")'); } catch(e) {}
 
   console.log('✅ Migration 003 complete — menus, variants, settings, webhooks, themes, plugin billing');
 }
