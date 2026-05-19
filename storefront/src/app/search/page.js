@@ -1,120 +1,220 @@
 'use client';
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 
-const TYPE_LABELS = { NATURAL_DIAMOND:'Natural Diamond', LAB_GROWN_DIAMOND:'Lab Diamond', GEMSTONE:'Gemstone', PEARL:'Pearl', MOUNTING:'Mounting', JEWELLERY:'Jewellery' };
-const TYPE_HREFS  = { NATURAL_DIAMOND:'/diamonds', LAB_GROWN_DIAMOND:'/diamonds', GEMSTONE:'/gemstones', PEARL:'/pearls', MOUNTING:'/mountings', JEWELLERY:'/jewellery' };
+export const metadata = { title:'Search | TEJORI', description:'Search our jewellery collection' };
 
-function SearchContent() {
-  const sp     = useSearchParams();
-  const router = useRouter();
-  const q0     = sp.get('q')||'';
-  const [query,   setQuery]   = useState(q0);
-  const [results, setResults] = useState([]);
-  const [total,   setTotal]   = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState('');
+const METAL_OPTIONS  = ['Gold','Platinum','Silver','Rose Gold'];
+const PURITY_OPTIONS = ['24K','22K','18K','14K','Platinum 950'];
+const CAT_OPTIONS    = ['Necklaces','Earrings','Rings','Bracelets','Pendants','Bridal'];
 
-  const doSearch = async (q) => {
-    if (!q || q.trim().length < 2) return;
-    setLoading(true); setSearched(q);
+function SearchInner() {
+  const params  = useSearchParams();
+  const [query,    setQuery]    = useState(params.get('q') || '');
+  const [results,  setResults]  = useState([]);
+  const [loading,  setLoading]  = useState(false);
+  const [total,    setTotal]    = useState(0);
+  const [page,     setPage]     = useState(1);
+  const [showFilt, setShowFilt] = useState(false);
+  const [filters,  setFilters]  = useState({
+    metal:'', purity:'', category:'', min_price:'', max_price:'', sort:'relevant'
+  });
+  const wapp = process.env.NEXT_PUBLIC_WHATSAPP || '';
+  const LIMIT = 12;
+
+  const search = async (q=query, pg=1, filt=filters) => {
+    if (!q?.trim()) return;
+    setLoading(true);
     try {
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/search?q=${encodeURIComponent(q)}&limit=24`);
-      const data = await r.json();
-      setResults(data.data?.results||[]);
-      setTotal(data.data?.total||0);
+      const api = process.env.NEXT_PUBLIC_API_URL || '/api';
+      const p = new URLSearchParams({ q, limit:LIMIT, page:pg, ...Object.fromEntries(Object.entries(filt).filter(([,v])=>v)) });
+      const res = await fetch(`${api}/storefront/search?${p}`);
+      const data = await res.json();
+      const items = data.data?.data || data.data || [];
+      if (pg === 1) setResults(items);
+      else setResults(prev => [...prev, ...items]);
+      setTotal(data.data?.total || items.length);
+      setPage(pg);
     } catch { setResults([]); }
     setLoading(false);
   };
 
-  useEffect(()=>{ if(q0) doSearch(q0); },[q0]);
+  useEffect(() => {
+    const q = params.get('q') || '';
+    setQuery(q);
+    if (q) search(q, 1);
+  }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-    doSearch(query.trim());
-  };
+  const handleSubmit = (e) => { e.preventDefault(); search(query, 1); };
+  const setFilt = (k,v) => { const f = {...filters,[k]:v}; setFilters(f); search(query, 1, f); };
+  const clearFilt = () => { const f={metal:'',purity:'',category:'',min_price:'',max_price:'',sort:'relevant'}; setFilters(f); search(query,1,f); };
 
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
+  const activeFilters = Object.entries(filters).filter(([k,v]) => v && k !== 'sort');
 
   return (
-    <div className="pt-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div style={{ maxWidth:1280, margin:'0 auto', padding:'48px 32px' }}>
       {/* Search bar */}
-      <div className="mb-10">
-        <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl mx-auto">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400"/>
-            <input value={query} onChange={e=>setQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-4 border border-ink-200 rounded-2xl text-sm outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-100 transition-all"
-              placeholder="Search diamonds, jewellery, gemstones, cert number…"/>
-            {query && <button type="button" onClick={()=>setQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"><X size={14}/></button>}
+      <form onSubmit={handleSubmit} style={{ display:'flex', gap:0, marginBottom:40, maxWidth:680, margin:'0 auto 48px' }}>
+        <div style={{ flex:1, position:'relative' }}>
+          <Search size={16} style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
+          <input value={query} onChange={e=>setQuery(e.target.value)}
+            placeholder="Search jewellery, diamonds, collections…"
+            style={{ width:'100%', padding:'16px 16px 16px 48px', border:'2px solid #e5e0d8', fontSize:14, outline:'none', background:'#fff', boxSizing:'border-box', fontFamily:"'Inter',sans-serif" }}
+            autoFocus/>
+        </div>
+        <button type="submit" style={{ padding:'0 28px', background:'#1a1a1a', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
+          Search
+        </button>
+      </form>
+
+      {query && (
+        <>
+          {/* Filters + results count */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+              <p style={{ fontSize:13, color:'#6b6b6b' }}>
+                {loading ? 'Searching…' : `${total} results for "${query}"`}
+              </p>
+              {activeFilters.map(([k,v]) => (
+                <span key={k} style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'3px 10px', background:'#f5ede2', border:'1px solid #e5d5a0', borderRadius:20, fontSize:11, color:'#92600a' }}>
+                  {v}
+                  <button onClick={()=>setFilt(k,'')} style={{ background:'none', border:'none', cursor:'pointer', color:'#b8860b', display:'flex' }}><X size={11}/></button>
+                </span>
+              ))}
+              {activeFilters.length > 0 && (
+                <button onClick={clearFilt} style={{ fontSize:11, color:'#6b6b6b', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Clear all</button>
+              )}
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <select value={filters.sort} onChange={e=>setFilt('sort',e.target.value)}
+                style={{ padding:'6px 10px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', cursor:'pointer', outline:'none' }}>
+                <option value="relevant">Most Relevant</option>
+                <option value="newest">Newest First</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+              </select>
+              <button onClick={()=>setShowFilt(!showFilt)}
+                style={{ padding:'6px 12px', border:'1px solid #e5e0d8', background:showFilt?'#1a1a1a':'#fff', color:showFilt?'#fff':'#4a4a4a', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                <SlidersHorizontal size={13}/> Filters
+              </button>
+            </div>
           </div>
-          <button type="submit" className="btn-gold px-6">Search</button>
-        </form>
-      </div>
 
-      {/* Results */}
-      {searched && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-ink-700">
-            {loading ? 'Searching…' : `${total} results for "${searched}"`}
-          </h2>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array(8).fill(0).map((_,i)=><div key={i} className="card animate-pulse h-64"/>)}
-        </div>
-      ) : results.length===0 && searched ? (
-        <div className="card p-16 text-center">
-          <Search size={40} className="mx-auto text-ink-200 mb-4"/>
-          <p className="text-ink-500 mb-2">No results found for "{searched}"</p>
-          <p className="text-sm text-ink-400 mb-6">Try a different search term — stone shape, carat weight, cert number, or metal type</p>
-          {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Hi, I'm looking for: ${searched}`)}`} target="_blank" rel="noreferrer" className="btn-gold">Ask us on WhatsApp</a>}
-        </div>
-      ) : results.length>0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {results.map(p=>{
-            const type = TYPE_LABELS[p.inventory_type]||p.inventory_type;
-            const base = TYPE_HREFS[p.inventory_type]||'/jewellery';
-            const href = p.inventory_type==='JEWELLERY' ? `${base}/${p.slug||p.id}` : `${base}/${p.id}`;
-            const msg  = encodeURIComponent(`Hi, I found this in search: ${p.name} — ${p.currency} ${Number(p.final_price||0).toLocaleString()}`);
-            return (
-              <div key={p.id} className="card overflow-hidden hover:shadow-md transition-all group">
-                <div className="aspect-square bg-ink-50 overflow-hidden">
-                  {p.thumb_url ? <img src={p.thumb_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-                  : <div className="w-full h-full flex items-center justify-center text-5xl">💎</div>}
-                </div>
-                <div className="p-4">
-                  <span className="text-[10px] font-semibold text-gold-600 uppercase tracking-wide">{type}</span>
-                  <h3 className="text-sm font-medium text-ink-700 mt-1 mb-1 line-clamp-2">{p.name}</h3>
-                  {p.carat && <p className="text-xs text-ink-400 mb-1">{Number(p.carat).toFixed(2)}ct {p.color} {p.clarity}</p>}
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm font-bold text-ink-800">{p.currency} {Number(p.final_price||0).toLocaleString()}</span>
-                    <div className="flex gap-1.5">
-                      <Link href={href} className="text-[11px] px-2.5 py-1 rounded-lg border border-ink-200 text-ink-500 hover:border-gold-400 transition-colors">View</Link>
-                      {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`} target="_blank" rel="noreferrer" className="text-[11px] px-2.5 py-1 rounded-lg bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition-colors">💬</a>}
-                    </div>
-                  </div>
+          {/* Filter panel */}
+          {showFilt && (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:12, padding:20, background:'#fdf8f3', border:'1px solid #e5d5a0', marginBottom:28 }}>
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', display:'block', marginBottom:8 }}>Category</label>
+                <select value={filters.category} onChange={e=>setFilt('category',e.target.value)}
+                  style={{ width:'100%', padding:'8px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', outline:'none' }}>
+                  <option value="">All categories</option>
+                  {CAT_OPTIONS.map(o=><option key={o} value={o.toLowerCase()}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', display:'block', marginBottom:8 }}>Metal</label>
+                <select value={filters.metal} onChange={e=>setFilt('metal',e.target.value)}
+                  style={{ width:'100%', padding:'8px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', outline:'none' }}>
+                  <option value="">All metals</option>
+                  {METAL_OPTIONS.map(o=><option key={o} value={o.toLowerCase()}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', display:'block', marginBottom:8 }}>Purity</label>
+                <select value={filters.purity} onChange={e=>setFilt('purity',e.target.value)}
+                  style={{ width:'100%', padding:'8px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', outline:'none' }}>
+                  <option value="">All purities</option>
+                  {PURITY_OPTIONS.map(o=><option key={o} value={o.toLowerCase()}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', display:'block', marginBottom:8 }}>Price range (AED)</label>
+                <div style={{ display:'flex', gap:8 }}>
+                  <input type="number" placeholder="Min" value={filters.min_price} onChange={e=>setFilt('min_price',e.target.value)}
+                    style={{ flex:1, padding:'8px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', outline:'none' }}/>
+                  <input type="number" placeholder="Max" value={filters.max_price} onChange={e=>setFilt('max_price',e.target.value)}
+                    style={{ flex:1, padding:'8px', border:'1px solid #e5e0d8', fontSize:12, background:'#fff', outline:'none' }}/>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      ) : null}
+            </div>
+          )}
 
-      {/* Popular searches when empty */}
-      {!searched && (
-        <div className="text-center py-8">
-          <p className="text-xs font-semibold text-ink-400 uppercase tracking-wide mb-4">Popular searches</p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {['Round diamond 1ct','Oval engagement ring','Ruby necklace','Pearl bracelet','GIA certified','Emerald earrings','18K gold ring','Platinum solitaire'].map(s=>(
-              <button key={s} onClick={()=>{ setQuery(s); router.push(`/search?q=${encodeURIComponent(s)}`); doSearch(s); }}
-                className="px-4 py-2 rounded-full text-sm border border-ink-200 text-ink-500 hover:border-gold-400 hover:text-gold-600 transition-colors bg-white">
+          {/* Results grid */}
+          {loading && results.length === 0 ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:24 }}>
+              {Array(8).fill(0).map((_,i)=>(
+                <div key={i} style={{ background:'#f5ede2', aspectRatio:'1', borderRadius:0, animation:'pulse 1.5s infinite' }}/>
+              ))}
+            </div>
+          ) : results.length === 0 && query ? (
+            <div style={{ textAlign:'center', padding:'80px 0' }}>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>No results found</p>
+              <p style={{ fontSize:13, color:'#6b6b6b', marginBottom:24 }}>Try different keywords or browse our collections</p>
+              <Link href="/jewellery" style={{ fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', borderBottom:'1px solid #1a1a1a', paddingBottom:2 }}>
+                Browse all jewellery →
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:24 }}>
+                {results.map(p => {
+                  const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}\nSKU: ${p.sku}\n${window?.location?.href || ''}`);
+                  return (
+                    <div key={p.id} className="group" style={{ border:'1px solid transparent', transition:'border-color .2s' }}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='#e5e0d8'}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor='transparent'}>
+                      <Link href={`/jewellery/${p.slug||p.id}`} style={{ display:'block', aspectRatio:'1', background:'#f5ede2', overflow:'hidden' }}>
+                        {p.thumb_url
+                          ? <img src={p.thumb_url} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform .5s' }} className="group-hover:scale-105"/>
+                          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>💎</div>
+                        }
+                      </Link>
+                      <div style={{ padding:14, background:'#fff' }}>
+                        <Link href={`/jewellery/${p.slug||p.id}`} style={{ textDecoration:'none' }}>
+                          <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:400, color:'#1a1a1a', marginBottom:4, lineHeight:1.3 }}>{p.name}</h3>
+                        </Link>
+                        {p.metal_type && <p style={{ fontSize:11, color:'#6b6b6b', marginBottom:8, textTransform:'capitalize' }}>{p.metal_type} · {p.purity}</p>}
+                        {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`} target="_blank" rel="noreferrer"
+                          style={{ display:'block', width:'100%', padding:'10px', background:'#1a1a1a', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', textAlign:'center', textDecoration:'none', transition:'background .2s' }}
+                          onMouseEnter={e=>e.currentTarget.style.background='#b8860b'}
+                          onMouseLeave={e=>e.currentTarget.style.background='#1a1a1a'}>
+                          Request Price
+                        </a>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Load more */}
+              {results.length < total && (
+                <div style={{ textAlign:'center', marginTop:40 }}>
+                  <button onClick={()=>search(query, page+1)}
+                    style={{ padding:'13px 40px', border:'1px solid #1a1a1a', background:'#fff', color:'#1a1a1a', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', cursor:'pointer', transition:'all .2s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.background='#1a1a1a';e.currentTarget.style.color='#fff';}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.color='#1a1a1a';}}>
+                    {loading ? 'Loading…' : `Load more (${total - results.length} remaining)`}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      {/* Empty state — no query */}
+      {!query && (
+        <div style={{ textAlign:'center', padding:'40px 0' }}>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>What are you looking for?</p>
+          <p style={{ fontSize:13, color:'#6b6b6b', marginBottom:40 }}>Search our collection of diamonds, gemstones and luxury jewellery</p>
+          <div style={{ display:'flex', justifyContent:'center', gap:24, flexWrap:'wrap' }}>
+            {['Diamond Rings','Gold Necklaces','Pearl Earrings','Sapphire Bracelets','Lab Grown Diamonds','Custom Jewellery'].map(s=>(
+              <button key={s} onClick={()=>{ setQuery(s); search(s,1); }}
+                style={{ padding:'8px 16px', border:'1px solid #e5e0d8', background:'#fff', fontSize:12, cursor:'pointer', color:'#4a4a4a', transition:'all .15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#b8860b';e.currentTarget.style.color='#b8860b';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='#e5e0d8';e.currentTarget.style.color='#4a4a4a';}}>
                 {s}
               </button>
             ))}
@@ -126,5 +226,9 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
-  return <Suspense fallback={<div className="pt-32 text-center text-ink-400">Loading…</div>}><SearchContent/></Suspense>;
+  return (
+    <Suspense fallback={<div style={{ padding:40, textAlign:'center', color:'#6b6b6b' }}>Loading search…</div>}>
+      <SearchInner/>
+    </Suspense>
+  );
 }

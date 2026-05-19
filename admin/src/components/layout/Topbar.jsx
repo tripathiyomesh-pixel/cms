@@ -1,3 +1,4 @@
+import NotificationBell from '../ui/NotificationBell';
 /**
  * Topbar — per-page header (title + subtitle + page-specific action buttons)
  * Notification bell and user menu are in TopNavBar (always visible)
@@ -11,7 +12,8 @@ export default function Topbar({ title, subtitle, actions }) {
         {subtitle && <p className="text-[11px] text-ink-400 truncate mt-0.5">{subtitle}</p>}
       </div>
       {actions && (
-        <div className="flex items-center gap-2 flex-shrink-0 ml-4">{actions}</div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-4"><NotificationBell/>
+      {actions}</div>
       )}
     </div>
   );

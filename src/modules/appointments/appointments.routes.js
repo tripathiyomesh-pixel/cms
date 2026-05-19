@@ -1,3 +1,4 @@
+const { notifyAdmins } = require('../notifications/notifications.routes');
 const express = require('express');
 const router  = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
@@ -48,6 +49,7 @@ router.get('/', authenticate, async (req, res) => {
     const qp=[...params,parseInt(limit),parseInt(offset)];
     const [rows]=await db.query(`SELECT * FROM appointments ${where} ORDER BY preferred_date DESC,preferred_time ASC LIMIT $${qp.length-1} OFFSET $${qp.length}`,qp);
     const [cnt]=await db.query(`SELECT COUNT(*) as total FROM appointments ${where}`,params);
+    notifyAdmins({ type:'new_appointment', title:'New appointment request', body:`${req.body.customer_name||req.body.name||'Customer'} — ${req.body.type||'Consultation'} on ${req.body.appointment_date||'TBD'}`, icon:'calendar', color:'purple', link:'/appointments' }).catch(()=>{});
     res.json({ success:true, data:{ data:rows, total:+cnt[0]?.total||0, page:+page } });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });

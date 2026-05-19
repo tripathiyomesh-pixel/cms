@@ -1,96 +1,97 @@
-const express = require('express');
-const router  = express.Router();
-const { authenticate, authorize } = require('../../common/guards/auth.guard');
-const db = require('../../config/db.pool');
-const logger = require('../../config/logger');
+const router = require('express').Router();
+const db     = require('../../config/db.pool');
+const { authenticate } = require('../../common/guards/auth.guard');
 
-// Lazy load nodemailer — only when actually sending email
-const getTransporter = () => {
+// ── HELPERS (used by other modules to create notifications) ──
+async function createNotification({ user_id, type, title, body, icon='bell', color='blue', link, resource, resource_id }) {
   try {
-    const nodemailer = require('nodemailer');
-    return nodemailer.createTransport({
-      host:   process.env.SMTP_HOST   || 'smtp.gmail.com',
-      port:   parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-  } catch(e) {
-    return null;
-  }
-};
+    await db.query(
+      `INSERT INTO notifications (user_id,type,title,body,icon,color,link,resource,resource_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [user_id, type, title, body||null, icon, color, link||null, resource||null, resource_id||null]
+    );
+  } catch(e) { console.warn('Notification creation failed:', e.message); }
+}
 
-const checkSMTP = () => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return 'SMTP not configured. Add SMTP_HOST, SMTP_USER, SMTP_PASS to .env';
-  return null;
-};
-
-// ─── SEND EMAIL ──────────────────────────────────────────────
-router.post('/email', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+// Create for all admins/super_admins
+async function notifyAdmins({ type, title, body, icon, color, link, resource, resource_id }) {
   try {
-    const err = checkSMTP();
-    if (err) return res.status(503).json({ success: false, message: err });
-    const { to, subject, html, text } = req.body;
-    if (!to || !subject) return res.status(422).json({ success: false, message: 'to and subject required' });
-    const t = getTransporter();
-    if (!t) return res.status(503).json({ success: false, message: 'nodemailer not available' });
-    await t.sendMail({ from: `"${process.env.APP_NAME}" <${process.env.SMTP_USER}>`, to, subject, html, text });
-    res.json({ success: true, message: 'Email sent' });
-  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+    const [admins] = await db.query(
+      `SELECT id FROM users WHERE role IN ('super_admin','admin','boutique_manager') AND is_active=true`
+    );
+    for (const admin of admins) {
+      await createNotification({ user_id:admin.id, type, title, body, icon, color, link, resource, resource_id });
+    }
+  } catch(e) { console.warn('notifyAdmins failed:', e.message); }
+}
+
+module.exports.createNotification = createNotification;
+module.exports.notifyAdmins       = notifyAdmins;
+
+// ── GET notifications for current user ──────────────────────
+router.get('/', authenticate, async (req, res) => {
+  try {
+    const limit  = parseInt(req.query.limit) || 20;
+    const unread = req.query.unread === 'true';
+    let q = `SELECT * FROM notifications WHERE user_id=$1`;
+    if (unread) q += ` AND is_read=false`;
+    q += ` ORDER BY created_at DESC LIMIT ${limit}`;
+    const [rows] = await db.query(q, [req.user.id]);
+    const [[{ count }]] = await db.query(
+      `SELECT COUNT(*) FROM notifications WHERE user_id=$1 AND is_read=false`, [req.user.id]
+    );
+    res.json({ success:true, data:rows, unread_count:parseInt(count) });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
-// ─── ENQUIRY AUTO-REPLY ──────────────────────────────────────
-router.post('/enquiry-reply', async (req, res) => {
+// ── MARK as read ─────────────────────────────────────────────
+router.put('/:id/read', authenticate, async (req, res) => {
   try {
-    const err = checkSMTP();
-    if (err) return res.json({ success: false, message: err });
-    const { customer_name, customer_email, product_name, store_name, whatsapp_number } = req.body;
-    if (!customer_email) return res.json({ success: false, message: 'No customer email provided' });
-    const t = getTransporter();
-    if (!t) return res.json({ success: false, message: 'nodemailer not installed' });
-    const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px">
-      <h2 style="color:#c9a84c">Thank you, ${customer_name}!</h2>
-      <p>We have received your enquiry${product_name ? ` about <strong>${product_name}</strong>` : ''} and will get back to you shortly.</p>
-      ${whatsapp_number ? `<p><a href="https://wa.me/${whatsapp_number.replace(/\D/g,'')}" style="color:#c9a84c">Contact us on WhatsApp</a> for a faster response.</p>` : ''}
-      <p style="color:#999;font-size:12px">${store_name || 'Our Team'}</p></div>`;
-    await t.sendMail({ from: `"${store_name}" <${process.env.SMTP_USER}>`, to: customer_email, subject: `Thank you for your enquiry${product_name ? ` — ${product_name}` : ''}`, html });
-    res.json({ success: true, message: 'Auto-reply sent' });
-  } catch (e) { res.json({ success: false, message: e.message }); }
+    if (req.params.id === 'all') {
+      await db.query(`UPDATE notifications SET is_read=true WHERE user_id=$1`, [req.user.id]);
+    } else {
+      await db.query(`UPDATE notifications SET is_read=true WHERE id=$1 AND user_id=$2`, [req.params.id, req.user.id]);
+    }
+    res.json({ success:true });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
-// ─── APPOINTMENT CONFIRMATION ─────────────────────────────────
-router.post('/appointment-confirmation', async (req, res) => {
+// ── DELETE notification ──────────────────────────────────────
+router.delete('/:id', authenticate, async (req, res) => {
   try {
-    const err = checkSMTP();
-    if (err) return res.json({ success: false, message: err });
-    const { customer_name, customer_email, booking_ref, preferred_date, preferred_time, location_name, store_name } = req.body;
-    if (!customer_email) return res.json({ success: false, message: 'No customer email' });
-    const t = getTransporter();
-    if (!t) return res.json({ success: false, message: 'nodemailer not installed' });
-    const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px">
-      <h2 style="color:#c9a84c">Appointment Confirmed!</h2>
-      <p>Dear ${customer_name},</p>
-      <div style="background:#faf8f3;border-radius:8px;padding:16px;margin:16px 0">
-        <p><strong>Reference:</strong> ${booking_ref}</p>
-        <p><strong>Date:</strong> ${preferred_date} at ${preferred_time}</p>
-        ${location_name ? `<p><strong>Location:</strong> ${location_name}</p>` : ''}
-      </div>
-      <p>We look forward to seeing you!</p>
-      <p style="color:#999;font-size:12px">${store_name || 'Our Team'}</p></div>`;
-    await t.sendMail({ from: `"${store_name}" <${process.env.SMTP_USER}>`, to: customer_email, subject: `Appointment Confirmed — ${booking_ref}`, html });
-    res.json({ success: true, message: 'Confirmation sent' });
-  } catch (e) { res.json({ success: false, message: e.message }); }
+    await db.query(`DELETE FROM notifications WHERE id=$1 AND user_id=$2`, [req.params.id, req.user.id]);
+    res.json({ success:true });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
-// ─── TEST SMTP ────────────────────────────────────────────────
-router.post('/test-email', authenticate, authorize(['super_admin','admin']), async (req, res) => {
+// ── GET preferences ──────────────────────────────────────────
+router.get('/prefs', authenticate, async (req, res) => {
   try {
-    const err = checkSMTP();
-    if (err) return res.status(503).json({ success: false, message: err });
-    const t = getTransporter();
-    if (!t) return res.status(503).json({ success: false, message: 'nodemailer not installed — run: npm install nodemailer' });
-    await t.verify();
-    res.json({ success: true, message: `SMTP connected via ${process.env.SMTP_HOST}` });
-  } catch (e) { res.status(500).json({ success: false, message: `SMTP failed: ${e.message}` }); }
+    let [[prefs]] = await db.query(`SELECT * FROM notification_prefs WHERE user_id=$1`, [req.user.id]);
+    if (!prefs) {
+      const [rows] = await db.query(
+        `INSERT INTO notification_prefs (user_id) VALUES ($1) RETURNING *`, [req.user.id]
+      );
+      prefs = rows[0];
+    }
+    res.json({ success:true, data:prefs });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
-module.exports = router;
+// ── UPDATE preferences ───────────────────────────────────────
+router.put('/prefs', authenticate, async (req, res) => {
+  try {
+    const { new_enquiry, new_appointment, new_order, low_stock, gold_rate_change, system_alerts } = req.body;
+    await db.query(
+      `INSERT INTO notification_prefs (user_id, new_enquiry, new_appointment, new_order, low_stock, gold_rate_change, system_alerts)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT (user_id) DO UPDATE SET
+         new_enquiry=$2, new_appointment=$3, new_order=$4,
+         low_stock=$5, gold_rate_change=$6, system_alerts=$7, updated_at=NOW()`,
+      [req.user.id, new_enquiry, new_appointment, new_order, low_stock, gold_rate_change, system_alerts]
+    );
+    res.json({ success:true });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+module.exports.router = router;
