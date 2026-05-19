@@ -1,3 +1,4 @@
+import WorkforcePage from './pages/WorkforcePage';
 import HomeBuilderPage from './pages/HomeBuilderPage';
 import MenuBuilderPage from './pages/MenuBuilderPage';
 import FrontendSettingsPage from './pages/FrontendSettingsPage';
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="trust-badges" element={<TrustBadgesPage />} />
         <Route path="plugins" element={<PluginsPage />} />
         <Route path="users" element={<UsersPage />} />
+              <Route path="workforce" element={<WorkforcePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="dev-status" element={<DevStatusPage />} />
