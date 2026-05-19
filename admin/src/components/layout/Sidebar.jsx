@@ -7,6 +7,7 @@ import {
   Circle, Star, MapPin, Upload, BookOpen, Megaphone,
   Settings, ChevronDown, ChevronUp, DollarSign, Zap,
   Paintbrush, Layout, LayoutList, Square, Globe, Briefcase,
+  HelpCircle, Activity,
 } from 'lucide-react';
 
 // ── NAVIGATION DEFINITION ─────────────────────────────────────
@@ -68,6 +69,8 @@ const NAV_SECTIONS = [
       { to:'/payments',        icon:DollarSign,      text:'Payments',         capability:'settings.manage' },
       { to:'/erp-integration', icon:Zap,             text:'ERP sync',         capability:'erp.view' },
       { to:'/settings',        icon:Settings,        text:'Settings',         capability:'settings.view' },
+      { to:'/dev-status',       icon:Activity,        text:'Platform status',  capability:null },
+      { to:'/guide',            icon:HelpCircle,      text:'User guide',       capability:null },
     ],
   },
 ];

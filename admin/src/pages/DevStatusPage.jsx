@@ -1,603 +1,492 @@
-import { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
-import Topbar from "../components/layout/Topbar";
-import api from "../services/api";
+import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import Topbar from '../components/layout/Topbar';
+import api from '../services/api';
 
-const LAST_UPDATED = "2026-05-18 — 204/204 buildable tasks complete";
-const PLATFORM     = "Jewellery Commerce OS";
-const VERSION      = "v0.9";
+const VERSION     = 'v0.9.2';
+const UPDATED     = '2026-05-19';
+const PLATFORM    = 'Jewellery Commerce OS (JCOS)';
 
-// ─── BACKEND MODULES ──────────────────────────────────────────
-const BACKEND = [
-  { id:"infra",     phase:"Core",       icon:"ti-server-2",       name:"Infrastructure",
-    items:[
-      { n:"Docker Compose — PostgreSQL · Redis · Backend · Admin · Storefront · pgAdmin", s:1 },
-      { n:"PostgreSQL 16 — shared schema with Vantix ERP", s:1 },
-      { n:"Redis cache + sessions", s:1 },
-      { n:"Nodemon hot-reload (backend)", s:1 },
-      { n:"GitHub private repo + batch scripts (start/stop/migrate)", s:1 },
-      { n:"Gold rate auto-fetch cron (goldapi.io, every hour)", s:1 },
-      { n:"Migration scripts 001–011 (all run)", s:1 },
-      { n:"Nginx + SSL — production setup", s:0 },
-      { n:"PM2 auto-restart on VPS", s:0 },
-      { n:"CI/CD pipeline + staging environment", s:0 },
-      { n:"Automated daily DB backups", s:0 },
-      { n:"Error tracking — Sentry", s:0 },
-    ]},
-
-  { id:"auth",      phase:"Core",       icon:"ti-shield-lock",    name:"Auth & Users",
-    items:[
-      { n:"JWT login + logout + refresh token", s:1 },
-      { n:"RBAC — 5 roles (super_admin → viewer) with hierarchy", s:1 },
-      { n:"Permissions matrix — 11 resources × 4 actions", s:1 },
-      { n:"Users admin — invite, edit, deactivate", s:1 },
-      { n:"Role guide + permissions matrix page", s:1 },
-      { n:"Audit log — all actions tracked with user + timestamp", s:1 },
-      { n:"Forgot password / email reset flow", s:1 },
-      { n:"Admin 2FA (TOTP)", s:0 },
-    ]},
-
-  { id:"inventory", phase:"Inventory",  icon:"ti-database",       name:"Inventory Engine",
-    items:[
-      { n:"inventory_type: JEWELLERY · NATURAL_DIAMOND · LAB_GROWN_DIAMOND · GEMSTONE · PEARL · MOUNTING · CUSTOM_DESIGN · PARCEL", s:1 },
-      { n:"inventory_mode: IN_HOUSE · MEMO · SUPPLIER · MADE_TO_ORDER · VIRTUAL", s:1 },
-      { n:"Product variants — size × metal × stone (Shopify-style)", s:1 },
-      { n:"Product attributes — occasion, gender, style, tags, is_featured", s:1 },
-      { n:"Feature flags — 19 module on/off toggles per client", s:1 },
-      { n:"Bulk CSV import — template download + preview + process", s:1 },
-      { n:"Import job tracking — status, errors, imported/skipped counts", s:1 },
-      { n:"Full-text search index on products table", s:1 },
-    ]},
-
-  { id:"diamonds",  phase:"Inventory",  icon:"ti-hexagon",        name:"Diamond Module",
-    items:[
-      { n:"diamond_details table — 4Cs, measurements, polish, symmetry, fluorescence, laser inscription", s:1 },
-      { n:"Natural vs lab-grown + CVD/HPHT type", s:1 },
-      { n:"Rapaport pricing — rap_rate, discount %, final_rate", s:1 },
-      { n:"Diamond hold system — hold_until, hold_by_customer", s:1 },
-      { n:"Faceted search API — shape, carat, color, clarity, cut, lab, price, availability", s:1 },
-      { n:"Diamond comparison — up to 4 side by side (POST /diamonds/compare)", s:1 },
-      { n:"Admin form — 6-tab (identity, 4Cs, measurements, pricing/Rap, cert, availability)", s:1 },
-      { n:"Bulk CSV import with RapNet column mapping", s:1 },
-      { n:"Rapaport live feed integration (GOLD_API_KEY env)", s:0 },
-      { n:"360° diamond viewer", s:0 },
-    ]},
-
-  { id:"gemstones", phase:"Inventory",  icon:"ti-oval",           name:"Gemstone Module",
-    items:[
-      { n:"gemstone_details — species, variety, origin, treatment, saturation, tone", s:1 },
-      { n:"Cert labs — GRS, SSEF, GIA, Gübelin, Lotus", s:1 },
-      { n:"Search API — filter by type, origin, treatment", s:1 },
-      { n:"Admin form — 4-tab (identity, quality/colour, certification, pricing)", s:1 },
-    ]},
-
-  { id:"pearls",    phase:"Inventory",  icon:"ti-circle",         name:"Pearl Module",
-    items:[
-      { n:"pearl_details — type, nacre, lustre, overtone, shape, size_mm, matching grade", s:1 },
-      { n:"Types — Akoya, South Sea, Tahitian, Freshwater", s:1 },
-      { n:"Admin form + list page with type filters", s:1 },
-    ]},
-
-  { id:"jewellery", phase:"Inventory",  icon:"ti-diamond",        name:"Jewellery Module",
-    items:[
-      { n:"Jewellery specs — metal, purity, gross/net weight, making charges", s:1 },
-      { n:"BOM (bill of materials) — centre stone + side stones + gold weight", s:1 },
-      { n:"5-tab admin form — metal, certs, images, pricing, details", s:1 },
-      { n:"Occasion, gender, style, is_featured, tags fields", s:1 },
-      { n:"Product variants — ring sizes × metal options", s:1 },
-      { n:"Collections + categories organisation", s:1 },
-      { n:"Bulk import template", s:1 },
-    ]},
-
-  { id:"mountings", phase:"Inventory",  icon:"ti-ring",           name:"Mounting Module",
-    items:[
-      { n:"mounting_details — type, style, shank, head, prong, compatible shapes/carats", s:1 },
-      { n:"CAD file URL + production days + metal options JSON", s:1 },
-      { n:"Admin form — 6-tab (structure, compatibility, metals, sizes, manufacturing, pricing)", s:1 },
-      { n:"Ring builder API — POST /api/storefront/ring-builder (diamond + mounting → price)", s:1 },
-      { n:"Compatible diamonds auto-suggestion on mounting detail", s:1 },
-    ]},
-
-  { id:"certs",     phase:"Trust",      icon:"ti-certificate",    name:"Certificate Engine",
-    items:[
-      { n:"Certificate storage — lab, number, date, PDF (Cloudinary)", s:1 },
-      { n:"Diamond cert — primary_cert_no, primary_cert_lab, cert_url", s:1 },
-      { n:"Gemstone cert — GRS, SSEF, GIA, Gübelin, Lotus supported", s:1 },
-      { n:"Public verification — GET /api/verify/:cert_number", s:1 },
-      { n:"Searches both product_certifications and diamond_details", s:1 },
-      { n:"QR code generation per certificate", s:0 },
-    ]},
-
-  { id:"custom",    phase:"Commerce",   icon:"ti-pencil",         name:"Custom Orders — Lead only",
-    items:[
-      { n:"Public POST /api/custom-orders — customer submits request", s:1 },
-      { n:"Lead statuses — INQUIRY · CONTACTED · QUOTED · APPROVED · COMPLETED · CANCELLED", s:1 },
-      { n:"Admin list + detail + status update", s:1 },
-      { n:"ERP webhook — POST /api/custom-orders/erp-sync", s:1 },
-      { n:"WhatsApp quick link per lead", s:1 },
-      { n:"NOTE: CAD, manufacturing, workshop — all in Vantix ERP", s:1, note:true },
-    ]},
-
-  { id:"orders",    phase:"Commerce",   icon:"ti-shopping-cart",  name:"Orders",
-    items:[
-      { n:"Orders CRUD — create, list, get, status update", s:1 },
-      { n:"Order statuses — pending · confirmed · processing · shipped · delivered · cancelled", s:1 },
-      { n:"ERP webhook — POST /api/orders/erp-sync (status push from Vantix ERP)", s:1 },
-      { n:"Order stats — by status + today revenue", s:1 },
-      { n:"Payment gateways — Tap, Geidea, Tabby, Tamara, Razorpay, Stripe", s:1 },
-      { n:"Shipping integration (Aramex/DHL)", s:0 },
-    ]},
-
-  { id:"pricing",   phase:"Commerce",   icon:"ti-currency-dollar",name:"Pricing Engine",
-    items:[
-      { n:"Base price + making charges + discount", s:1 },
-      { n:"Live gold rate — manual entry admin", s:1 },
-      { n:"Gold rate auto-fetch cron (goldapi.io — GOLD_API_KEY env)", s:1 },
-      { n:"Rapaport pricing structure in DB (rap_rate, discount %)", s:1 },
-      { n:"Metal options with price delta per variant", s:1 },
-      { n:"Rapaport live feed integration (planned)", s:0 },
-      { n:"Dynamic markup rules engine", s:0 },
-      { n:"Multi-currency conversion (AED/USD/SAR/INR)", s:0 },
-    ]},
-
-  { id:"crm",       phase:"Commerce",   icon:"ti-messages",       name:"CRM — Enquiries & Appointments",
-    items:[
-      { n:"Enquiry CRM — list, detail, status, WhatsApp reply", s:1 },
-      { n:"WhatsApp link generator — pre-filled with product details", s:1 },
-      { n:"Appointments — book, slot availability check, max 2 per slot", s:1 },
-      { n:"Appointments admin — list, today summary, confirm/cancel", s:1 },
-      { n:"Customer database — CRUD + import from enquiries", s:1 },
-      { n:"Email notifications — enquiry + appointment confirmation", s:1 },
-      { n:"Saved diamond searches (customer portal — planned)", s:0 },
-    ]},
-
-  { id:"search",    phase:"Commerce",   icon:"ti-search",         name:"Search Engine",
-    items:[
-      { n:"Unified search — /api/search?q= (all inventory types)", s:1 },
-      { n:"Autocomplete — /api/search/autocomplete (Redis cached)", s:1 },
-      { n:"Faceted diamond search — shape, carat, color, clarity, cut, lab, price", s:1 },
-      { n:"Gemstone search — by type, origin, treatment", s:1 },
-      { n:"Full-text search index on products table (PostgreSQL GIN)", s:1 },
-      { n:"Meilisearch/Elasticsearch integration (planned)", s:0 },
-    ]},
-
-  { id:"seo_be",    phase:"Commerce",   icon:"ti-world",          name:"SEO Backend",
-    items:[
-      { n:"GET /sitemap.xml — auto from active products + blog + categories", s:1 },
-      { n:"GET /robots.txt — disallow admin + api", s:1 },
-      { n:"GET /api/seo/schema/:type/:id — JSON-LD Product schema", s:1 },
-      { n:"SEO fields on products — seo_title, seo_desc, slug", s:1 },
-      { n:"SEO fields on blog posts — seo_title, seo_description", s:1 },
-    ]},
-
-  { id:"blog_be",   phase:"Commerce",   icon:"ti-book",           name:"Blog & Content",
-    items:[
-      { n:"Blog CRUD — title, content, excerpt, cover, category, tags, SEO", s:1 },
-      { n:"Public API — GET /api/storefront/blog + /blog/:slug", s:1 },
-      { n:"Draft / published / archived workflow", s:1 },
-      { n:"Author tracking — name + user ID", s:1 },
-    ]},
-
-  { id:"api",       phase:"Commerce",   icon:"ti-api",            name:"Storefront API (public)",
-    items:[
-      { n:"GET /api/storefront/store — store settings for frontend", s:1 },
-      { n:"GET /api/storefront/products — catalogue with filters", s:1 },
-      { n:"GET /api/storefront/products/:slug — product detail", s:1 },
-      { n:"GET /api/storefront/diamonds/:id — diamond detail + related", s:1 },
-      { n:"GET /api/storefront/gemstones/:id — gemstone detail", s:1 },
-      { n:"GET /api/storefront/pearls/:id — pearl detail", s:1 },
-      { n:"GET /api/storefront/mountings/:id — mounting + compatible diamonds", s:1 },
-      { n:"POST /api/storefront/ring-builder — diamond + mounting combined price", s:1 },
-      { n:"GET /api/storefront/blog + /blog/:slug — public blog", s:1 },
-      { n:"POST /api/storefront/enquiry — store enquiry from website", s:1 },
-      { n:"GET /api/storefront/metal-rates — live gold rates", s:1 },
-      { n:"GET /api/storefront/banners — hero banners", s:1 },
-      { n:"GET /api/storefront/collections + /collections/:slug", s:1 },
-      { n:"GET /api/storefront/categories — nav categories", s:1 },
-      { n:"Wishlist — add, get, remove (session-based)", s:1 },
-    ]},
-
-
-  { id:"rapnet",    phase:"Commerce",   icon:"ti-diamond",        name:"RapNet Instant Inventory",
-    items:[
-      { n:"POST /api/rapnet/diamonds — live diamond search from RapNet global suppliers", s:1 },
-      { n:"GET /api/rapnet/diamonds/:id — single diamond detail (live)", s:1 },
-      { n:"GET /api/rapnet/diamonds/:id/certificate — cert download URL", s:1 },
-      { n:"GET /api/rapnet/price-list — Rapaport price list API", s:1 },
-      { n:"GET /api/rapnet/status — check if RapNet is connected", s:1 },
-      { n:"RAPNET_TOKEN env var — Bearer token from RapNet account", s:1 },
-      { n:"RAPNET_MARKUP_PCT env var — markup % applied to RapNet prices", s:1 },
-      { n:"NOTE: Diamonds are NEVER stored in local DB (per RapNet terms)", s:1, note:true },
-      { n:"RapNet subscription required (Instant Inventory add-on)", s:1, note:true },
-      { n:"Fancy color diamonds search", s:1 },
-      { n:"Jewellery feed (widget only — no API per RapNet)", s:0 },
-      { n:"Admin page — RapNet settings (token, markup, supplier selection)", s:1 },
-      { n:"Storefront — /diamonds?source=rapnet combined view with own inventory", s:0 },
-    ]},
-  { id:"erp",       phase:"Commerce",   icon:"ti-refresh",        name:"Vantix ERP Integration",
-    items:[
-      { n:"POST /api/orders/erp-sync — order status from ERP → CMS", s:1 },
-      { n:"POST /api/custom-orders/erp-sync — custom order progress from ERP", s:1 },
-      { n:"erp_sync_log table — tracks all webhook calls", s:1 },
-      { n:"ERP_WEBHOOK_SECRET env var — secured", s:1 },
-      { n:"ERP → CMS: order delivered status push", s:1 },
-      { n:"CMS → ERP: push new custom order lead (planned)", s:1 },
-      { n:"Customer account portal — ERP order history (planned)", s:0 },
-    ]},
+// ── STATUS DATA ───────────────────────────────────────────────
+const PHASES = [
+  {
+    phase: 'Phase 1 — Foundation & Workforce',
+    status: 'complete',
+    pct: 100,
+    sections: [
+      {
+        name: 'Infrastructure',
+        items: [
+          { n:'Docker Compose — PostgreSQL · Redis · Backend · Admin · Storefront', s:1 },
+          { n:'PostgreSQL 16 — 17 migrations (001–017)', s:1 },
+          { n:'Redis cache + session management', s:1 },
+          { n:'Nginx reverse proxy — /api routing from any PC', s:1 },
+          { n:'GitHub private repo — tripathiyomesh-pixel/cms', s:1 },
+          { n:'setup.bat — one-command full install', s:1 },
+          { n:'node-cron — gold rate auto-fetch 3x daily', s:1 },
+          { n:'Nginx + SSL — production VPS', s:0 },
+          { n:'CI/CD pipeline + staging environment', s:0 },
+          { n:'Automated daily DB backups', s:0 },
+        ],
+      },
+      {
+        name: 'Auth & Identity Layer',
+        items: [
+          { n:'JWT login / logout / refresh token', s:1 },
+          { n:'bcryptjs password hashing', s:1 },
+          { n:'4 identity types: Workforce · Customer · Partner · API', s:1 },
+          { n:'Workforce accounts — NOT invite-based', s:1 },
+          { n:'Customer accounts — separate JWT secret', s:1 },
+          { n:'Partner accounts — API key management', s:1 },
+          { n:'Password reset flow', s:1 },
+          { n:'2FA (two-factor authentication)', s:0 },
+          { n:'SSO (Google/Apple login)', s:0 },
+        ],
+      },
+      {
+        name: 'RBAC + ABAC Permission Engine',
+        items: [
+          { n:'9 roles: super_admin → viewer', s:1 },
+          { n:'Role capabilities stored in DB — fully dynamic', s:1 },
+          { n:'ABAC policies — grant/revoke per staff member', s:1 },
+          { n:'Per-user capability overrides', s:1 },
+          { n:'buildPermissions() — layered engine', s:1 },
+          { n:'req.permissions.can() — all routes use this', s:1 },
+          { n:'Role capability editor in admin UI', s:1 },
+          { n:'Policy editor — create custom capability sets', s:1 },
+          { n:'Cache with 5-min TTL + invalidation on update', s:1 },
+          { n:'Branch-scoped access (ABAC condition)', s:0.5 },
+          { n:'Amount-limit approvals (ABAC condition)', s:0.5 },
+        ],
+      },
+      {
+        name: 'Workforce Management',
+        items: [
+          { n:'Staff creation with activation link flow', s:1 },
+          { n:'Branches — locations with city/country/contact', s:1 },
+          { n:'Departments — Sales, Inventory, Marketing, CRM, Accounting, Management', s:1 },
+          { n:'Staff table — filter by branch, role, search', s:1 },
+          { n:'Assign policies to individual staff members', s:1 },
+          { n:'Org chart view', s:1 },
+          { n:'Staff edit — change role, branch, department, policies', s:1 },
+          { n:'Device session tracking table', s:1 },
+          { n:'Workforce sessions UI', s:0 },
+          { n:'Shift / attendance management', s:0 },
+          { n:'Performance tracking', s:0 },
+        ],
+      },
+      {
+        name: 'Gold Rate System',
+        items: [
+          { n:'gold_rates table — 24K/22K/21K/18K per gram AED', s:1 },
+          { n:'gold_rate_history — 90-day log', s:1 },
+          { n:'Scraper: dubaicityofgold.com (primary)', s:1 },
+          { n:'Scraper: goldratetodaydubai.com (backup)', s:1 },
+          { n:'Scraper: gulfnews.com (backup)', s:1 },
+          { n:'Auto-cron: 3x daily at DJG schedule (9AM/1:30PM/6PM UAE)', s:1 },
+          { n:'Manual entry — enter 24K → others auto-calculate', s:1 },
+          { n:'Admin gold rate page — rate cards + history table', s:1 },
+          { n:'Storefront header ticker — live 24K/22K display', s:1 },
+          { n:'Gold-linked product pricing (weight × rate + making%)', s:0.5 },
+        ],
+      },
+    ],
+  },
+  {
+    phase: 'Phase 2 — Frontend & Customer Experience',
+    status: 'complete',
+    pct: 100,
+    sections: [
+      {
+        name: 'Storefront — 25 Pages',
+        items: [
+          { n:'/ — Homepage (JSON sections + static fallback)', s:1 },
+          { n:'/jewellery — listing + Tejori-style filters', s:1 },
+          { n:'/jewellery/[slug] — Cartier-style product detail', s:1 },
+          { n:'/lab-grown — separate landing (NEVER mixed with natural)', s:1 },
+          { n:'/diamonds — listing + RapNet', s:1 },
+          { n:'/gemstones · /pearls · /mountings', s:1 },
+          { n:'/exhibitions · /exhibitions/[slug]', s:1 },
+          { n:'/blog · /blog/[slug]', s:1 },
+          { n:'/about · /boutiques · /appointment · /custom', s:1 },
+          { n:'/search · /wishlist · /verify', s:1 },
+          { n:'/account/login — sign in + create account', s:1 },
+          { n:'/account — profile editor', s:1 },
+          { n:'/account/wishlist — saved items + WhatsApp enquire', s:1 },
+          { n:'/account/appointments — history + status', s:1 },
+          { n:'/account/enquiries — history + reply status', s:1 },
+          { n:'/account/settings — change password', s:1 },
+        ],
+      },
+      {
+        name: 'Navigation — Mega Menu',
+        items: [
+          { n:'Mega menu (Palmiero-style) — full-width panel', s:1 },
+          { n:'Hover image updates live as you hover each link', s:1 },
+          { n:'4 nav styles: Mega / Standard / Centered / Minimal', s:1 },
+          { n:'Mobile slide-in drawer', s:1 },
+          { n:'Dynamic from DB — editable in menu builder', s:1 },
+          { n:'6 top-level items per Tejori client spec', s:1 },
+          { n:'Lab Diamond — separate section, never mixed', s:1 },
+        ],
+      },
+      {
+        name: 'Website Builder Engine',
+        items: [
+          { n:'JSON page schema — Page JSON → Component Registry → Next.js', s:1 },
+          { n:'21 section types across 8 categories', s:1 },
+          { n:'3-panel builder: sections list / preview / editor', s:1 },
+          { n:'Section picker — searchable, grouped by category', s:1 },
+          { n:'Live preview canvas with device switcher', s:1 },
+          { n:'Field types: text, textarea, number, select, color, image, range', s:1 },
+          { n:'Duplicate, move up/down, delete sections', s:1 },
+          { n:'4 pages: Homepage, About, Lab Diamond, Bespoke', s:1 },
+          { n:'Home builder — section toggle/reorder/edit', s:1 },
+          { n:'Menu builder — nav type + tree editor', s:1 },
+          { n:'Drag-and-drop reordering', s:0 },
+          { n:'Undo/redo history', s:0 },
+        ],
+      },
+      {
+        name: 'Theme System',
+        items: [
+          { n:'10 pre-built themes with 1-click apply', s:1 },
+          { n:'Colors tab — primary, background, text color pickers', s:1 },
+          { n:'Fonts tab — heading + body font selector', s:1 },
+          { n:'Buttons tab — radius, style, hover color', s:1 },
+          { n:'Design tokens — CSS variables injected at runtime', s:1 },
+          { n:'No rebuild needed — storefront reads from DB', s:1 },
+          { n:'10 themes: Cartier Noir, Graff Gold, Blue Nile, Mejuri Rose, Tejori Cream, Dubai Gold Souk, Diamond Navy, Platinum Slate, Tiffany Blue, Midnight Emerald', s:1 },
+        ],
+      },
+      {
+        name: 'Arabic RTL + Multilingual',
+        items: [
+          { n:'Arabic RTL CSS — full right-to-left layout', s:1 },
+          { n:'Arabic fonts: Noto Naskh Arabic (headings) + Noto Kufi (body)', s:1 },
+          { n:'LanguageSwitcher — EN/AR toggle in header', s:1 },
+          { n:'Saves preference in localStorage', s:1 },
+          { n:'dir=rtl applied to html element', s:1 },
+          { n:'Flex direction + margin/padding flip in CSS', s:1 },
+          { n:'Arabic content translation (product names/descriptions)', s:0 },
+          { n:'i18n routing (/ar/* routes)', s:0 },
+        ],
+      },
+      {
+        name: 'Currency + Gold Ticker',
+        items: [
+          { n:'CurrencyProvider — React context wraps storefront', s:1 },
+          { n:'CurrencySwitcher — AED/USD/EUR/GBP/INR/SAR', s:1 },
+          { n:'useCurrency() hook — format() + convert()', s:1 },
+          { n:'Gold rate ticker in header — 24K + 22K live', s:1 },
+          { n:'Real-time forex rates via API', s:0 },
+        ],
+      },
+      {
+        name: 'SEO',
+        items: [
+          { n:'buildMeta() helper — title, description, OG, Twitter', s:1 },
+          { n:'Metadata on all key pages (jewellery, diamonds, about, etc.)', s:1 },
+          { n:'Product pages — dynamic metadata from product data', s:1 },
+          { n:'Blog posts — custom metadata per post', s:1 },
+          { n:'Canonical URLs', s:1 },
+          { n:'robots: index/follow per page', s:1 },
+          { n:'Sitemap auto-generation', s:0 },
+          { n:'Structured data (JSON-LD)', s:0 },
+        ],
+      },
+    ],
+  },
+  {
+    phase: 'Phase 3 — CRM & Advanced Features',
+    status: 'in-progress',
+    pct: 20,
+    sections: [
+      {
+        name: 'CRM Workflows',
+        items: [
+          { n:'Enquiry pipeline — New → Contacted → Qualified → Won/Lost', s:0.5 },
+          { n:'Follow-up date tracking + reminders', s:0 },
+          { n:'Assign enquiries to sales staff', s:0.5 },
+          { n:'WhatsApp conversation log per customer', s:0 },
+          { n:'Customer timeline — all interactions in one view', s:0 },
+          { n:'Lead scoring', s:0 },
+        ],
+      },
+      {
+        name: 'Notification Engine',
+        items: [
+          { n:'In-app notifications — bell icon in admin', s:0 },
+          { n:'Email notifications — new enquiry, appointment booked', s:0 },
+          { n:'WhatsApp notifications — appointment confirmation', s:0 },
+          { n:'Push notifications', s:0 },
+        ],
+      },
+      {
+        name: 'Advanced Search',
+        items: [
+          { n:'Product faceted search — filter by carat, metal, price, cert', s:0 },
+          { n:'Meilisearch integration', s:0 },
+          { n:'Search autocomplete on storefront', s:0 },
+        ],
+      },
+      {
+        name: 'Media Pipeline',
+        items: [
+          { n:'360° product viewer — image spin', s:0 },
+          { n:'WebP auto-conversion', s:0 },
+          { n:'Image zoom on product page', s:0 },
+          { n:'Certificate PDF embed on product page', s:0 },
+          { n:'Video support', s:0 },
+        ],
+      },
+    ],
+  },
+  {
+    phase: 'Phase 4 — ERP & Analytics',
+    status: 'pending',
+    pct: 10,
+    sections: [
+      {
+        name: 'ERP Deep Sync',
+        items: [
+          { n:'Vantix ERP — inventory sync (stock levels)', s:0.5 },
+          { n:'Order sync — confirmed orders go to ERP', s:0.5 },
+          { n:'Customer sync', s:0 },
+          { n:'Product pricing sync', s:0 },
+          { n:'Manufacturing orders from bespoke requests', s:0 },
+          { n:'Accounting sync (invoices, payments)', s:0 },
+        ],
+      },
+      {
+        name: 'Analytics & Reporting',
+        items: [
+          { n:'Dashboard — basic stats (orders, enquiries, revenue)', s:1 },
+          { n:'Sales reports — by period, by product, by staff', s:0 },
+          { n:'Enquiry funnel report', s:0 },
+          { n:'Google Analytics 4 integration', s:1 },
+          { n:'Custom report builder', s:0 },
+        ],
+      },
+      {
+        name: 'AI Features',
+        items: [
+          { n:'AI product description generation', s:0 },
+          { n:'AI SEO meta generation', s:0 },
+          { n:'AI enquiry response suggestions', s:0 },
+        ],
+      },
+      {
+        name: 'Mobile App',
+        items: [
+          { n:'React Native + Expo foundation', s:0 },
+          { n:'Staff mobile app — view enquiries + appointments', s:0 },
+          { n:'Customer app — wishlist + appointments', s:0 },
+          { n:'Push notifications', s:0 },
+        ],
+      },
+    ],
+  },
 ];
 
-// ─── ADMIN PANEL (Frontend — Done) ────────────────────────────
-const ADMIN_PANEL = [
-  { n:"Login page — 60/40 split, jewellery showcase, remember me", s:1 },
-  { n:"Dashboard — KPIs, inventory summary, activity feed, low stock", s:1 },
-  { n:"Products list — paginated, filtered, specs button", s:1 },
-  { n:"Product form — inventory type aware, jewellery fields", s:1 },
-  { n:"Jewellery specs — 5 tabs (metal, certs, images, pricing, details)", s:1 },
-  { n:"Diamond form — 6 tabs (identity, 4Cs, measurements, pricing/Rap, cert, availability)", s:1 },
-  { n:"Diamonds list — faceted filters, availability badge, cert display", s:1 },
-  { n:"Gemstone form — 4 tabs (identity, quality/colour, cert, pricing)", s:1 },
-  { n:"Gemstones list — type filter chips", s:1 },
-  { n:"Pearl form + list — nacre, luster, strand toggle", s:1 },
-  { n:"Mounting form — 6 tabs (structure, compatibility, metals, sizes, manufacturing, pricing)", s:1 },
-  { n:"Mountings list — card grid with CAD indicator", s:1 },
-  { n:"Categories + Collections manager", s:1 },
-  { n:"Media library — upload, gallery, Cloudinary", s:1 },
-  { n:"Enquiries CRM — WhatsApp reply, status", s:1 },
-  { n:"Appointments admin — list, today, confirm/cancel", s:1 },
-  { n:"Customers page — CRUD + import from enquiries", s:1 },
-  { n:"Custom orders — lead list, WhatsApp, status update", s:1 },
-  { n:"Orders page — list, detail, status", s:1 },
-  { n:"Inventory page — stock + ledger", s:1 },
-  { n:"Marketing — banners + promo codes", s:1 },
-  { n:"Import engine — CSV upload, column mapping, job history, template download", s:1 },
-  { n:"Blog & content — list, modal editor, status, categories", s:1 },
-  { n:"Store locations + trust badges", s:1 },
-  { n:"Plugin marketplace — install, configure", s:1 },
-  { n:"Users + roles + permissions matrix", s:1 },
-  { n:"Settings — store, contact, branding, SMTP, password", s:1 },
-  { n:"Appearance — theme, accent colour, density, toggles", s:1 },
-  { n:"Feature flags — module on/off per client", s:1 },
-  { n:"Audit log viewer — paginated with filters", s:1 },
-  { n:"Dev status page — live build tracker", s:1 },
-  { n:"Bulk import modal — reusable across all modules", s:1 },
-];
+// ── BACKEND HEALTH CHECK ───────────────────────────────────────
+function HealthCheck() {
+  const [health, setHealth] = useState({});
+  const [loading, setLoading] = useState(true);
 
-// ─── STOREFRONT FRONTEND (Next.js — In Progress) ──────────────
-const STOREFRONT = [
-  // DONE
-  { n:"Homepage — hero (4 slides), category grid, diamond search teaser, featured products", s:1 },
-  { n:"Diamond search page — full filter sidebar (shape, carat, color, clarity, cut, lab, price)", s:1 },
-  { n:"Gemstones page — type filter chips (Ruby, Sapphire, Emerald…)", s:1 },
-  { n:"Jewellery page — category + metal filters", s:1 },
-  { n:"Pearls page — type filter", s:1 },
-  { n:"Mountings page — card grid with compatibility info", s:1 },
-  { n:"Custom jewellery — 4-step form (idea → stone/metal → budget → contact)", s:1 },
-  { n:"Appointment booking — date/time/purpose form with slot check", s:1 },
-  { n:"Certificate verify — /verify + /verify/:certNo", s:1 },
-  { n:"Header — sticky, dropdown nav, mobile menu, WhatsApp CTA", s:1 },
-  { n:"Footer — 4-column, social links", s:1 },
-  { n:"WhatsApp floating button — every page", s:1 },
-  { n:"Trust badges strip", s:1 },
-  { n:"Metal rates bar — live from API", s:1 },
-  { n:"Appointment CTA section", s:1 },
-  // PENDING
-  { n:"Diamond detail page — /diamonds/:id (gallery, 4Cs, cert, WhatsApp, related)", s:1 },
-  { n:"Gemstone detail page — /gemstones/:id", s:1 },
-  { n:"Pearl detail page — /pearls/:id", s:1 },
-  { n:"Mounting detail page — /mountings/:id + compatible diamonds", s:1 },
-  { n:"Jewellery detail page — /jewellery/:slug (gallery, specs, variants, WhatsApp)", s:1 },
-  { n:"Ring builder UI — pick diamond + mounting = combined price", s:1 },
-  { n:"Blog listing page — /blog", s:1 },
-  { n:"Blog single post — /blog/:slug", s:1 },
-  { n:"About page — brand story, locations, certifications (La Maison style)", s:1 },
-  { n:"SEO — metadata per page, Open Graph, schema.org injection", s:1 },
-  { n:"Arabic RTL support — dir=rtl on html tag", s:1 },
-  { n:"Multi-currency display — AED / USD / SAR switcher", s:1 },
-  { n:"Wishlist page — saved items (session + localStorage)", s:1 },
-  { n:"RapNet diamonds integration — /diamonds?source=rapnet shows live RapNet feed alongside own inventory", s:1 },
-  { n:"Exhibition module — /exhibitions + /exhibitions/:slug + registration + countdown + VIP", s:1 },
-  { n:"Quick View modal — hover product card to preview without page load", s:1 },
-  { n:"Sale price / compare_price — strikethrough original + discount %", s:1 },
-  { n:"Boutique Finder page — /boutiques with map embed", s:1 },
-  { n:"Page builder admin — template/header/hero/grid/filters/footer/colors settings", s:1 },
-  { n:"Search results page — /search?q=", s:1 },
-  { n:"Homepage templates — luxury-dark, clean-minimal, boutique-warm, diamond-dealer", s:1 },
-  { n:"Template switcher in admin Appearance page", s:1 },
-];
+  useEffect(() => {
+    const checks = [
+      { key:'api',      label:'Backend API',     fn: () => api.get('/health').then(()=>true).catch(()=>false) },
+      { key:'gold',     label:'Gold rates',       fn: () => api.get('/gold-rates/current').then(r=>!!r.data.data).catch(()=>false) },
+      { key:'settings', label:'Settings DB',      fn: () => api.get('/settings').then(r=>r.data.success).catch(()=>false) },
+      { key:'products', label:'Products API',     fn: () => api.get('/products?limit=1').then(r=>r.data.success).catch(()=>false) },
+      { key:'workforce',label:'Workforce tables', fn: () => api.get('/workforce/branches').then(r=>r.data.success).catch(()=>false) },
+      { key:'customer', label:'Customer portal',  fn: () => api.get('/customer/profile').then(()=>true).catch(e=>e.response?.status===401) },
+    ];
+    Promise.all(checks.map(async c => ({ key:c.key, label:c.label, ok: await c.fn() })))
+      .then(results => {
+        const map = {};
+        results.forEach(r => { map[r.key] = r; });
+        setHealth(map);
+        setLoading(false);
+      });
+  }, []);
 
-const PHASE_COLORS = {
-  Core:"#6366f1", Inventory:"#c9a84c", Trust:"#22c55e",
-  Commerce:"#3b82f6", Frontend:"#8b5cf6"
-};
+  const all = Object.values(health);
+  const passing = all.filter(h=>h.ok).length;
 
-function pct(items) {
-  const d = items.filter(i => i.s === 1).length;
-  return items.length ? Math.round((d / items.length) * 100) : 0;
-}
-
-function ProgressBar({ value, color="#c9a84c", height=3 }) {
   return (
-    <div style={{ height, background:"var(--color-border-tertiary)", borderRadius:height, overflow:"hidden" }}>
-      <div style={{ height:"100%", width:`${value}%`, background:value===100?"#22c55e":color, borderRadius:height, transition:"width .4s" }}/>
+    <div className="card p-5 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-ink-700 dark:text-ink-200">System Health</h3>
+        {!loading && (
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${passing===all.length?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}`}>
+            {passing}/{all.length} passing
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {loading ? Array(6).fill(0).map((_,i)=>(
+          <div key={i} className="h-12 rounded-lg bg-ink-100 dark:bg-ink-800 animate-pulse"/>
+        )) : Object.values(health).map(h=>(
+          <div key={h.key} className={`flex items-center gap-2.5 p-3 rounded-lg ${h.ok?'bg-green-50 dark:bg-green-900/20':'bg-red-50 dark:bg-red-900/20'}`}>
+            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${h.ok?'bg-green-500':'bg-red-500'}`}/>
+            <span className={`text-xs font-medium ${h.ok?'text-green-700 dark:text-green-400':'text-red-600 dark:text-red-400'}`}>{h.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
+// ── PROGRESS BAR ──────────────────────────────────────────────
+function ProgressBar({ pct, status }) {
+  const colors = { complete:'#22c55e', 'in-progress':'#f59e0b', pending:'#94a3b8' };
+  return (
+    <div style={{ height:4, background:'var(--color-background-tertiary)', borderRadius:4, overflow:'hidden', flex:1 }}>
+      <div style={{ height:'100%', width:`${pct}%`, background:colors[status]||'#94a3b8', borderRadius:4, transition:'width .5s ease' }}/>
+    </div>
+  );
+}
+
+// ── STATUS BADGE ──────────────────────────────────────────────
+function StatusBadge({ s }) {
+  if (s === 1)   return <span className="text-[10px] font-bold text-green-600 dark:text-green-400">✓</span>;
+  if (s === 0.5) return <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">◑</span>;
+  return <span className="text-[10px] text-ink-300 dark:text-ink-600">○</span>;
+}
+
+// ── MAIN PAGE ──────────────────────────────────────────────────
 export default function DevStatusPage() {
-  const { collapsed, toggleSidebar } = useOutletContext();
-  const [tab,      setTab]      = useState("backend");
-  const [openMod,  setOpenMod]  = useState({});
-  const [apiOk,    setApiOk]    = useState(null);
-  const [dbOk,     setDbOk]     = useState(null);
-  const [now,      setNow]      = useState(new Date());
-  const [refreshing, setRefreshing] = useState(false);
-
-  const check = async () => {
-    setRefreshing(true);
-    try { await api.get("/dashboard/stats"); setApiOk(true); setDbOk(true); }
-    catch { setApiOk(false); setDbOk(false); }
-    setNow(new Date());
-    setTimeout(()=>setRefreshing(false), 600);
-  };
-
-  useEffect(()=>{ check(); }, []);
-
-  const toggle = id => setOpenMod(o=>({...o,[id]: o[id]===false ? true : false }));
-  const isOpen = id => openMod[id] !== false;
+  const { collapsed } = useOutletContext()||{};
+  const [expandedPhase,   setExpandedPhase]   = useState(0);
+  const [expandedSection, setExpandedSection] = useState(null);
 
   // Overall stats
-  const backendDone  = BACKEND.reduce((a,m)=>a+m.items.filter(i=>i.s===1).length,0);
-  const backendTotal = BACKEND.reduce((a,m)=>a+m.items.length,0);
-  const adminDone    = ADMIN_PANEL.filter(i=>i.s===1).length;
-  const adminTotal   = ADMIN_PANEL.length;
-  const sfDone       = STOREFRONT.filter(i=>i.s===1).length;
-  const sfTotal      = STOREFRONT.length;
-  const overallDone  = backendDone + adminDone + sfDone;
-  const overallTotal = backendTotal + adminTotal + sfTotal;
-  const overall      = Math.round((overallDone/overallTotal)*100);
-
-  const t  = "var(--color-text-primary)";
-  const m  = "var(--color-text-secondary)";
-  const b  = "var(--color-border-tertiary)";
-  const bg = "var(--color-background-secondary)";
-
-  const TABS = [
-    { id:"backend",   label:"Backend API",    done:backendDone,  total:backendTotal },
-    { id:"admin",     label:"Admin Panel",    done:adminDone,    total:adminTotal   },
-    { id:"storefront",label:"Storefront",     done:sfDone,       total:sfTotal      },
-  ];
+  const allItems = PHASES.flatMap(p => p.sections.flatMap(s => s.items));
+  const done     = allItems.filter(i => i.s === 1).length;
+  const partial  = allItems.filter(i => i.s === 0.5).length;
+  const total    = allItems.length;
+  const pct      = Math.round(((done + partial * 0.5) / total) * 100);
 
   return (
     <>
-      <Topbar title="System status" subtitle={`${PLATFORM} ${VERSION} · ${LAST_UPDATED}`}
-        actions={
-          <button onClick={check} className="btn-outline flex items-center gap-1.5 text-xs">
-            <i className={`ti ti-refresh ${refreshing?"animate-spin":""}`} aria-hidden="true"/>
-            Refresh
-          </button>
-        }/>
+      <Topbar title="Platform status" subtitle={`${PLATFORM} ${VERSION} — last updated ${UPDATED}`}/>
 
-      <div className="flex-1 overflow-y-auto">
-        <div style={{ maxWidth:920, margin:"0 auto", padding:"20px 20px 48px" }}>
+      <div className="flex-1 overflow-y-auto p-6">
 
-          {/* ── HERO CARD ── */}
-          <div style={{ background:"linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e3a5f 100%)", borderRadius:14, padding:"24px 28px", marginBottom:16, color:"#fff", position:"relative", overflow:"hidden" }}>
-            <div style={{ position:"absolute", top:-40, right:-40, width:200, height:200, borderRadius:"50%", background:"rgba(255,255,255,0.04)", pointerEvents:"none" }}/>
-            <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:12, position:"relative", zIndex:1 }}>
-              <div>
-                <p style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginBottom:4, letterSpacing:"0.06em", textTransform:"uppercase" }}>Overall progress</p>
-                <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:6 }}>
-                  <span style={{ fontSize:48, fontWeight:600, color:"#c9a84c", lineHeight:1 }}>{overall}%</span>
-                  <span style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>{overallDone}/{overallTotal} tasks</span>
-                </div>
-                <div style={{ height:5, background:"rgba(255,255,255,0.1)", borderRadius:4, width:280, marginBottom:10 }}>
-                  <div style={{ height:"100%", width:`${overall}%`, background:"#c9a84c", borderRadius:4 }}/>
-                </div>
-                <div style={{ display:"flex", gap:16 }}>
-                  {[
-                    { l:"Backend API", v:Math.round((backendDone/backendTotal)*100), c:"#22c55e" },
-                    { l:"Admin Panel", v:Math.round((adminDone/adminTotal)*100),     c:"#3b82f6" },
-                    { l:"Storefront",  v:Math.round((sfDone/sfTotal)*100),           c:"#8b5cf6" },
-                  ].map(s=>(
-                    <div key={s.l}>
-                      <div style={{ fontSize:16, fontWeight:600, color:s.c }}>{s.v}%</div>
-                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:1 }}>{s.l}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Health */}
-              <div style={{ display:"flex", flexDirection:"column", gap:8, minWidth:200 }}>
-                {[
-                  { l:"Backend API",   ok:apiOk },
-                  { l:"PostgreSQL 16", ok:dbOk  },
-                  { l:"Server time",   ok:true, v:now.toTimeString().slice(0,8)+" UTC" },
-                ].map(h=>(
-                  <div key={h.l} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:6, height:6, borderRadius:"50%", background:h.ok===null?"#6b7280":h.ok?"#22c55e":"#ef4444", flexShrink:0 }}/>
-                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{h.l}</span>
-                    <span style={{ fontSize:11, color:h.ok===null?"#6b7280":h.ok?"#22c55e":"#ef4444", marginLeft:"auto" }}>
-                      {h.v || (h.ok===null?"checking":h.ok?"● Online":"● Offline")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Health check */}
+        <HealthCheck/>
 
-          {/* ── TABS ── */}
-          <div style={{ display:"flex", gap:4, marginBottom:16, background:bg, padding:4, borderRadius:10, width:"fit-content" }}>
-            {TABS.map(tb=>{
-              const p = Math.round((tb.done/tb.total)*100);
-              return (
-                <button key={tb.id} onClick={()=>setTab(tb.id)}
-                  style={{ padding:"7px 14px", borderRadius:8, fontSize:12, fontWeight:500, cursor:"pointer",
-                    background:tab===tb.id?"var(--color-background-primary)":"transparent",
-                    color:tab===tb.id?t:m,
-                    border:"none", boxShadow:tab===tb.id?"0 1px 3px rgba(0,0,0,0.08)":"none",
-                    display:"flex", alignItems:"center", gap:6 }}>
-                  {tb.label}
-                  <span style={{ fontSize:10, padding:"1px 6px", borderRadius:20, background:p===100?"#dcfce7":"var(--color-background-secondary)", color:p===100?"#15803d":m, fontWeight:600 }}>
-                    {p}%
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── BACKEND TAB ── */}
-          {tab==="backend" && (
-            <div className="space-y-2">
-              {BACKEND.map(mod=>{
-                const done  = mod.items.filter(i=>i.s===1).length;
-                const p     = pct(mod.items);
-                const col   = PHASE_COLORS[mod.phase]||"#888";
-                const open  = isOpen(mod.id);
-                return (
-                  <div key={mod.id} style={{ background:"var(--color-background-primary)", border:`0.5px solid ${b}`, borderRadius:10, overflow:"hidden" }}>
-                    <div onClick={()=>toggle(mod.id)}
-                      style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px", cursor:"pointer" }}>
-                      <div style={{ width:32, height:32, borderRadius:8, background:`${col}15`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <i className={`ti ${mod.icon}`} style={{ fontSize:14, color:col }} aria-hidden="true"/>
-                      </div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                          <span style={{ fontSize:12, fontWeight:500, color:t }}>{mod.name}</span>
-                          <span style={{ fontSize:9, padding:"1px 6px", borderRadius:20, background:`${col}15`, color:col, fontWeight:600 }}>{mod.phase}</span>
-                        </div>
-                        <ProgressBar value={p} color={col}/>
-                      </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-                        <span style={{ fontSize:11, color:m }}>{done}/{mod.items.length}</span>
-                        <span style={{ fontSize:13, fontWeight:600, color:p===100?"#22c55e":col }}>{p}%</span>
-                        <i className={`ti ti-chevron-${open?"up":"down"}`} style={{ fontSize:12, color:m }} aria-hidden="true"/>
-                      </div>
-                    </div>
-                    {open && (
-                      <div style={{ borderTop:`0.5px solid ${b}`, padding:"6px 0 10px" }}>
-                        {mod.items.map((item,idx)=>(
-                          <div key={idx} style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"5px 14px", background:idx%2===0?"transparent":bg }}>
-                            <i className={`ti ${item.s===1?"ti-circle-check":"ti-circle-dashed"}`}
-                              style={{ fontSize:13, color:item.s===1?"#22c55e":item.note?"#f59e0b":"var(--color-border-secondary)", flexShrink:0, marginTop:2 }} aria-hidden="true"/>
-                            <span style={{ fontSize:11, color:item.s===1?m:t, textDecoration:item.s===1?"line-through":"none", fontStyle:item.note?"italic":"normal" }}>
-                              {item.n}
-                            </span>
-                            <span style={{ fontSize:9, padding:"1px 6px", borderRadius:20, flexShrink:0, marginLeft:"auto",
-                              background:item.s===1?"#dcfce7":item.note?"#fef9c3":"var(--color-background-secondary)",
-                              color:item.s===1?"#15803d":item.note?"#a16207":"var(--color-text-secondary)", fontWeight:600 }}>
-                              {item.s===1?"Done":item.note?"Info":"Pending"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── ADMIN PANEL TAB ── */}
-          {tab==="admin" && (
-            <div style={{ background:"var(--color-background-primary)", border:`0.5px solid ${b}`, borderRadius:10, overflow:"hidden" }}>
-              <div style={{ padding:"12px 14px", borderBottom:`0.5px solid ${b}`, background:bg, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <div>
-                  <p style={{ fontSize:13, fontWeight:600, color:t }}>Admin Panel — {adminDone}/{adminTotal} complete</p>
-                  <p style={{ fontSize:11, color:m, marginTop:2 }}>React + Vite · http://localhost:3000</p>
-                </div>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:20, fontWeight:700, color:"#22c55e" }}>100%</span>
-                  <i className="ti ti-circle-check" style={{ fontSize:20, color:"#22c55e" }} aria-hidden="true"/>
-                </div>
-              </div>
-              <div>
-                {ADMIN_PANEL.map((item,i)=>(
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 14px",
-                    background:i%2===0?"transparent":bg,
-                    borderBottom:i<ADMIN_PANEL.length-1?`0.5px solid ${b}`:"none" }}>
-                    <i className="ti ti-circle-check" style={{ fontSize:13, color:"#22c55e", flexShrink:0 }} aria-hidden="true"/>
-                    <span style={{ fontSize:11, color:m, textDecoration:"line-through", flex:1 }}>{item.n}</span>
-                    <span style={{ fontSize:9, padding:"1px 6px", borderRadius:20, background:"#dcfce7", color:"#15803d", fontWeight:600, flexShrink:0 }}>Done</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── STOREFRONT TAB ── */}
-          {tab==="storefront" && (
+        {/* Overall progress */}
+        <div className="card p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              {/* Stats bar */}
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
-                {[
-                  { l:"Done",     v:sfDone,           c:"#22c55e" },
-                  { l:"Pending",  v:sfTotal-sfDone,   c:m         },
-                  { l:"Progress", v:`${Math.round((sfDone/sfTotal)*100)}%`, c:"#8b5cf6" },
-                ].map(s=>(
-                  <div key={s.l} style={{ background:"var(--color-background-primary)", border:`0.5px solid ${b}`, borderRadius:8, padding:"10px 12px" }}>
-                    <div style={{ fontSize:20, fontWeight:600, color:s.c }}>{s.v}</div>
-                    <div style={{ fontSize:10, color:m, marginTop:1 }}>{s.l}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* What's done */}
-              <div style={{ background:"var(--color-background-primary)", border:`0.5px solid ${b}`, borderRadius:10, overflow:"hidden", marginBottom:10 }}>
-                <div style={{ padding:"10px 14px", borderBottom:`0.5px solid ${b}`, background:"#dcfce822" }}>
-                  <p style={{ fontSize:12, fontWeight:600, color:"#15803d" }}>✅ Built — {STOREFRONT.filter(i=>i.s===1).length} pages/components</p>
-                  <p style={{ fontSize:10, color:m, marginTop:1 }}>Next.js 14 App Router · Tailwind CSS · http://localhost:3001</p>
-                </div>
-                {STOREFRONT.filter(i=>i.s===1).map((item,i,arr)=>(
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"5px 14px",
-                    background:i%2===0?"transparent":bg,
-                    borderBottom:i<arr.length-1?`0.5px solid ${b}`:"none" }}>
-                    <i className="ti ti-circle-check" style={{ fontSize:13, color:"#22c55e", flexShrink:0 }} aria-hidden="true"/>
-                    <span style={{ fontSize:11, color:m, textDecoration:"line-through", flex:1 }}>{item.n}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* What's pending */}
-              <div style={{ background:"var(--color-background-primary)", border:`0.5px solid ${b}`, borderRadius:10, overflow:"hidden" }}>
-                <div style={{ padding:"10px 14px", borderBottom:`0.5px solid ${b}`, background:"#ede9fe22" }}>
-                  <p style={{ fontSize:12, fontWeight:600, color:"#6d28d9" }}>🔨 Building next — {STOREFRONT.filter(i=>i.s===0).length} remaining</p>
-                  <p style={{ fontSize:10, color:m, marginTop:1 }}>Product detail pages · Ring builder · Blog · SEO · Templates</p>
-                </div>
-                {STOREFRONT.filter(i=>i.s===0).map((item,i,arr)=>(
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"5px 14px",
-                    background:i%2===0?"transparent":bg,
-                    borderBottom:i<arr.length-1?`0.5px solid ${b}`:"none" }}>
-                    <i className="ti ti-circle-dashed" style={{ fontSize:13, color:"var(--color-border-secondary)", flexShrink:0 }} aria-hidden="true"/>
-                    <span style={{ fontSize:11, color:t, flex:1 }}>{item.n}</span>
-                    <span style={{ fontSize:9, padding:"1px 6px", borderRadius:20, background:"#ede9fe", color:"#6d28d9", fontWeight:600, flexShrink:0 }}>Pending</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Build order */}
-              <div style={{ marginTop:12, background:"var(--color-background-primary)", border:`0.5px solid #c9a84c44`, borderRadius:10, padding:"14px 16px" }}>
-                <p style={{ fontSize:12, fontWeight:600, color:"#c9a84c", marginBottom:8 }}>📋 Frontend build order</p>
-                {[
-                  "1. Product detail pages (diamond, gemstone, pearl, mounting, jewellery)",
-                  "2. Ring builder UI — pick diamond + mounting → combined price",
-                  "3. Blog listing + single post pages",
-                  "4. SEO — metadata, Open Graph, schema.org per page",
-                  "5. Homepage templates — luxury, modern, minimal (3 variants)",
-                  "6. Arabic RTL support",
-                  "7. Multi-currency switcher (AED/USD/SAR)",
-                  "8. Search results page",
-                  "9. Wishlist page",
-                  "10. Production deploy — Nginx + SSL + PM2",
-                ].map((s,i)=>(
-                  <div key={i} style={{ fontSize:11, color:m, padding:"3px 0", borderBottom:i<9?`0.5px solid ${b}`:"none" }}>{s}</div>
-                ))}
-              </div>
+              <h3 className="text-sm font-bold text-ink-700 dark:text-ink-200">Overall progress</h3>
+              <p className="text-xs text-ink-400 mt-0.5">{done} complete · {partial} partial · {total-done-partial} pending</p>
             </div>
-          )}
+            <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:36, fontWeight:300, color:'#b8860b' }}>{pct}%</span>
+          </div>
+          <ProgressBar pct={pct} status="complete"/>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            {PHASES.map((p,i)=>(
+              <div key={i} className="text-center">
+                <p className="text-xs text-ink-400 mb-1 leading-tight">{p.phase.split('—')[0].trim()}</p>
+                <div className="flex items-center gap-2">
+                  <ProgressBar pct={p.pct} status={p.status}/>
+                  <span className="text-xs font-bold text-ink-500 flex-shrink-0">{p.pct}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <p style={{ fontSize:10, color:m, textAlign:"center", marginTop:16 }}>
-            {PLATFORM} {VERSION} · KenTech Global · {LAST_UPDATED}
-          </p>
+        {/* Phase details */}
+        <div className="space-y-4">
+          {PHASES.map((phase, pi) => {
+            const phaseItems = phase.sections.flatMap(s=>s.items);
+            const phaseDone  = phaseItems.filter(i=>i.s===1).length;
+            const phaseTotal = phaseItems.length;
+            const isExpanded = expandedPhase === pi;
+
+            const badgeStyle = {
+              complete:    { bg:'#dcfce7', text:'#15803d', label:'Complete' },
+              'in-progress':{ bg:'#fef3c7', text:'#92400e', label:'In Progress' },
+              pending:     { bg:'#f1f5f9', text:'#475569', label:'Planned' },
+            }[phase.status] || {};
+
+            return (
+              <div key={pi} className="card overflow-hidden">
+                {/* Phase header */}
+                <button className="w-full flex items-center gap-4 p-5 text-left hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors"
+                  onClick={()=>setExpandedPhase(isExpanded?-1:pi)}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-sm font-bold text-ink-700 dark:text-ink-200">{phase.phase}</h3>
+                      <span style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:20, background:badgeStyle.bg, color:badgeStyle.text, textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                        {badgeStyle.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <ProgressBar pct={phase.pct} status={phase.status}/>
+                      <span className="text-xs font-bold text-ink-400 flex-shrink-0">{phaseDone}/{phaseTotal} items</span>
+                    </div>
+                  </div>
+                  <span className="text-ink-400 flex-shrink-0">{isExpanded?'▲':'▼'}</span>
+                </button>
+
+                {/* Sections */}
+                {isExpanded && (
+                  <div className="border-t border-ink-100 dark:border-ink-800">
+                    {phase.sections.map((section, si) => {
+                      const secKey     = `${pi}-${si}`;
+                      const secDone    = section.items.filter(i=>i.s===1).length;
+                      const secPartial = section.items.filter(i=>i.s===0.5).length;
+                      const secTotal   = section.items.length;
+                      const isSecExp   = expandedSection === secKey;
+
+                      return (
+                        <div key={si} className="border-b border-ink-50 dark:border-ink-800/50 last:border-0">
+                          <button className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors"
+                            onClick={()=>setExpandedSection(isSecExp?null:secKey)}>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-ink-600 dark:text-ink-300">{section.name}</span>
+                                <span className="text-[10px] text-ink-400">{secDone}/{secTotal}</span>
+                                {secPartial > 0 && <span className="text-[9px] bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 rounded-full">{secPartial} partial</span>}
+                              </div>
+                            </div>
+                            <span className="text-ink-300 text-xs">{isSecExp?'▲':'▼'}</span>
+                          </button>
+
+                          {isSecExp && (
+                            <div className="px-5 pb-4 space-y-1.5">
+                              {section.items.map((item, ii) => (
+                                <div key={ii} className="flex items-start gap-2.5">
+                                  <StatusBadge s={item.s}/>
+                                  <span className={`text-xs leading-relaxed ${item.s===1?'text-ink-600 dark:text-ink-300':item.s===0.5?'text-amber-700 dark:text-amber-400':'text-ink-300 dark:text-ink-600'}`}>
+                                    {item.n}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-6 mt-6 p-4 rounded-xl bg-ink-50 dark:bg-ink-800/50">
+          <span className="text-xs text-ink-400 font-semibold uppercase tracking-wide">Legend:</span>
+          <span className="flex items-center gap-2 text-xs text-ink-500"><span className="text-green-600 font-bold">✓</span> Complete</span>
+          <span className="flex items-center gap-2 text-xs text-ink-500"><span className="text-amber-600 font-bold">◑</span> Partial / In Progress</span>
+          <span className="flex items-center gap-2 text-xs text-ink-500"><span className="text-ink-300 font-bold">○</span> Planned</span>
         </div>
       </div>
     </>

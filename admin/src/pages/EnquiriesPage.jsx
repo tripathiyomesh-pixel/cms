@@ -1,155 +1,196 @@
-import { useState, useEffect } from "react";
-import { useTheme } from "../context/ThemeContext";
-import { jewelleryAPI } from "../services/api";
-import toast from "react-hot-toast";
+import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import Topbar from '../components/layout/Topbar';
+import api from '../services/api';
+import {
+  MessageSquare, Search, Filter, Phone, Mail, User,
+  Calendar, Package, ChevronRight, Check, Clock,
+  X, ExternalLink, MoreHorizontal, RefreshCw,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
-const STATUS_COLORS = { new:'#3b82f6', contacted:'#f59e0b', converted:'#22c55e', closed:'#6b7280' };
-const STATUS_LIST = ['new','contacted','converted','closed'];
+const STAGES = [
+  { id:'new',        label:'New',        color:'#3b82f6', bg:'#eff6ff' },
+  { id:'contacted',  label:'Contacted',  color:'#f59e0b', bg:'#fffbeb' },
+  { id:'qualified',  label:'Qualified',  color:'#8b5cf6', bg:'#f5f3ff' },
+  { id:'won',        label:'Won',        color:'#22c55e', bg:'#f0fdf4' },
+  { id:'lost',       label:'Lost',       color:'#ef4444', bg:'#fef2f2' },
+];
+
+function StageBadge({ status }) {
+  const s = STAGES.find(x=>x.id===status) || STAGES[0];
+  return (
+    <span style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:20, background:s.bg, color:s.color, textTransform:'uppercase', letterSpacing:'0.08em' }}>
+      {s.label}
+    </span>
+  );
+}
 
 export default function EnquiriesPage() {
-  const { dark } = useTheme();
+  const { collapsed } = useOutletContext()||{};
   const [enquiries, setEnquiries] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState('');
-  const [selected, setSelected] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const limit = 20;
+  const [loading,   setLoading]   = useState(true);
+  const [search,    setSearch]    = useState('');
+  const [filter,    setFilter]    = useState('');
+  const [selected,  setSelected]  = useState(null);
+  const [updating,  setUpdating]  = useState(false);
 
-  const bg = dark ? '#1a1a1a' : '#ffffff';
-  const cardBg = dark ? '#242424' : '#f8f8f8';
-  const border = dark ? '#333' : '#e5e5e5';
-  const text = dark ? '#e0e0e0' : '#1a1a1a';
-  const muted = dark ? '#888' : '#666';
-  const gold = '#c9a84c';
-
-  const load = async () => {
+  const load = () => {
     setLoading(true);
-    try {
-      const r = await jewelleryAPI.getEnquiries({ status: filter || undefined, page, limit });
-      setEnquiries(r.data?.data?.data || []);
-      setTotal(r.data?.data?.total || 0);
-    } catch(e) { toast.error('Failed to load'); }
-    setLoading(false);
+    api.get('/enquiries', { params: { limit:50, status:filter||undefined, search:search||undefined } })
+      .then(r => setEnquiries(r.data.data?.data || r.data.data || []))
+      .catch(() => setEnquiries([]))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [filter, page]);
+  useEffect(() => { load(); }, [filter]);
 
   const updateStatus = async (id, status) => {
-    await jewelleryAPI.updateEnquiry(id, { status });
-    toast.success('Status updated');
-    load();
-    if (selected?.id === id) setSelected(e => ({...e, status}));
+    setUpdating(true);
+    try {
+      await api.put(`/enquiries/${id}`, { status });
+      toast.success(`Moved to ${status}`);
+      setEnquiries(prev => prev.map(e => e.id===id ? { ...e, status } : e));
+      if (selected?.id === id) setSelected(s => ({ ...s, status }));
+    } catch { toast.error('Failed to update'); }
+    setUpdating(false);
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const filtered = enquiries.filter(e =>
+    !search || e.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+    e.email?.toLowerCase().includes(search.toLowerCase()) ||
+    e.product_name?.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const inputStyle = { background:dark?'#2a2a2a':'#fff', border:`1px solid ${border}`, borderRadius:8, padding:'8px 12px', color:text, fontSize:13 };
+  const wapp = import.meta.env.VITE_WHATSAPP || '';
 
   return (
-    <div style={{ background:bg, minHeight:'100vh', color:text, fontFamily:'Inter,sans-serif' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px 20px' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
-          <div>
-            <h1 style={{ fontSize:22, fontWeight:600, margin:0 }}>Enquiries</h1>
-            <p style={{ fontSize:13, color:muted, margin:'4px 0 0' }}>{total} total enquiries</p>
+    <>
+      <Topbar title="Enquiries" subtitle="Manage customer enquiries and leads"
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-400"/>
+              <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()}
+                placeholder="Search enquiries…" className="input-field pl-8 text-xs w-44"/>
+            </div>
+            <select value={filter} onChange={e=>setFilter(e.target.value)} className="input-field text-xs w-32">
+              <option value="">All stages</option>
+              {STAGES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+            <button onClick={load} className="btn-ghost text-xs flex items-center gap-1"><RefreshCw size={12}/></button>
           </div>
-          <div style={{ display:'flex', gap:8 }}>
-            {['','new','contacted','converted','closed'].map(s => (
-              <button key={s} onClick={() => { setFilter(s); setPage(1); }}
-                style={{ padding:'6px 14px', borderRadius:20, fontSize:12, cursor:'pointer', fontWeight:filter===s?600:400,
-                  background:filter===s?(s?STATUS_COLORS[s]:gold):'transparent',
-                  color:filter===s?'#fff':muted, border:`1px solid ${filter===s?(s?STATUS_COLORS[s]:gold):border}` }}>
-                {s || 'All'}
-              </button>
-            ))}
+        }
+      />
+
+      {/* Pipeline overview */}
+      <div className="grid grid-cols-5 border-b border-ink-200/60 dark:border-ink-800 flex-shrink-0">
+        {STAGES.map(stage => {
+          const count = enquiries.filter(e=>e.status===stage.id).length;
+          return (
+            <button key={stage.id} onClick={()=>setFilter(filter===stage.id?'':stage.id)}
+              className="flex flex-col items-center py-3 px-2 transition-all hover:bg-ink-50 dark:hover:bg-ink-800/50"
+              style={{ borderBottom: filter===stage.id ? `2px solid ${stage.color}` : '2px solid transparent' }}>
+              <span style={{ fontSize:20, fontWeight:700, color:stage.color }}>{count}</span>
+              <span style={{ fontSize:10, color:'var(--color-text-secondary)', fontWeight:500 }}>{stage.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* List */}
+        <div className="flex flex-col border-r border-ink-200/60 dark:border-ink-800 overflow-hidden" style={{ width:360, flexShrink:0 }}>
+          <div className="flex-1 overflow-y-auto">
+            {loading ? (
+              Array(5).fill(0).map((_,i)=><div key={i} className="h-20 m-3 rounded-xl bg-ink-100 dark:bg-ink-800 animate-pulse"/>)
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-center">
+                <MessageSquare size={28} className="text-ink-200 dark:text-ink-700 mb-2"/>
+                <p className="text-sm text-ink-400">No enquiries found</p>
+              </div>
+            ) : (
+              filtered.map(enq => (
+                <button key={enq.id} onClick={()=>setSelected(enq)}
+                  className={`w-full text-left p-4 border-b border-ink-50 dark:border-ink-800/50 transition-all hover:bg-ink-50 dark:hover:bg-ink-800/50 ${selected?.id===enq.id?'bg-gold-50 dark:bg-gold-900/10 border-l-2 border-l-gold-500':'border-l-2 border-l-transparent'}`}>
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <p className="text-sm font-semibold text-ink-700 dark:text-ink-200 truncate">{enq.customer_name || enq.name || 'Unknown'}</p>
+                    <StageBadge status={enq.status||'new'}/>
+                  </div>
+                  {enq.product_name && (
+                    <p className="text-xs text-ink-400 truncate flex items-center gap-1 mb-1"><Package size={10}/>{enq.product_name}</p>
+                  )}
+                  <p className="text-xs text-ink-400 flex items-center gap-1"><Clock size={10}/>{new Date(enq.created_at).toLocaleDateString('en-AE',{day:'numeric',month:'short',year:'numeric'})}</p>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap:16 }}>
-          {/* List */}
-          <div>
-            {loading ? <p style={{color:muted,fontSize:13}}>Loading…</p> : enquiries.length === 0 ? (
-              <div style={{ textAlign:'center', padding:60, color:muted }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>📭</div>
-                <p>No enquiries yet</p>
-              </div>
-            ) : enquiries.map(enq => (
-              <div key={enq.id} onClick={() => setSelected(enq)}
-                style={{ background:selected?.id===enq.id?gold+'11':cardBg, border:`1px solid ${selected?.id===enq.id?gold:border}`, borderRadius:10, padding:'14px 18px', marginBottom:8, cursor:'pointer', transition:'all .15s' }}>
-                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                      <span style={{ fontSize:14, fontWeight:600 }}>{enq.customer_name || 'Anonymous'}</span>
-                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:STATUS_COLORS[enq.status]+'22', color:STATUS_COLORS[enq.status], fontWeight:600 }}>
-                        {enq.status}
-                      </span>
-                      <span style={{ fontSize:11, color:muted, padding:'2px 8px', borderRadius:20, background:dark?'#333':'#eee' }}>
-                        {enq.channel}
-                      </span>
-                    </div>
-                    {enq.product_name && <p style={{ fontSize:12, color:gold, margin:'0 0 4px' }}>Re: {enq.product_name} {enq.product_sku ? `(${enq.product_sku})` : ''}</p>}
-                    <p style={{ fontSize:12, color:muted, margin:0 }}>{enq.message?.substring(0,80)}{enq.message?.length>80?'…':''}</p>
-                  </div>
-                  <div style={{ textAlign:'right', fontSize:11, color:muted, whiteSpace:'nowrap', marginLeft:12 }}>
-                    <div>{enq.customer_phone}</div>
-                    <div style={{ marginTop:4 }}>{new Date(enq.created_at).toLocaleDateString('en-AE',{day:'numeric',month:'short'})}</div>
-                  </div>
+        {/* Detail */}
+        <div className="flex-1 overflow-y-auto">
+          {!selected ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <MessageSquare size={40} className="text-ink-200 dark:text-ink-700 mb-3"/>
+              <p className="text-sm text-ink-400">Select an enquiry to view details</p>
+            </div>
+          ) : (
+            <div className="p-6 max-w-2xl">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:300, color:'var(--color-text-primary)', marginBottom:4 }}>
+                    {selected.customer_name || selected.name || 'Unknown Customer'}
+                  </h2>
+                  <StageBadge status={selected.status||'new'}/>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selected.phone && (
+                    <a href={`https://wa.me/${(selected.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(`Hi ${selected.customer_name||''}, thank you for your enquiry about ${selected.product_name||'our collection'}.`)}`}
+                      target="_blank" rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg"
+                      style={{ background:'#1a7a35', color:'#fff' }}>
+                      💬 WhatsApp
+                    </a>
+                  )}
                 </div>
               </div>
-            ))}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:16 }}>
-                <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1}
-                  style={{...inputStyle, padding:'6px 14px', cursor:'pointer', opacity:page===1?.4:1}}>Prev</button>
-                <span style={{ fontSize:13, color:muted }}>Page {page} of {totalPages}</span>
-                <button onClick={() => setPage(p => Math.min(totalPages,p+1))} disabled={page===totalPages}
-                  style={{...inputStyle, padding:'6px 14px', cursor:'pointer', opacity:page===totalPages?.4:1}}>Next</button>
+              {/* Contact info */}
+              <div className="card p-4 mb-4 grid grid-cols-2 gap-3">
+                {selected.email && <div className="flex items-center gap-2 text-xs text-ink-500"><Mail size={12}/>{selected.email}</div>}
+                {selected.phone && <div className="flex items-center gap-2 text-xs text-ink-500"><Phone size={12}/>{selected.phone}</div>}
+                {selected.product_name && <div className="flex items-center gap-2 text-xs text-ink-500"><Package size={12}/>{selected.product_name}</div>}
+                {selected.created_at && <div className="flex items-center gap-2 text-xs text-ink-500"><Calendar size={12}/>{new Date(selected.created_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai'})}</div>}
               </div>
-            )}
-          </div>
 
-          {/* Detail panel */}
-          {selected && (
-            <div style={{ background:cardBg, border:`1px solid ${border}`, borderRadius:12, padding:20, height:'fit-content', position:'sticky', top:20 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:16 }}>
-                <h3 style={{ fontSize:15, fontWeight:600, margin:0 }}>Enquiry #{selected.id}</h3>
-                <button onClick={() => setSelected(null)} style={{ background:'none', border:'none', color:muted, cursor:'pointer', fontSize:18 }}>×</button>
-              </div>
-              <div style={{ fontSize:13, lineHeight:1.8 }}>
-                <div><span style={{color:muted}}>Name: </span>{selected.customer_name||'—'}</div>
-                <div><span style={{color:muted}}>Phone: </span><a href={`tel:${selected.customer_phone}`} style={{color:gold}}>{selected.customer_phone||'—'}</a></div>
-                <div><span style={{color:muted}}>Email: </span>{selected.customer_email||'—'}</div>
-                <div><span style={{color:muted}}>Country: </span>{selected.country_code}</div>
-                <div><span style={{color:muted}}>Channel: </span>{selected.channel}</div>
-                {selected.product_name && <div><span style={{color:muted}}>Product: </span><span style={{color:gold}}>{selected.product_name}</span></div>}
-                {selected.product_price && <div><span style={{color:muted}}>Price: </span>AED {parseFloat(selected.product_price).toFixed(2)}</div>}
-              </div>
+              {/* Message */}
               {selected.message && (
-                <div style={{ marginTop:14, padding:'10px 14px', background:dark?'#1a1a1a':'#fff', borderRadius:8, border:`1px solid ${border}`, fontSize:13, lineHeight:1.7 }}>
-                  {selected.message}
+                <div className="card p-4 mb-4">
+                  <p className="text-[10px] font-bold text-ink-400 uppercase tracking-wide mb-2">Message</p>
+                  <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{selected.message}</p>
                 </div>
               )}
-              {/* WhatsApp quick reply */}
-              {selected.customer_phone && (
-                <a href={`https://wa.me/${selected.customer_phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Hello ${selected.customer_name||''}! Thank you for your enquiry about ${selected.product_name||'our jewellery'}. `)}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ display:'block', marginTop:12, background:'#22c55e', color:'#fff', borderRadius:8, padding:'10px', textAlign:'center', textDecoration:'none', fontSize:13, fontWeight:600 }}>
-                  Reply on WhatsApp
-                </a>
-              )}
-              <div style={{ marginTop:14 }}>
-                <p style={{ fontSize:12, color:muted, marginBottom:6 }}>Update status</p>
-                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                  {STATUS_LIST.map(s => (
-                    <button key={s} onClick={() => updateStatus(selected.id, s)}
-                      style={{ padding:'5px 12px', borderRadius:20, fontSize:11, cursor:'pointer', fontWeight:600,
-                        background:selected.status===s?STATUS_COLORS[s]:'transparent',
-                        color:selected.status===s?'#fff':muted,
-                        border:`1px solid ${selected.status===s?STATUS_COLORS[s]:border}` }}>
-                      {s}
+
+              {/* Stage pipeline */}
+              <div className="card p-4">
+                <p className="text-[10px] font-bold text-ink-400 uppercase tracking-wide mb-3">Move to stage</p>
+                <div className="grid grid-cols-5 gap-2">
+                  {STAGES.map(stage => (
+                    <button key={stage.id}
+                      onClick={()=>updateStatus(selected.id, stage.id)}
+                      disabled={updating || selected.status===stage.id}
+                      style={{
+                        padding:'8px 4px', borderRadius:8, border:'2px solid',
+                        borderColor: selected.status===stage.id ? stage.color : 'var(--color-border-secondary)',
+                        background: selected.status===stage.id ? stage.bg : 'var(--color-background-primary)',
+                        color: selected.status===stage.id ? stage.color : 'var(--color-text-secondary)',
+                        cursor: selected.status===stage.id ? 'default' : 'pointer',
+                        fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em',
+                        transition:'all .15s',
+                      }}>
+                      {selected.status===stage.id && <span className="block text-center mb-0.5">✓</span>}
+                      {stage.label}
                     </button>
                   ))}
                 </div>
@@ -158,6 +199,6 @@ export default function EnquiriesPage() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

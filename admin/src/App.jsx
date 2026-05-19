@@ -1,3 +1,4 @@
+import UserGuidePage from './pages/UserGuidePage';
 import GoldRatePage from './pages/GoldRatePage';
 import WorkforcePage from './pages/WorkforcePage';
 import HomeBuilderPage from './pages/HomeBuilderPage';
@@ -89,6 +90,7 @@ function AppRoutes() {
         <Route path="users" element={<Navigate to="/workforce" replace />} />
               <Route path="workforce" element={<WorkforcePage />} />
               <Route path="gold-rates" element={<GoldRatePage />} />
+              <Route path="guide" element={<UserGuidePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="dev-status" element={<DevStatusPage />} />
