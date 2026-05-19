@@ -159,18 +159,18 @@ router.get('/page/:page', async (req, res) => {
 
 router.post('/page/:page', authenticate, async (req, res) => {
   try {
-    const key  = `page_content_${req.params.page}`;
-    const html = JSON.stringify(req.body);
-    const [ex] = await db.query('SELECT id FROM settings WHERE key=$1',[key]);
+    const key   = `page_content_${req.params.page}`;
+    // Accept both JSON array (new builder) and {html,css} (legacy GrapesJS)
+    const value = JSON.stringify(req.body);
+    const [ex]  = await db.query('SELECT id FROM settings WHERE key=$1',[key]);
     if (ex.length) {
-      await db.query('UPDATE settings SET value=$1,updated_at=NOW() WHERE key=$2',[html,key]);
+      await db.query('UPDATE settings SET value=$1::jsonb, updated_at=NOW() WHERE key=$2',[value,key]);
     } else {
-      await db.execute(
-        'INSERT INTO settings (id,key,value,is_public) VALUES (gen_random_uuid(),$1,$2,true)',
-        [key, html]
+      await db.query(
+        'INSERT INTO settings (id,key,value,is_public,created_at,updated_at) VALUES (gen_random_uuid(),$1,$2::jsonb,true,NOW(),NOW())',
+        [key, value]
       );
     }
-    // Clear storefront cache
     try { const redis=require('../../config/redis'); await redis.cache.del(`page:${req.params.page}`); } catch{}
     res.json({ success:true, message:'Page saved' });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
