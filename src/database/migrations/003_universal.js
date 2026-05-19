@@ -97,11 +97,11 @@ async function up() {
     updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   });
 
-  await qi.addIndex('product_variants', ['product_id']);
-  await qi.addIndex('product_variants', ['sku']);
-  await qi.addIndex('settings', ['key']);
-  await qi.addIndex('settings', ['group']);
-  await qi.addIndex('menus', ['location']);
+  await qi.safeIndex('product_variants', ['product_id']);
+  await qi.safeIndex('product_variants', ['sku']);
+  await qi.safeIndex('settings', ['key']);
+  await qi.safeIndex('settings', ['group']);
+  await qi.safeIndex('menus', ['location']);
 
   console.log('✅ Migration 003 complete — menus, variants, settings, webhooks, themes, plugin billing');
 }

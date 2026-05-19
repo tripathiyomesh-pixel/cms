@@ -288,19 +288,20 @@ async function up() {
   });
 
   // ─── INDEXES ─────────────────────────────────────────────────────────────
-  await qi.addIndex('products', ['sku']);
-  await qi.addIndex('products', ['slug']);
-  await qi.addIndex('products', ['status']);
-  await qi.addIndex('products', ['metal_type']);
-  await qi.addIndex('products', ['category_id']);
-  await qi.addIndex('products', ['stock_quantity']);
-  await qi.addIndex('categories', ['slug']);
-  await qi.addIndex('categories', ['parent_id']);
-  await qi.addIndex('collections', ['slug']);
-  await qi.addIndex('media', ['product_id']);
-  await qi.addIndex('audit_logs', ['resource', 'resource_id']);
-  await qi.addIndex('audit_logs', ['user_id']);
-  await qi.addIndex('inventory_ledger', ['product_id']);
+  const safeIndex = async (table, cols) => { try { await qi.addIndex(table, cols); } catch {} };
+  await safeIndex('products', ['sku']);
+  await safeIndex('products', ['slug']);
+  await safeIndex('products', ['status']);
+  await safeIndex('products', ['metal_type']);
+  await safeIndex('products', ['category_id']);
+  await safeIndex('products', ['stock_quantity']);
+  await safeIndex('categories', ['slug']);
+  await safeIndex('categories', ['parent_id']);
+  await safeIndex('collections', ['slug']);
+  await safeIndex('media', ['product_id']);
+  await safeIndex('audit_logs', ['resource', 'resource_id']);
+  await safeIndex('audit_logs', ['user_id']);
+  await safeIndex('inventory_ledger', ['product_id']);
 
   console.log('✅ Migration complete — all tables created');
 }

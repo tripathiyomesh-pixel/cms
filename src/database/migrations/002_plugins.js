@@ -47,9 +47,9 @@ async function up() {
     updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   });
 
-  await qi.addIndex('installed_plugins', ['plugin_id']);
-  await qi.addIndex('installed_plugins', ['license_id']);
-  await qi.addIndex('product_extensions', ['product_id', 'plugin_id'], { unique: true });
+  await qi.safeIndex('installed_plugins', ['plugin_id']);
+  await qi.safeIndex('installed_plugins', ['license_id']);
+  await qi.safeIndex('product_extensions', ['product_id', 'plugin_id'], { unique: true });
 
   console.log('✅ Plugin tables created');
 }
