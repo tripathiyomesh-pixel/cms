@@ -1,6 +1,6 @@
 const router  = require('express').Router();
 const db      = require('../../config/db.pool');
-const { authenticate, authorize } = require('../auth/auth.middleware');
+const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { buildPermissions } = require('../../engine/permissions');
 const bcrypt  = require('bcryptjs');
 const crypto  = require('crypto');
