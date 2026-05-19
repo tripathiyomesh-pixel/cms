@@ -288,17 +288,20 @@ async function up() {
   });
 
   // ─── INDEXES ─────────────────────────────────────────────────────────────
-  const safeIndex = async (table, cols) => { try { await qi.addIndex(table, cols); } catch {} };
-  await safeIndex('products', ['sku']);
-  await safeIndex('products', ['slug']);
-  await safeIndex('products', ['status']);
-  await safeIndex('products', ['metal_type']);
-  await safeIndex('products', ['category_id']);
-  await safeIndex('products', ['stock_quantity']);
-  await safeIndex('categories', ['slug']);
-  await safeIndex('categories', ['parent_id']);
-  await safeIndex('collections', ['slug']);
-  await safeIndex('media', ['product_id']);
+  // Use raw SQL for indexes — IF NOT EXISTS prevents errors on re-run
+  const idx = async (name, table, col) => {
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS "${name}" ON "${table}" ("${col}")`);
+  };
+  await idx('products_sku',         'products',   'sku');
+  await idx('products_slug',        'products',   'slug');
+  await idx('products_status',      'products',   'status');
+  await idx('products_metal_type',  'products',   'metal_type');
+  await idx('products_category_id', 'products',   'category_id');
+  await idx('products_stock_quantity','products',  'stock_quantity');
+  await idx('categories_slug',      'categories', 'slug');
+  await idx('categories_parent_id', 'categories', 'parent_id');
+  await idx('collections_slug',     'collections','slug');
+  await idx('media_product_id',     'media',      'product_id');
   await safeIndex('audit_logs', ['resource', 'resource_id']);
   await safeIndex('audit_logs', ['user_id']);
   await safeIndex('inventory_ledger', ['product_id']);

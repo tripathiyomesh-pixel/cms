@@ -116,7 +116,8 @@ async function up() {
       id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       account_id      UUID NOT NULL REFERENCES customer_accounts(id) ON DELETE CASCADE,
       product_id      UUID REFERENCES products(id) ON DELETE CASCADE,
-      diamond_id      UUID REFERENCES diamonds(id) ON DELETE CASCADE,
+      diamond_id      UUID,
+      item_type       VARCHAR(50) DEFAULT 'product',
       notes           TEXT,
       created_at      TIMESTAMPTZ DEFAULT NOW()
     );

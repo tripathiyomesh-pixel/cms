@@ -73,24 +73,25 @@ const authenticate = async (req, res, next) => {
 
     req.user = user;
 
-    // Load workforce profile + ABAC policies
+    // Load workforce profile + ABAC policies (safe — never breaks login)
+    req.profile     = null;
+    req.permissions = buildPermissions(user, null, []);
     try {
       const db = require('../../config/db.pool');
-      const [[profile]] = await db.query(
-        'SELECT * FROM workforce_profiles WHERE user_id=$1', [user.id]
-      );
+      const res = await db.query('SELECT * FROM workforce_profiles WHERE user_id=$1', [user.id]);
+      const profile = res[0]?.[0] || null;
       let policies = [];
       if (profile?.policy_ids?.length) {
-        [policies] = await db.query(
+        const pRes = await db.query(
           'SELECT * FROM permission_policies WHERE id = ANY($1) AND is_active=true',
           [profile.policy_ids]
         );
+        policies = pRes[0] || [];
       }
-      req.profile     = profile || null;
+      req.profile     = profile;
       req.permissions = buildPermissions(user, profile, policies);
-    } catch {
-      req.profile     = null;
-      req.permissions = buildPermissions(user, null, []);
+    } catch(e) {
+      // Tables may not exist yet — use role-based permissions
     }
 
     next();
