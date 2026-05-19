@@ -1,6 +1,7 @@
 import './globals.css';
 import { Inter, Playfair_Display } from 'next/font/google';
 import TemplateLayout from '@/components/layout/TemplateLayout';
+import { CurrencyProvider } from '@/components/ui/CurrencySwitcher';
 
 const inter    = Inter({ subsets:['latin'], variable:'--font-inter', display:'swap' });
 const playfair = Playfair_Display({ subsets:['latin'], variable:'--font-playfair', display:'swap' });
@@ -20,10 +21,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
-        <TemplateLayout>
-          {children}
-        </TemplateLayout>
-      </CurrencyProvider></body>
+        <CurrencyProvider>
+          <TemplateLayout>
+            {children}
+          </TemplateLayout>
+        </CurrencyProvider>
+      </body>
     </html>
   );
 }
