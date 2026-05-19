@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
         <TemplateLayout>
           {children}
         </TemplateLayout>
-      </body>
+      </CurrencyProvider></body>
     </html>
   );
 }

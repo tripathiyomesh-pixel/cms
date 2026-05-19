@@ -1,4 +1,6 @@
 'use client';
+
+export const metadata = { title:'About Us | TEJORI', description:'Over 60 years of heritage craftsmanship. Discover the TEJORI story — luxury jewellery from Dubai for the world.' };
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { sfAPI } from '@/lib/api';

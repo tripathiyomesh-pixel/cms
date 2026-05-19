@@ -1,4 +1,6 @@
 'use client';
+
+export const metadata = { title:'Exhibitions & Events | TEJORI', description:'Experience TEJORI jewellery at our exclusive exhibitions across the GCC.' };
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react';

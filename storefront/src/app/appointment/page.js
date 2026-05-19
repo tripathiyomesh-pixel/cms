@@ -1,4 +1,6 @@
 'use client';
+
+export const metadata = { title:'Book an Appointment | TEJORI', description:'Schedule a private consultation with our jewellery experts at our Dubai boutique.' };
 import { useState } from 'react';
 import { enquiryAPI } from '@/lib/api';
 import { CheckCircle, Calendar } from 'lucide-react';

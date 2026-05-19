@@ -1,4 +1,6 @@
 'use client';
+
+export const metadata = { title:'Jewellery Collection | TEJORI', description:'Browse our curated collection of luxury jewellery — necklaces, earrings, rings and bracelets. GIA & IGI certified.' };
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';

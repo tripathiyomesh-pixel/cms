@@ -4,6 +4,7 @@
 @tailwind utilities;
 
 /* ── Google Fonts ────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 /* ── Tejori design tokens ────────────────────────────────────── */
@@ -81,3 +82,54 @@ a { text-decoration: none; }
   box-shadow: 0 4px 16px rgba(37,211,102,0.35);
   font-size: 22px; text-decoration: none;
 }
+
+/* ── Arabic RTL Support ────────────────────────────────────── */
+[dir="rtl"] {
+  font-family: 'Noto Naskh Arabic', 'Cormorant Garamond', Georgia, serif;
+}
+[dir="rtl"] body,
+[dir="rtl"] p,
+[dir="rtl"] span,
+[dir="rtl"] a,
+[dir="rtl"] button,
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  font-family: 'Noto Kufi Arabic', 'Inter', system-ui, sans-serif;
+}
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  font-family: 'Noto Naskh Arabic', 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Flip flex directions */
+[dir="rtl"] .flex { flex-direction: row-reverse; }
+[dir="rtl"] .flex.flex-col { flex-direction: column; }
+[dir="rtl"] .flex.flex-col-reverse { flex-direction: column-reverse; }
+
+/* Grid stays the same — only inline flow reverses */
+[dir="rtl"] { text-align: right; }
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+[dir="rtl"] .text-center { text-align: center; }
+
+/* Margins/paddings flip */
+[dir="rtl"] .ml-auto { margin-left: unset; margin-right: auto; }
+[dir="rtl"] .mr-auto { margin-right: unset; margin-left: auto; }
+[dir="rtl"] .pl-4 { padding-left: unset; padding-right: 1rem; }
+[dir="rtl"] .pr-4 { padding-right: unset; padding-left: 1rem; }
+
+/* Navigation */
+[dir="rtl"] nav { flex-direction: row-reverse; }
+
+/* Borders */
+[dir="rtl"] .border-l { border-left: none; border-right-width: inherit; }
+[dir="rtl"] .border-r { border-right: none; border-left-width: inherit; }
+
+/* Icons that should not flip */
+[dir="rtl"] svg.no-flip { transform: none !important; }
+
+/* Mega menu RTL */
+[dir="rtl"] .mega-menu { right: auto; left: 0; }

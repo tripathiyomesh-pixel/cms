@@ -1,5 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
+import { useCurrency } from '@/components/ui/CurrencySwitcher';
 import Link from 'next/link';
 import { Search, Heart, Menu, X, ChevronDown } from 'lucide-react';
 
@@ -223,6 +226,37 @@ function MegaMenuPanel({ item, onClose }) {
 }
 
 // ── MAIN HEADER ────────────────────────────────────────────────
+// ── GOLD RATE TICKER ──────────────────────────────────────────
+function GoldRateTicker() {
+  const [rates, setRates] = useState(null);
+
+  useEffect(() => {
+    const api = process.env.NEXT_PUBLIC_API_URL || '/api';
+    fetch(`${api}/gold-rates/current`)
+      .then(r => r.json())
+      .then(res => { if (res.data) setRates(res.data); })
+      .catch(() => {});
+  }, []);
+
+  if (!rates) return <div style={{ width: 120 }}/>;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <span style={{ fontSize: 9, color: '#b8860b', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        Gold
+      </span>
+      <span style={{ fontSize: 10, color: '#e8e4df', letterSpacing: '0.05em' }}>
+        24K <strong style={{ color: '#b8860b' }}>AED {parseFloat(rates.rate_24k).toFixed(0)}</strong>
+      </span>
+      <span style={{ fontSize: 10, color: 'rgba(232,228,223,0.5)', letterSpacing: '0.05em' }}>·</span>
+      <span style={{ fontSize: 10, color: '#e8e4df', letterSpacing: '0.05em' }}>
+        22K <strong style={{ color: '#b8860b' }}>AED {parseFloat(rates.rate_22k).toFixed(0)}</strong>
+      </span>
+    </div>
+  );
+}
+
+
 export default function Header({ template, config }) {
   const [scrolled,   setScrolled]   = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
@@ -254,10 +288,21 @@ export default function Header({ template, config }) {
     <>
       <header style={{ position: 'sticky', top: 0, zIndex: 200, fontFamily: "'Inter', system-ui, sans-serif" }}>
         
-        {/* Announcement bar */}
+        {/* Enhanced topbar — announcement + gold rate + lang + currency */}
         {showTopBar && (
-          <div style={{ background: '#1a1a1a', color: '#e8e4df', fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', textAlign: 'center', padding: '9px 16px' }}>
-            {topBarText}
+          <div style={{ background: '#1a1a1a', padding: '7px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* Left — gold rate ticker */}
+            <GoldRateTicker/>
+            {/* Center — announcement */}
+            <p style={{ fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', color: '#e8e4df', flex: 1, textAlign: 'center' }}>
+              {topBarText}
+            </p>
+            {/* Right — language + currency */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+              <CurrencySwitcher/>
+              <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.2)' }}/>
+              <LanguageSwitcher/>
+            </div>
           </div>
         )}
 

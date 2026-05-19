@@ -1,4 +1,6 @@
 'use client';
+
+export const metadata = { title:'Lab Grown Diamonds | TEJORI', description:'Ethically created lab-grown diamonds — same brilliance, certified quality, accessible luxury.' };
 import DynamicPage from '@/components/builder/DynamicPage';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
