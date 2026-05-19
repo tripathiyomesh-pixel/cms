@@ -5,7 +5,7 @@
 
 require('dotenv').config();
 const sequelize = require('../../config/database');
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require('../../database/models');
 
 async function up() {
   const qi = sequelize.getQueryInterface();

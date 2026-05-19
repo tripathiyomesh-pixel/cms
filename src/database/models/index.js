@@ -165,8 +165,11 @@ const sequelize = {
   col: (c) => c,
 };
 
+const Op = { like:'LIKE', iLike:'ILIKE', or:'OR', and:'AND', 
+  in:'IN', notIn:'NOT IN', gte:'>=', lte:'<=', gt:'>', lt:'<', ne:'!=' };
+
 module.exports = {
-  User, Product, Category, Collection, Media, InventoryLedger,
+  Op, User, Product, Category, Collection, Media, InventoryLedger,
   AuditLog, Banner, PromoCode, Menu, Theme, Setting, Webhook,
   Plugin, InstalledPlugin, ProductExtension, ProductVariant,
   DataTypes, sequelize,

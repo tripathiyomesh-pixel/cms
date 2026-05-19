@@ -1,5 +1,5 @@
 const express = require('express');
-const { DataTypes, Op } = require('sequelize');
+const { DataTypes, Op } = require('../../database/models');
 const sequelize = require('../../config/database');
 const { success, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');

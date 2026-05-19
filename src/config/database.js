@@ -2,7 +2,7 @@
  * Database config — PostgreSQL 16
  * Switched from MySQL to PostgreSQL for unified stack with Vantix ERP
  */
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require('../../database/models');
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,

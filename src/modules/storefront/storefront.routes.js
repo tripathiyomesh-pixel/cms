@@ -8,7 +8,7 @@ const router  = express.Router();
 const { cache } = require('../../config/redis');
 const db = require('../../config/db.pool');
 const { Product, Category, Collection, Media } = require('../../database/models');
-const { Op } = require('sequelize');
+const { Op } = require('../../database/models');
 
 const TTL = 300; // 5 min cache
 

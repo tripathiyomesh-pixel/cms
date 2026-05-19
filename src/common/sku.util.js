@@ -1,55 +1,37 @@
 const slugify = require('slugify');
 const { v4: uuid } = require('uuid');
-const { Product } = require('../database/models');
+const db = require('../config/db.pool');
 
-/**
- * Auto-generate unique SKU
- * Format: JM-{METAL_CODE}{PURITY_CODE}-{RANDOM}
- * Example: JM-GD18-X4K2
- */
 const METAL_CODES = {
-  gold: 'GD', silver: 'SV', platinum: 'PT',
-  rose_gold: 'RG', white_gold: 'WG', palladium: 'PD',
-  generic: 'PR',  // generic product (non-jewellery)
+  gold:'GD', silver:'SV', platinum:'PT',
+  rose_gold:'RG', white_gold:'WG', palladium:'PD', generic:'PR',
 };
 
 const generateSKU = async (metalType, purity) => {
   const metalCode = METAL_CODES[metalType] || 'PR';
-  const purCode   = purity && purity !== 'NA' ? purity.replace('K', '').replace('0', '') : '';
-  const rand      = uuid().split('-')[0].toUpperCase().slice(0, 4);
+  const purCode   = purity && purity !== 'NA' ? purity.replace('K','').replace('0','') : '';
+  const rand      = uuid().split('-')[0].toUpperCase().slice(0,4);
   const prefix    = metalType === 'generic' ? 'PRD' : 'JM';
   const sku       = purCode ? `${prefix}-${metalCode}${purCode}-${rand}` : `${prefix}-${metalCode}-${rand}`;
-
-  // Ensure uniqueness
-  const exists = await Product.findOne({ where: { sku }, paranoid: false });
-  if (exists) return generateSKU(metalType, purity); // retry
+  const [[exists]] = await db.query('SELECT id FROM products WHERE sku=$1', [sku]);
+  if (exists) return generateSKU(metalType, purity);
   return sku;
 };
 
-/**
- * Auto-generate unique slug from product name
- */
 const generateSlug = async (name, id = null) => {
-  const base = slugify(name, { lower: true, strict: true, trim: true });
-  const where = id
-    ? { slug: base, id: { [require('sequelize').Op.ne]: id } }
-    : { slug: base };
-
-  const exists = await Product.findOne({ where, paranoid: false });
+  const base = slugify(name, { lower:true, strict:true, trim:true });
+  const q    = id
+    ? 'SELECT id FROM products WHERE slug=$1 AND id!=$2 LIMIT 1'
+    : 'SELECT id FROM products WHERE slug=$1 LIMIT 1';
+  const vals = id ? [base, id] : [base];
+  const [[exists]] = await db.query(q, vals);
   if (!exists) return base;
-
-  // Append random suffix
-  const suffix = uuid().split('-')[0].slice(0, 6);
-  return `${base}-${suffix}`;
+  return `${base}-${uuid().split('-')[0].slice(0,6)}`;
 };
 
-/**
- * Generate order number
- * Format: ORD-YYYYMMDD-XXXX
- */
 const generateOrderNumber = () => {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = Math.random().toString(36).toUpperCase().slice(2, 6);
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const rand = Math.random().toString(36).toUpperCase().slice(2,6);
   return `ORD-${date}-${rand}`;
 };
 

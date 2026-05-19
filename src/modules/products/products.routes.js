@@ -1,5 +1,5 @@
 const express = require('express');
-const { Op }  = require('sequelize');
+const { Op } = require('../../database/models');
 const { Product, Category, Collection, Media, InventoryLedger } = require('../../database/models');
 const { success, created, error, paginated } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
