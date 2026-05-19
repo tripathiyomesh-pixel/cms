@@ -1,3 +1,4 @@
+const { buildPermissions } = require('../../engine/permissions');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../database/models');
 
@@ -71,6 +72,27 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Account inactive or not found' });
 
     req.user = user;
+
+    // Load workforce profile + ABAC policies
+    try {
+      const db = require('../../config/db.pool');
+      const [[profile]] = await db.query(
+        'SELECT * FROM workforce_profiles WHERE user_id=$1', [user.id]
+      );
+      let policies = [];
+      if (profile?.policy_ids?.length) {
+        [policies] = await db.query(
+          'SELECT * FROM permission_policies WHERE id = ANY($1) AND is_active=true',
+          [profile.policy_ids]
+        );
+      }
+      req.profile     = profile || null;
+      req.permissions = buildPermissions(user, profile, policies);
+    } catch {
+      req.profile     = null;
+      req.permissions = buildPermissions(user, null, []);
+    }
+
     next();
   } catch (e) {
     if (e.name === 'TokenExpiredError')
