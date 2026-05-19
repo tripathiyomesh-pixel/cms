@@ -302,9 +302,9 @@ async function up() {
   await idx('categories_parent_id', 'categories', 'parent_id');
   await idx('collections_slug',     'collections','slug');
   await idx('media_product_id',     'media',      'product_id');
-  await safeIndex('audit_logs', ['resource', 'resource_id']);
-  await safeIndex('audit_logs', ['user_id']);
-  await safeIndex('inventory_ledger', ['product_id']);
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "audit_logs_resource_resource_id" ON "audit_logs" ("resource","resource_id")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "audit_logs_user_id" ON "audit_logs" ("user_id")'); } catch(e) {}
+  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "inventory_ledger_product_id" ON "inventory_ledger" ("product_id")'); } catch(e) {}
 
   console.log('✅ Migration complete — all tables created');
 }
