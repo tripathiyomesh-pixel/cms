@@ -85,7 +85,7 @@ function AppRoutes() {
         <Route path="locations" element={<StoreLocationsPage />} />
         <Route path="trust-badges" element={<TrustBadgesPage />} />
         <Route path="plugins" element={<PluginsPage />} />
-        <Route path="users" element={<UsersPage />} />
+        <Route path="users" element={<Navigate to="/workforce" replace />} />
               <Route path="workforce" element={<WorkforcePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="audit-log" element={<AuditLogPage />} />

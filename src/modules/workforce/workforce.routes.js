@@ -105,18 +105,23 @@ router.get('/staff', authenticate, async (req, res) => {
     let q = `
       SELECT
         u.id, u.name, u.email, u.is_active,
-        wp.employee_id, wp.job_title, wp.role, wp.employment_type,
-        wp.join_date, wp.last_active, wp.is_active as profile_active,
+        u.role as base_role,
+        COALESCE(wp.employee_id, '') as employee_id,
+        COALESCE(wp.job_title, '') as job_title,
+        COALESCE(wp.role, u.role) as role,
+        COALESCE(wp.employment_type, '') as employment_type,
+        wp.join_date, wp.last_active,
         b.id as branch_id, b.name as branch_name,
         d.id as department_id, d.name as department_name,
         m.name as manager_name,
-        wp.policy_ids
+        wp.policy_ids,
+        CASE WHEN wp.id IS NOT NULL THEN true ELSE false END as has_profile
       FROM users u
-      JOIN workforce_profiles wp ON wp.user_id = u.id
+      LEFT JOIN workforce_profiles wp ON wp.user_id = u.id
       LEFT JOIN branches b ON b.id = wp.branch_id
       LEFT JOIN departments d ON d.id = wp.department_id
       LEFT JOIN users m ON m.id = wp.manager_id
-      WHERE 1=1
+      WHERE u.deleted_at IS NULL
     `;
     const vals = [];
     if (branch_id)     { vals.push(branch_id);     q += ` AND wp.branch_id=$${vals.length}`; }
