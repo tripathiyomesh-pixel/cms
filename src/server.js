@@ -46,7 +46,7 @@ const featureFlagRoutes  = require('./modules/settings/feature_flags.routes');
 const certVerifyRoutes   = require('./modules/content/certificate_verify.routes');
 const dashboardRoutes      = require('./modules/dashboard/dashboard.routes');
 const customerRoutes       = require('./modules/customers/customers.routes');
-const notificationRoutes   = require('./modules/notifications/notifications.routes');
+const { router: notificationRoutes, notifyAdmins } = require('./modules/notifications/notifications.routes');
 const storefrontRoutes     = require('./modules/storefront/storefront.routes');
 const auditRoutes          = require('./modules/audit/audit.routes');
 
