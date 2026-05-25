@@ -1,333 +1,351 @@
-/**
- * Jewellery CMS — Full MySQL Schema Migration
- * Run: node src/database/migrations/001_schema.js
- */
-
 require('dotenv').config();
-const sequelize = require('../../config/database');
-const { DataTypes } = require('../../database/models');
+const { Client } = require('pg');
+
+const client = new Client({
+  host:     process.env.DB_HOST     || 'postgres',
+  port:     parseInt(process.env.DB_PORT) || 5432,
+  database: process.env.DB_NAME     || 'jewellery_cms',
+  user:     process.env.DB_USER     || 'cmsuser',
+  password: process.env.DB_PASS     || 'CmsPass@2026',
+  ssl:      process.env.DB_SSL === 'true',
+});
 
 async function up() {
-  const qi = sequelize.getQueryInterface();
+  await client.connect();
+  console.log('🔗 Connected — running migration 001...');
 
-  // ─── USERS ───────────────────────────────────────────────────────────────
-  await qi.createTable('users', {
-    id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name:        { type: DataTypes.STRING(150), allowNull: false },
-    email:       { type: DataTypes.STRING(200), allowNull: false, unique: true },
-    password:    { type: DataTypes.STRING(255), allowNull: false },
-    role:        { type: DataTypes.ENUM('super_admin', 'admin', 'manager', 'editor', 'viewer'), defaultValue: 'editor' },
-    permissions: { type: DataTypes.JSON, defaultValue: {} },
-    is_active:   { type: DataTypes.BOOLEAN, defaultValue: true },
-    last_login:  { type: DataTypes.DATE },
-    created_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    deleted_at:  { type: DataTypes.DATE },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name        VARCHAR(150) NOT NULL,
+      email       VARCHAR(200) NOT NULL UNIQUE,
+      password    VARCHAR(255) NOT NULL,
+      role        VARCHAR(30) NOT NULL DEFAULT 'editor',
+      permissions JSONB DEFAULT '{}',
+      is_active   BOOLEAN DEFAULT TRUE,
+      last_login  TIMESTAMP,
+      created_at  TIMESTAMP DEFAULT NOW(),
+      updated_at  TIMESTAMP DEFAULT NOW(),
+      deleted_at  TIMESTAMP
+    );
+  `);
+  console.log('✅ users');
 
-  // ─── LICENSES ────────────────────────────────────────────────────────────
-  await qi.createTable('licenses', {
-    id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    license_key:    { type: DataTypes.STRING(100), allowNull: false, unique: true },
-    domain:         { type: DataTypes.STRING(255), allowNull: false },
-    client_name:    { type: DataTypes.STRING(200), allowNull: false },
-    plan:           { type: DataTypes.ENUM('standard', 'multi_country', 'enterprise'), defaultValue: 'standard' },
-    status:         { type: DataTypes.ENUM('active', 'expired', 'suspended'), defaultValue: 'active' },
-    issued_at:      { type: DataTypes.DATEONLY, allowNull: false },
-    expires_at:     { type: DataTypes.DATEONLY },
-    amc_paid_until: { type: DataTypes.DATEONLY },
-    created_at:     { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:     { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS licenses (
+      id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      license_key     VARCHAR(100) NOT NULL UNIQUE,
+      domain          VARCHAR(255) NOT NULL,
+      client_name     VARCHAR(200) NOT NULL,
+      plan            VARCHAR(30) DEFAULT 'standard',
+      status          VARCHAR(20) DEFAULT 'active',
+      issued_at       DATE NOT NULL DEFAULT CURRENT_DATE,
+      expires_at      DATE,
+      amc_paid_until  DATE,
+      created_at      TIMESTAMP DEFAULT NOW(),
+      updated_at      TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ licenses');
 
-  // ─── STORE SETTINGS ──────────────────────────────────────────────────────
-  await qi.createTable('store_settings', {
-    id:               { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    license_id:       { type: DataTypes.UUID, allowNull: false },
-    store_name:       { type: DataTypes.STRING(200), allowNull: false },
-    tagline:          { type: DataTypes.STRING(500) },
-    logo_url:         { type: DataTypes.TEXT },
-    favicon_url:      { type: DataTypes.TEXT },
-    primary_color:    { type: DataTypes.STRING(10), defaultValue: '#B8973E' },
-    secondary_color:  { type: DataTypes.STRING(10), defaultValue: '#0F0F0F' },
-    font_display:     { type: DataTypes.STRING(100), defaultValue: 'Cormorant' },
-    font_body:        { type: DataTypes.STRING(100), defaultValue: 'DM Sans' },
-    default_currency: { type: DataTypes.STRING(10), defaultValue: 'AED' },
-    default_country:  { type: DataTypes.STRING(5), defaultValue: 'AE' },
-    default_lang:     { type: DataTypes.STRING(5), defaultValue: 'en' },
-    whatsapp:         { type: DataTypes.STRING(30) },
-    social_links:     { type: DataTypes.JSON, defaultValue: {} },
-    seo_title:        { type: DataTypes.STRING(200) },
-    seo_description:  { type: DataTypes.TEXT },
-    created_at:       { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:       { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS store_settings (
+      id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      license_id       UUID,
+      store_name       VARCHAR(200) NOT NULL DEFAULT 'My Store',
+      tagline          VARCHAR(500),
+      logo_url         TEXT,
+      favicon_url      TEXT,
+      primary_color    VARCHAR(10) DEFAULT '#B8973E',
+      secondary_color  VARCHAR(10) DEFAULT '#0F0F0F',
+      font_display     VARCHAR(100) DEFAULT 'Cormorant',
+      font_body        VARCHAR(100) DEFAULT 'DM Sans',
+      default_currency VARCHAR(10) DEFAULT 'AED',
+      default_country  VARCHAR(5)  DEFAULT 'AE',
+      default_lang     VARCHAR(5)  DEFAULT 'en',
+      whatsapp         VARCHAR(30),
+      social_links     JSONB DEFAULT '{}',
+      seo_title        VARCHAR(200),
+      seo_description  TEXT,
+      created_at       TIMESTAMP DEFAULT NOW(),
+      updated_at       TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ store_settings');
 
-  // ─── CATEGORIES ──────────────────────────────────────────────────────────
-  await qi.createTable('categories', {
-    id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name:        { type: DataTypes.STRING(150), allowNull: false },
-    slug:        { type: DataTypes.STRING(200), unique: true, allowNull: false },
-    description: { type: DataTypes.TEXT },
-    parent_id:   { type: DataTypes.UUID, references: { model: 'categories', key: 'id' }, onDelete: 'SET NULL' },
-    image_url:   { type: DataTypes.TEXT },
-    sort_order:  { type: DataTypes.INTEGER, defaultValue: 0 },
-    is_active:   { type: DataTypes.BOOLEAN, defaultValue: true },
-    seo_title:   { type: DataTypes.STRING(200) },
-    seo_desc:    { type: DataTypes.TEXT },
-    created_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    deleted_at:  { type: DataTypes.DATE },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name        VARCHAR(150) NOT NULL,
+      slug        VARCHAR(200) NOT NULL UNIQUE,
+      description TEXT,
+      parent_id   UUID REFERENCES categories(id) ON DELETE SET NULL,
+      image_url   TEXT,
+      sort_order  INTEGER DEFAULT 0,
+      is_active   BOOLEAN DEFAULT TRUE,
+      seo_title   VARCHAR(200),
+      seo_desc    TEXT,
+      created_at  TIMESTAMP DEFAULT NOW(),
+      updated_at  TIMESTAMP DEFAULT NOW(),
+      deleted_at  TIMESTAMP
+    );
+  `);
+  console.log('✅ categories');
 
-  // ─── COLLECTIONS ─────────────────────────────────────────────────────────
-  await qi.createTable('collections', {
-    id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name:          { type: DataTypes.STRING(200), allowNull: false },
-    slug:          { type: DataTypes.STRING(250), unique: true, allowNull: false },
-    description:   { type: DataTypes.TEXT },
-    banner_url:    { type: DataTypes.TEXT },
-    thumbnail_url: { type: DataTypes.TEXT },
-    is_featured:   { type: DataTypes.BOOLEAN, defaultValue: false },
-    is_active:     { type: DataTypes.BOOLEAN, defaultValue: true },
-    sort_order:    { type: DataTypes.INTEGER, defaultValue: 0 },
-    seo_title:     { type: DataTypes.STRING(200) },
-    seo_desc:      { type: DataTypes.TEXT },
-    created_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    deleted_at:    { type: DataTypes.DATE },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS collections (
+      id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name          VARCHAR(200) NOT NULL,
+      slug          VARCHAR(250) NOT NULL UNIQUE,
+      description   TEXT,
+      banner_url    TEXT,
+      thumbnail_url TEXT,
+      image_url     TEXT,
+      is_featured   BOOLEAN DEFAULT FALSE,
+      is_active     BOOLEAN DEFAULT TRUE,
+      sort_order    INTEGER DEFAULT 0,
+      seo_title     VARCHAR(200),
+      seo_desc      TEXT,
+      created_at    TIMESTAMP DEFAULT NOW(),
+      updated_at    TIMESTAMP DEFAULT NOW(),
+      deleted_at    TIMESTAMP
+    );
+  `);
+  console.log('✅ collections');
 
-  // ─── PRODUCTS ─────────────────────────────────────────────────────────────
-  await qi.createTable('products', {
-    id:                { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name:              { type: DataTypes.STRING(300), allowNull: false },
-    sku:               { type: DataTypes.STRING(100), unique: true, allowNull: false },
-    slug:              { type: DataTypes.STRING(350), unique: true, allowNull: false },
-    description:       { type: DataTypes.TEXT },
-    short_description: { type: DataTypes.STRING(500) },
-    category_id:       { type: DataTypes.UUID, references: { model: 'categories', key: 'id' }, onDelete: 'SET NULL' },
-    // Metal details
-    metal_type:        { type: DataTypes.ENUM('gold', 'silver', 'platinum', 'rose_gold', 'white_gold', 'palladium'), allowNull: false },
-    purity:            { type: DataTypes.ENUM('24K', '22K', '18K', '14K', '950', '925', 'other'), allowNull: false },
-    // Weights
-    gross_weight:      { type: DataTypes.DECIMAL(10, 3), allowNull: false },
-    net_weight:        { type: DataTypes.DECIMAL(10, 3) },
-    // Gemstone (JSON array for multiple stones)
-    gemstone_details:  { type: DataTypes.JSON, defaultValue: [] },
-    // Certifications (JSON array)
-    certifications:    { type: DataTypes.JSON, defaultValue: [] },
-    // Pricing (stored flat for query performance)
-    base_price:        { type: DataTypes.DECIMAL(15, 2), allowNull: false, defaultValue: 0 },
-    making_charges:    { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
-    making_charge_pct: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0 },
-    discount:          { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
-    discount_pct:      { type: DataTypes.DECIMAL(5, 2), defaultValue: 0 },
-    final_price:       { type: DataTypes.DECIMAL(15, 2), allowNull: false },
-    // Country pricing (JSON: { AED: 2500, USD: 680 })
-    country_pricing:   { type: DataTypes.JSON, defaultValue: {} },
-    currency:          { type: DataTypes.STRING(10), defaultValue: 'AED' },
-    tax_class:         { type: DataTypes.ENUM('standard', 'exempt', 'reduced'), defaultValue: 'standard' },
-    // Inventory
-    stock_quantity:    { type: DataTypes.INTEGER, defaultValue: 0 },
-    low_stock_alert:   { type: DataTypes.INTEGER, defaultValue: 5 },
-    is_made_to_order:  { type: DataTypes.BOOLEAN, defaultValue: false },
-    // Meta
-    tags:              { type: DataTypes.JSON, defaultValue: [] },
-    status:            { type: DataTypes.ENUM('active', 'inactive', 'draft', 'archived'), defaultValue: 'draft' },
-    is_featured:       { type: DataTypes.BOOLEAN, defaultValue: false },
-    sort_order:        { type: DataTypes.INTEGER, defaultValue: 0 },
-    seo_title:         { type: DataTypes.STRING(200) },
-    seo_description:   { type: DataTypes.TEXT },
-    created_by:        { type: DataTypes.UUID },
-    updated_by:        { type: DataTypes.UUID },
-    created_at:        { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:        { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    deleted_at:        { type: DataTypes.DATE },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS products (
+      id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name               VARCHAR(300) NOT NULL,
+      sku                VARCHAR(100) NOT NULL UNIQUE,
+      slug               VARCHAR(350) NOT NULL UNIQUE,
+      description        TEXT,
+      short_description  VARCHAR(500),
+      category_id        UUID REFERENCES categories(id) ON DELETE SET NULL,
+      collection_id      UUID REFERENCES collections(id) ON DELETE SET NULL,
+      metal_type         VARCHAR(30),
+      purity             VARCHAR(20),
+      gross_weight       DECIMAL(10,3),
+      net_weight         DECIMAL(10,3),
+      gemstone_details   JSONB DEFAULT '[]',
+      certifications     JSONB DEFAULT '[]',
+      base_price         DECIMAL(15,2) DEFAULT 0,
+      making_charges     DECIMAL(15,2) DEFAULT 0,
+      making_charge_pct  DECIMAL(5,2)  DEFAULT 0,
+      discount           DECIMAL(15,2) DEFAULT 0,
+      discount_pct       DECIMAL(5,2)  DEFAULT 0,
+      discount_percent   DECIMAL(5,2)  DEFAULT 0,
+      final_price        DECIMAL(15,2) DEFAULT 0,
+      country_pricing    JSONB DEFAULT '{}',
+      currency           VARCHAR(10) DEFAULT 'AED',
+      tax_class          VARCHAR(20) DEFAULT 'standard',
+      stock_quantity     INTEGER DEFAULT 0,
+      low_stock_alert    INTEGER DEFAULT 5,
+      is_made_to_order   BOOLEAN DEFAULT FALSE,
+      tags               JSONB DEFAULT '[]',
+      status             VARCHAR(20) DEFAULT 'draft',
+      is_featured        BOOLEAN DEFAULT FALSE,
+      is_new_arrival     BOOLEAN DEFAULT FALSE,
+      is_best_seller     BOOLEAN DEFAULT FALSE,
+      is_lab_grown       BOOLEAN DEFAULT FALSE,
+      embossing_available BOOLEAN DEFAULT FALSE,
+      engraving_available BOOLEAN DEFAULT FALSE,
+      video_url          TEXT,
+      seo_title          VARCHAR(200),
+      seo_description    TEXT,
+      seo_slug           VARCHAR(255),
+      sort_order         INTEGER DEFAULT 0,
+      product_type       VARCHAR(50),
+      created_by         UUID,
+      updated_by         UUID,
+      created_at         TIMESTAMP DEFAULT NOW(),
+      updated_at         TIMESTAMP DEFAULT NOW(),
+      deleted_at         TIMESTAMP
+    );
+  `);
+  console.log('✅ products');
 
-  // ─── PRODUCT COLLECTIONS (pivot) ─────────────────────────────────────────
-  await qi.createTable('product_collections', {
-    product_id:    { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' }, onDelete: 'CASCADE' },
-    collection_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'collections', key: 'id' }, onDelete: 'CASCADE' },
-    sort_order:    { type: DataTypes.INTEGER, defaultValue: 0 },
-    created_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS product_collections (
+      product_id    UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+      sort_order    INTEGER DEFAULT 0,
+      created_at    TIMESTAMP DEFAULT NOW(),
+      PRIMARY KEY (product_id, collection_id)
+    );
+  `);
+  console.log('✅ product_collections');
 
-  // ─── MEDIA LIBRARY ───────────────────────────────────────────────────────
-  await qi.createTable('media', {
-    id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    product_id:    { type: DataTypes.UUID, references: { model: 'products', key: 'id' }, onDelete: 'CASCADE' },
-    file_url:      { type: DataTypes.TEXT, allowNull: false },
-    thumb_url:     { type: DataTypes.TEXT },
-    cloudinary_id: { type: DataTypes.STRING(300) },
-    file_type:     { type: DataTypes.ENUM('image', 'video', '360_view', 'certificate'), allowNull: false, defaultValue: 'image' },
-    file_size:     { type: DataTypes.INTEGER },
-    width:         { type: DataTypes.INTEGER },
-    height:        { type: DataTypes.INTEGER },
-    alt_text:      { type: DataTypes.STRING(300) },
-    is_primary:    { type: DataTypes.BOOLEAN, defaultValue: false },
-    sort_order:    { type: DataTypes.INTEGER, defaultValue: 0 },
-    created_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS media (
+      id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      product_id    UUID REFERENCES products(id) ON DELETE CASCADE,
+      entity_id     UUID,
+      entity_type   VARCHAR(50),
+      file_url      TEXT NOT NULL,
+      thumb_url     TEXT,
+      cloudinary_id VARCHAR(300),
+      file_type     VARCHAR(30) DEFAULT 'image',
+      media_type    VARCHAR(30) DEFAULT 'image',
+      file_size     INTEGER,
+      width         INTEGER,
+      height        INTEGER,
+      alt_text      VARCHAR(300),
+      is_primary    BOOLEAN DEFAULT FALSE,
+      sort_order    INTEGER DEFAULT 0,
+      created_at    TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ media');
 
-  // ─── INVENTORY LEDGER ────────────────────────────────────────────────────
-  await qi.createTable('inventory_ledger', {
-    id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    product_id:  { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
-    type:        { type: DataTypes.ENUM('in', 'out', 'adjustment', 'return', 'transfer') },
-    quantity:    { type: DataTypes.INTEGER, allowNull: false },
-    balance:     { type: DataTypes.INTEGER, allowNull: false },
-    reference:   { type: DataTypes.STRING(200) },
-    notes:       { type: DataTypes.TEXT },
-    created_by:  { type: DataTypes.UUID },
-    created_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS inventory_ledger (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      product_id  UUID NOT NULL REFERENCES products(id),
+      type        VARCHAR(20),
+      quantity    INTEGER NOT NULL,
+      balance     INTEGER NOT NULL,
+      reference   VARCHAR(200),
+      notes       TEXT,
+      created_by  UUID,
+      created_at  TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ inventory_ledger');
 
-  // ─── COUNTRIES ───────────────────────────────────────────────────────────
-  await qi.createTable('store_countries', {
-    id:              { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    country_code:    { type: DataTypes.STRING(5), allowNull: false },
-    country_name:    { type: DataTypes.STRING(100), allowNull: false },
-    currency_code:   { type: DataTypes.STRING(10), allowNull: false },
-    currency_symbol: { type: DataTypes.STRING(10) },
-    tax_label:       { type: DataTypes.STRING(50), defaultValue: 'VAT' },
-    tax_percent:     { type: DataTypes.DECIMAL(5, 2), defaultValue: 0 },
-    phone:           { type: DataTypes.STRING(30) },
-    whatsapp:        { type: DataTypes.STRING(30) },
-    address:         { type: DataTypes.TEXT },
-    is_active:       { type: DataTypes.BOOLEAN, defaultValue: true },
-    sort_order:      { type: DataTypes.INTEGER, defaultValue: 0 },
-    created_at:      { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:      { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS store_countries (
+      id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      country_code    VARCHAR(5) NOT NULL,
+      country_name    VARCHAR(100) NOT NULL,
+      currency_code   VARCHAR(10) NOT NULL,
+      currency_symbol VARCHAR(10),
+      tax_label       VARCHAR(50) DEFAULT 'VAT',
+      tax_percent     DECIMAL(5,2) DEFAULT 0,
+      phone           VARCHAR(30),
+      whatsapp        VARCHAR(30),
+      address         TEXT,
+      is_active       BOOLEAN DEFAULT TRUE,
+      sort_order      INTEGER DEFAULT 0,
+      created_at      TIMESTAMP DEFAULT NOW(),
+      updated_at      TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ store_countries');
 
-  // ─── ORDERS ──────────────────────────────────────────────────────────────
-  await qi.createTable('orders', {
-    id:            { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    order_number:  { type: DataTypes.STRING(50), unique: true },
-    customer_name: { type: DataTypes.STRING(200) },
-    customer_email:{ type: DataTypes.STRING(200) },
-    customer_phone:{ type: DataTypes.STRING(30) },
-    items:         { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
-    subtotal:      { type: DataTypes.DECIMAL(15, 2) },
-    tax_amount:    { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
-    total_amount:  { type: DataTypes.DECIMAL(15, 2) },
-    currency:      { type: DataTypes.STRING(10), defaultValue: 'AED' },
-    country_code:  { type: DataTypes.STRING(5) },
-    status:        { type: DataTypes.ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'), defaultValue: 'pending' },
-    notes:         { type: DataTypes.TEXT },
-    created_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      order_number   VARCHAR(50) UNIQUE,
+      customer_name  VARCHAR(200),
+      customer_email VARCHAR(200),
+      customer_phone VARCHAR(30),
+      items          JSONB DEFAULT '[]',
+      subtotal       DECIMAL(15,2),
+      tax_amount     DECIMAL(15,2) DEFAULT 0,
+      total_amount   DECIMAL(15,2),
+      currency       VARCHAR(10) DEFAULT 'AED',
+      country_code   VARCHAR(5),
+      status         VARCHAR(30) DEFAULT 'pending',
+      notes          TEXT,
+      created_at     TIMESTAMP DEFAULT NOW(),
+      updated_at     TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ orders');
 
-  // ─── BANNERS ─────────────────────────────────────────────────────────────
-  await qi.createTable('banners', {
-    id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    title:       { type: DataTypes.STRING(200) },
-    subtitle:    { type: DataTypes.STRING(300) },
-    image_url:   { type: DataTypes.TEXT, allowNull: false },
-    mobile_url:  { type: DataTypes.TEXT },
-    link_url:    { type: DataTypes.TEXT },
-    link_text:   { type: DataTypes.STRING(100) },
-    position:    { type: DataTypes.ENUM('hero', 'promo_strip', 'sidebar', 'popup'), defaultValue: 'hero' },
-    country_code:{ type: DataTypes.STRING(5) },
-    is_active:   { type: DataTypes.BOOLEAN, defaultValue: true },
-    starts_at:   { type: DataTypes.DATE },
-    ends_at:     { type: DataTypes.DATE },
-    sort_order:  { type: DataTypes.INTEGER, defaultValue: 0 },
-    created_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS banners (
+      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title        VARCHAR(200),
+      subtitle     VARCHAR(300),
+      image_url    TEXT NOT NULL,
+      mobile_url   TEXT,
+      link_url     TEXT,
+      link_text    VARCHAR(100),
+      position     VARCHAR(30) DEFAULT 'hero',
+      country_code VARCHAR(5),
+      is_active    BOOLEAN DEFAULT TRUE,
+      starts_at    TIMESTAMP,
+      ends_at      TIMESTAMP,
+      sort_order   INTEGER DEFAULT 0,
+      created_at   TIMESTAMP DEFAULT NOW(),
+      updated_at   TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ banners');
 
-  // ─── PROMO CODES ─────────────────────────────────────────────────────────
-  await qi.createTable('promo_codes', {
-    id:              { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    code:            { type: DataTypes.STRING(50), unique: true, allowNull: false },
-    description:     { type: DataTypes.STRING(300) },
-    type:            { type: DataTypes.ENUM('percent', 'fixed'), allowNull: false },
-    value:           { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-    min_order:       { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
-    max_discount:    { type: DataTypes.DECIMAL(10, 2) },
-    usage_limit:     { type: DataTypes.INTEGER },
-    usage_count:     { type: DataTypes.INTEGER, defaultValue: 0 },
-    is_active:       { type: DataTypes.BOOLEAN, defaultValue: true },
-    starts_at:       { type: DataTypes.DATE },
-    expires_at:      { type: DataTypes.DATE },
-    created_at:      { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:      { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS promo_codes (
+      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code         VARCHAR(50) NOT NULL UNIQUE,
+      description  VARCHAR(300),
+      type         VARCHAR(20) NOT NULL,
+      value        DECIMAL(10,2) NOT NULL,
+      min_order    DECIMAL(10,2) DEFAULT 0,
+      max_discount DECIMAL(10,2),
+      usage_limit  INTEGER,
+      usage_count  INTEGER DEFAULT 0,
+      is_active    BOOLEAN DEFAULT TRUE,
+      starts_at    TIMESTAMP,
+      expires_at   TIMESTAMP,
+      created_at   TIMESTAMP DEFAULT NOW(),
+      updated_at   TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ promo_codes');
 
-  // ─── AUDIT LOGS ──────────────────────────────────────────────────────────
-  await qi.createTable('audit_logs', {
-    id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    user_id:     { type: DataTypes.UUID },
-    user_email:  { type: DataTypes.STRING(200) },
-    action:      { type: DataTypes.STRING(100), allowNull: false },
-    resource:    { type: DataTypes.STRING(100), allowNull: false },
-    resource_id: { type: DataTypes.STRING(100) },
-    old_data:    { type: DataTypes.JSON },
-    new_data:    { type: DataTypes.JSON },
-    ip_address:  { type: DataTypes.STRING(50) },
-    user_agent:  { type: DataTypes.TEXT },
-    created_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id     UUID,
+      user_email  VARCHAR(200),
+      action      VARCHAR(100) NOT NULL,
+      resource    VARCHAR(100) NOT NULL,
+      resource_id VARCHAR(100),
+      old_data    JSONB,
+      new_data    JSONB,
+      ip_address  VARCHAR(50),
+      user_agent  TEXT,
+      created_at  TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ audit_logs');
 
-  // ─── PAGE SECTIONS ───────────────────────────────────────────────────────
-  await qi.createTable('page_sections', {
-    id:           { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    page:         { type: DataTypes.STRING(100), allowNull: false, defaultValue: 'homepage' },
-    section_key:  { type: DataTypes.STRING(100), allowNull: false },
-    section_type: { type: DataTypes.STRING(100), allowNull: false },
-    content:      { type: DataTypes.JSON, defaultValue: {} },
-    is_visible:   { type: DataTypes.BOOLEAN, defaultValue: true },
-    sort_order:   { type: DataTypes.INTEGER, defaultValue: 0 },
-    country_code: { type: DataTypes.STRING(5) },
-    created_at:   { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at:   { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  });
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS page_sections (
+      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      page         VARCHAR(100) NOT NULL DEFAULT 'homepage',
+      section_key  VARCHAR(100) NOT NULL,
+      section_type VARCHAR(100) NOT NULL,
+      content      JSONB DEFAULT '{}',
+      is_visible   BOOLEAN DEFAULT TRUE,
+      sort_order   INTEGER DEFAULT 0,
+      country_code VARCHAR(5),
+      created_at   TIMESTAMP DEFAULT NOW(),
+      updated_at   TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  console.log('✅ page_sections');
 
-  // ─── INDEXES ─────────────────────────────────────────────────────────────
-  // Use raw SQL for indexes — IF NOT EXISTS prevents errors on re-run
-  const idx = async (name, table, col) => {
-    await sequelize.query(`CREATE INDEX IF NOT EXISTS "${name}" ON "${table}" ("${col}")`);
-  };
-  await idx('products_sku',         'products',   'sku');
-  await idx('products_slug',        'products',   'slug');
-  await idx('products_status',      'products',   'status');
-  await idx('products_metal_type',  'products',   'metal_type');
-  await idx('products_category_id', 'products',   'category_id');
-  await idx('products_stock_quantity','products',  'stock_quantity');
-  await idx('categories_slug',      'categories', 'slug');
-  await idx('categories_parent_id', 'categories', 'parent_id');
-  await idx('collections_slug',     'collections','slug');
-  await idx('media_product_id',     'media',      'product_id');
-  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "audit_logs_resource_resource_id" ON "audit_logs" ("resource","resource_id")'); } catch(e) {}
-  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "audit_logs_user_id" ON "audit_logs" ("user_id")'); } catch(e) {}
-  try { await sequelize.query('CREATE INDEX IF NOT EXISTS "inventory_ledger_product_id" ON "inventory_ledger" ("product_id")'); } catch(e) {}
+  // Indexes
+  const idx = (name, table, col) =>
+    client.query(`CREATE INDEX IF NOT EXISTS "${name}" ON "${table}" (${col})`).catch(() => {});
+  await idx('products_sku',          'products',   '"sku"');
+  await idx('products_slug',         'products',   '"slug"');
+  await idx('products_status',       'products',   '"status"');
+  await idx('products_category_id',  'products',   '"category_id"');
+  await idx('products_is_featured',  'products',   '"is_featured"');
+  await idx('categories_slug',       'categories', '"slug"');
+  await idx('categories_parent_id',  'categories', '"parent_id"');
+  await idx('collections_slug',      'collections','"slug"');
+  await idx('media_product_id',      'media',      '"product_id"');
+  await idx('audit_logs_resource',   'audit_logs', '"resource","resource_id"');
+  console.log('✅ indexes');
 
-  console.log('✅ Migration complete — all tables created');
+  console.log('\n🎉 Migration 001 complete');
 }
 
-async function down() {
-  const qi = sequelize.getQueryInterface();
-  const tables = [
-    'audit_logs', 'page_sections', 'promo_codes', 'banners', 'orders',
-    'inventory_ledger', 'media', 'product_collections', 'products',
-    'store_countries', 'collections', 'categories', 'store_settings',
-    'licenses', 'users',
-  ];
-  for (const t of tables) {
-    await qi.dropTable(t, { cascade: true }).catch(() => {});
-  }
-  console.log('✅ Rollback complete');
-}
-
-(async () => {
-  const action = process.argv[2] || 'up';
-  await sequelize.authenticate();
-  if (action === 'down') await down();
-  else await up();
-  await sequelize.close();
-  process.exit(0);
-})().catch((e) => { console.error(e); process.exit(1); });
+up()
+  .then(() => client.end())
+  .catch(e => { console.error('❌', e.message); client.end(); process.exit(1); });
