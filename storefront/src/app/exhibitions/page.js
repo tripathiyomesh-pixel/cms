@@ -1,6 +1,4 @@
 'use client';
-
-export const metadata = { title:'Exhibitions & Events | TEJORI', description:'Experience TEJORI jewellery at our exclusive exhibitions across the GCC.' };
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react';
@@ -18,13 +16,15 @@ function Countdown({ targetDate }) {
     return () => clearInterval(t);
   }, [targetDate]);
 
-  if (new Date(targetDate) <= new Date()) return <span className="text-xs text-green-600 font-semibold">● Happening now</span>;
+  if (new Date(targetDate) <= new Date()) {
+    return <span style={{ fontSize:11, fontWeight:600, color:'#16a34a', letterSpacing:'0.05em' }}>● Happening now</span>;
+  }
   return (
-    <div className="flex gap-3">
-      {[['d','Days'],['h','Hours'],['m','Mins'],['s','Secs']].map(([k,l]) => (
-        <div key={k} className="text-center">
-          <div className="text-lg font-bold text-ink-800 leading-none">{String(time[k]).padStart(2,'0')}</div>
-          <div className="text-[10px] text-ink-400 uppercase tracking-wide">{l}</div>
+    <div style={{ display:'flex', gap:12 }}>
+      {[['d','Days'],['h','Hrs'],['m','Min'],['s','Sec']].map(([k,l]) => (
+        <div key={k} style={{ textAlign:'center' }}>
+          <div style={{ fontSize:20, fontWeight:700, color:'#1a1a1a', lineHeight:1 }}>{String(time[k]).padStart(2,'0')}</div>
+          <div style={{ fontSize:9, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginTop:2 }}>{l}</div>
         </div>
       ))}
     </div>
@@ -33,115 +33,203 @@ function Countdown({ targetDate }) {
 
 export default function ExhibitionsPage() {
   const [exhibitions, setExhibitions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/exhibitions/public`)
-      .then(r => r.json()).then(r => setExhibitions(r.data||[])).catch(()=>{}).finally(()=>setLoading(false));
+    // Use /api proxy (rewrites in next.config.js → backend:4000)
+    // Falls back to NEXT_PUBLIC_API_URL if set, otherwise relative /api
+    const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+    fetch(`${base}/exhibitions/public`)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(r => setExhibitions(r.data || []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="pt-32 text-center py-20 text-ink-400">Loading exhibitions…</div>;
-
   return (
-    <div className="pt-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <p className="text-xs font-semibold text-gold-600 uppercase tracking-widest mb-3">Events & Exhibitions</p>
-        <h1 className="font-serif text-3xl lg:text-5xl text-ink-800 mb-4">Meet Us In Person</h1>
-        <p className="text-ink-400 text-lg max-w-xl mx-auto">Visit our booth at upcoming jewellery exhibitions. View rare pieces, meet our gemologists, and enjoy exclusive VIP previews.</p>
+    <div style={{ fontFamily:"'Inter', system-ui, sans-serif", paddingTop:96 }}>
+
+      {/* ── Hero ── */}
+      <div style={{ background:'#1a1a1a', padding:'72px 40px', textAlign:'center' }}>
+        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.3em', textTransform:'uppercase', color:'#b8860b', marginBottom:14 }}>
+          Events & Exhibitions
+        </p>
+        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(36px,5vw,64px)', fontWeight:300, color:'#fff', lineHeight:1.1, marginBottom:16 }}>
+          Meet Us In Person
+        </h1>
+        <p style={{ color:'rgba(255,255,255,0.5)', fontSize:15, maxWidth:500, margin:'0 auto', lineHeight:1.8 }}>
+          Visit our booth at upcoming jewellery exhibitions. View rare pieces, meet our gemologists, and enjoy exclusive previews.
+        </p>
       </div>
 
-      {exhibitions.length === 0 ? (
-        <div className="card p-20 text-center">
-          <Calendar size={40} className="mx-auto text-ink-200 mb-4"/>
-          <p className="text-ink-400 text-lg">No upcoming exhibitions</p>
-          <p className="text-sm text-ink-300 mt-2">Check back soon or follow us on Instagram</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {exhibitions.map(ex => {
-            const isLive = new Date() >= new Date(ex.start_date) && new Date() <= new Date(ex.end_date);
-            const isFull = ex.max_registrations && +ex.reg_count >= +ex.max_registrations;
-            return (
-              <div key={ex.id} className={`card overflow-hidden hover:shadow-xl transition-all duration-300 ${ex.is_vip ? 'border-gold-200' : ''}`}>
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
+      {/* ── Content ── */}
+      <div style={{ maxWidth:1100, margin:'0 auto', padding:'60px 32px' }}>
+        {loading && (
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {[1,2].map(i => (
+              <div key={i} style={{ height:220, background:'#f5f0e8', borderRadius:4, animation:'pulse 1.5s ease-in-out infinite' }}/>
+            ))}
+            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div style={{ textAlign:'center', padding:'80px 40px', background:'#faf8f3', border:'1px solid #e5e0d8' }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
+              Unable to load exhibitions
+            </p>
+            <p style={{ fontSize:13, color:'#888', marginBottom:24 }}>
+              Please check back shortly or contact us on WhatsApp.
+            </p>
+            <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '971501234567'}`}
+              target="_blank" rel="noreferrer"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#25D366', color:'#fff', padding:'12px 28px', fontSize:11, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none' }}>
+              💬 WhatsApp Us
+            </a>
+          </div>
+        )}
+
+        {!loading && !error && exhibitions.length === 0 && (
+          <div style={{ textAlign:'center', padding:'80px 40px', border:'1px solid #e5e0d8' }}>
+            <div style={{ fontSize:48, marginBottom:16 }}>📅</div>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
+              No upcoming exhibitions
+            </p>
+            <p style={{ fontSize:13, color:'#888', marginBottom:24 }}>
+              Follow us on Instagram to be the first to know about upcoming events.
+            </p>
+            <Link href="/jewellery"
+              style={{ display:'inline-block', background:'#1a1a1a', color:'#fff', padding:'12px 28px', fontSize:11, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none' }}>
+              Explore Collection
+            </Link>
+          </div>
+        )}
+
+        {!loading && !error && exhibitions.length > 0 && (
+          <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
+            {exhibitions.map(ex => {
+              const now      = new Date();
+              const start    = new Date(ex.start_date);
+              const end      = new Date(ex.end_date);
+              const isLive   = now >= start && now <= end;
+              const isFull   = ex.max_registrations && +ex.reg_count >= +ex.max_registrations;
+              const canReg   = ex.registration_open && !isFull && !isLive;
+              return (
+                <div key={ex.id} style={{
+                  display:'grid', gridTemplateColumns:'2fr 3fr', border:'1px solid #e5e0d8',
+                  overflow:'hidden', transition:'box-shadow 0.2s',
+                  boxShadow: ex.is_vip ? '0 0 0 1px #b8860b' : 'none',
+                }}>
                   {/* Image */}
-                  <div className="lg:col-span-2 relative">
-                    {ex.hero_image ? (
-                      <img src={ex.hero_image} alt={ex.title} className="w-full h-64 lg:h-full object-cover"/>
-                    ) : (
-                      <div className="w-full h-64 lg:h-full bg-gradient-to-br from-gold-50 to-ink-100 flex items-center justify-center">
-                        <span className="text-6xl">💎</span>
-                      </div>
-                    )}
-                    {/* Badges */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      {isLive && <span className="badge bg-green-500 text-white text-[10px]">● Live Now</span>}
-                      {ex.is_vip && <span className="badge bg-gold-500 text-white text-[10px] flex items-center gap-1"><Star size={9} fill="white"/>VIP</span>}
+                  <div style={{ position:'relative', minHeight:260, background:'#1a1a1a', overflow:'hidden' }}>
+                    {ex.hero_image
+                      ? <img src={ex.hero_image} alt={ex.title}
+                          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+                      : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:56 }}>💎</div>
+                    }
+                    {/* Status badges */}
+                    <div style={{ position:'absolute', top:16, left:16, display:'flex', gap:8 }}>
+                      {isLive && (
+                        <span style={{ background:'#16a34a', color:'#fff', fontSize:10, fontWeight:700, padding:'4px 10px', letterSpacing:'0.08em' }}>
+                          ● LIVE NOW
+                        </span>
+                      )}
+                      {ex.is_vip && (
+                        <span style={{ background:'#b8860b', color:'#fff', fontSize:10, fontWeight:700, padding:'4px 10px', letterSpacing:'0.08em', display:'flex', alignItems:'center', gap:4 }}>
+                          ✦ VIP
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="lg:col-span-3 p-8 flex flex-col justify-between">
+                  <div style={{ padding:'36px 40px', background:'#fff', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
                     <div>
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        {!isLive && ex.start_date && (
+                      {/* Countdown — only for upcoming */}
+                      {!isLive && start > now && (
+                        <div style={{ marginBottom:20 }}>
                           <Countdown targetDate={ex.start_date}/>
-                        )}
-                      </div>
-
-                      <h2 className="font-serif text-2xl text-ink-800 mb-2">{ex.title}</h2>
-                      {ex.subtitle && <p className="text-gold-600 font-medium text-sm mb-3">{ex.subtitle}</p>}
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-ink-500">
-                          <Calendar size={15} className="text-gold-500 flex-shrink-0"/>
-                          <span>{new Date(ex.start_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}
-                          {ex.end_date !== ex.start_date ? ` — ${new Date(ex.end_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}` : ''}</span>
                         </div>
-                        {(ex.start_time||ex.end_time) && (
-                          <div className="flex items-center gap-2 text-sm text-ink-500">
-                            <Clock size={15} className="text-gold-500 flex-shrink-0"/>
+                      )}
+
+                      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(20px,2.5vw,32px)', fontWeight:300, color:'#1a1a1a', marginBottom:6, lineHeight:1.2 }}>
+                        {ex.title}
+                      </h2>
+                      {ex.subtitle && (
+                        <p style={{ fontSize:13, color:'#b8860b', fontWeight:500, marginBottom:16 }}>{ex.subtitle}</p>
+                      )}
+
+                      {/* Key info */}
+                      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
+                          <Calendar size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
+                          <span>
+                            {new Date(ex.start_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}
+                            {ex.end_date !== ex.start_date && ` — ${new Date(ex.end_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}`}
+                          </span>
+                        </div>
+                        {(ex.start_time || ex.end_time) && (
+                          <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
+                            <Clock size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
                             <span>{ex.start_time} — {ex.end_time}</span>
                           </div>
                         )}
                         {ex.venue_name && (
-                          <div className="flex items-center gap-2 text-sm text-ink-500">
-                            <MapPin size={15} className="text-gold-500 flex-shrink-0"/>
-                            <span>{ex.venue_name}{ex.venue_city ? `, ${ex.venue_city}` : ''}{ex.booth_number ? ` · Booth ${ex.booth_number}` : ''}</span>
+                          <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
+                            <MapPin size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
+                            <span>
+                              {ex.venue_name}
+                              {ex.venue_city && `, ${ex.venue_city}`}
+                              {ex.booth_number && ` · Booth ${ex.booth_number}`}
+                            </span>
                           </div>
                         )}
-                        {ex.reg_count > 0 && (
-                          <div className="flex items-center gap-2 text-sm text-ink-400">
-                            <Users size={15} className="text-gold-500 flex-shrink-0"/>
-                            <span>{ex.reg_count} {ex.max_registrations ? `/ ${ex.max_registrations}` : ''} registered</span>
+                        {+ex.reg_count > 0 && (
+                          <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12, color:'#888' }}>
+                            <Users size={13} style={{ color:'#b8860b', flexShrink:0 }}/>
+                            <span>
+                              {ex.reg_count} registered
+                              {ex.max_registrations ? ` · ${ex.max_registrations - ex.reg_count} spots remaining` : ''}
+                            </span>
                           </div>
                         )}
                       </div>
 
                       {ex.is_vip && (
-                        <div className="bg-gold-50 border border-gold-200 rounded-xl px-4 py-3 mb-4 text-sm text-gold-700">
-                          <Star size={14} className="inline mr-1.5" fill="currentColor"/>
-                          <strong>VIP Exhibition</strong> — Exclusive preview for invited guests and registered members.
+                        <div style={{ background:'#fdf8ee', border:'1px solid #e8d5a0', padding:'10px 14px', fontSize:12, color:'#7a5c00', marginBottom:20 }}>
+                          ✦ <strong>VIP Exhibition</strong> — Exclusive preview for invited guests and registered members.
+                        </div>
+                      )}
+
+                      {isFull && (
+                        <div style={{ background:'#fef2f2', border:'1px solid #fecaca', padding:'10px 14px', fontSize:12, color:'#991b1b', marginBottom:20 }}>
+                          This exhibition is fully booked. Join the waitlist via WhatsApp.
                         </div>
                       )}
                     </div>
 
-                    <div className="flex gap-3 flex-wrap">
-                      <Link href={`/exhibitions/${ex.slug}`} className="btn-gold px-6 py-3">
-                        {isFull ? 'View details' : ex.registration_open ? 'Register to attend' : 'View details'}
+                    {/* Actions */}
+                    <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                      <Link href={`/exhibitions/${ex.slug}`}
+                        style={{ background:'#1a1a1a', color:'#fff', padding:'12px 28px', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none', display:'inline-block' }}>
+                        {isFull ? 'View Details' : canReg ? 'Register Now' : 'View Details'}
                       </Link>
-                      <Link href={`/exhibitions/${ex.slug}`} className="btn-outline-gold px-6 py-3 text-sm">
-                        Learn more
-                      </Link>
+                      {isFull && (
+                        <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '971501234567'}?text=${encodeURIComponent(`Hi, I'd like to join the waitlist for ${ex.title}`)}`}
+                          target="_blank" rel="noreferrer"
+                          style={{ background:'#25D366', color:'#fff', padding:'12px 20px', fontSize:11, fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:6 }}>
+                          💬 Waitlist
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
