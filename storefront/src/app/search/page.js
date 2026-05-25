@@ -4,7 +4,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
-export const metadata = { title:'Search | TEJORI', description:'Search our jewellery collection' };
 
 const METAL_OPTIONS  = ['Gold','Platinum','Silver','Rose Gold'];
 const PURITY_OPTIONS = ['24K','22K','18K','14K','Platinum 950'];

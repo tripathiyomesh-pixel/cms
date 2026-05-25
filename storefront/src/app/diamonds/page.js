@@ -1,6 +1,5 @@
 'use client';
 
-export const metadata = { title:'Certified Diamonds | TEJORI', description:'Discover our collection of GIA and IGI certified diamonds. Natural and lab-grown options available.' };
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { diamondAPI } from '@/lib/api';

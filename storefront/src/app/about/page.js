@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DynamicPage from '@/components/builder/DynamicPage';
 
-export const metadata = { title: 'About Us | TEJORI', description: 'The story of TEJORI — six decades of fine jewellery craftsmanship in Dubai, UAE.' };
 
 // Static fallback shown if admin hasn't set up the About page yet
 function StaticAbout() {
