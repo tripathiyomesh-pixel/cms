@@ -290,4 +290,45 @@ router.get('/ring-builder', async (req, res) => {
   } catch (e) { error(res, e.message); }
 });
 
+// ── GET /api/storefront/frontend-config ──────────────────────────────────────
+// Used by TemplateLayout on every page load — returns all public settings
+// including theme, storefront template, analytics, popup, maintenance mode
+router.get('/frontend-config', async (req, res) => {
+  try {
+    const cached = await cache.get('storefront:frontend-config');
+    if (cached) return success(res, cached);
+
+    const [settings] = await sequelize.query(
+      `SELECT key, value FROM settings WHERE is_public = true`,
+      { type: 'SELECT' }
+    ).catch(() => [[]]);
+
+    const config = {};
+    (settings || []).forEach(s => { config[s.key] = s.value; });
+
+    // Also pull from store_settings table if exists
+    const [store] = await sequelize.query(
+      `SELECT store_name, tagline, logo_url, favicon_url, primary_color,
+              secondary_color, font_display, font_body, whatsapp,
+              default_currency, default_country, default_lang
+       FROM store_settings LIMIT 1`,
+      { type: 'SELECT' }
+    ).catch(() => [[]]);
+
+    if (store?.[0]) {
+      const s = store[0];
+      config.store_name       = config.store_name    || s.store_name;
+      config.tagline          = config.tagline        || s.tagline;
+      config.logo_url         = config.logo_url       || s.logo_url;
+      config.favicon_url      = config.favicon_url    || s.favicon_url;
+      config.primary_color    = config.primary_color  || s.primary_color;
+      config.whatsapp_number  = config.whatsapp_number|| s.whatsapp;
+      config.storefront_theme = config.storefront_theme || 'cartier-noir';
+    }
+
+    await cache.set('storefront:frontend-config', config, 120);
+    success(res, config);
+  } catch (e) { error(res, e.message); }
+});
+
 module.exports = router;
