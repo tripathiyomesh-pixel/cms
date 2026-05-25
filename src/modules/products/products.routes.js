@@ -292,3 +292,46 @@ router.delete('/:productId/variants/:variantId', authenticate, authorize(['super
     res.json({ success: true, message: 'Variant removed' });
   } catch(e) { res.status(500).json({ success: false, message: e.message }); }
 });
+
+// ─── QUICK STATUS PATCH ──────────────────────────────────────────────────────
+// PATCH /products/:id/status — mark sold, active, draft, toggle flags
+// Separate from PUT /:id to avoid full validation rules on quick actions
+router.patch('/:id/status', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product) return error(res, 'Product not found', 404);
+
+    const allowed = ['status','is_featured','is_new_arrival','is_best_seller','is_lab_grown','is_active'];
+    const updates = {};
+    allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
+
+    if (!Object.keys(updates).length) return error(res, 'Nothing to update', 422);
+
+    updates.updated_by = req.user.id;
+    await product.update(updates);
+    await cache.delPattern('products:*');
+    success(res, product, 'Product updated');
+  } catch (e) {
+    error(res, e.message);
+  }
+});
+
+// ─── BULK STATUS UPDATE ──────────────────────────────────────────────────────
+// POST /products/bulk-status
+router.post('/bulk-status', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!ids?.length || !status) return error(res, 'ids and status required', 422);
+    const validStatuses = ['active','draft','inactive','archived'];
+    if (!validStatuses.includes(status)) return error(res, 'Invalid status', 422);
+
+    await Product.update(
+      { status, updated_by: req.user.id },
+      { where: { id: ids } }
+    );
+    await cache.delPattern('products:*');
+    success(res, { updated: ids.length }, `${ids.length} products updated to ${status}`);
+  } catch (e) {
+    error(res, e.message);
+  }
+});

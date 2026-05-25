@@ -1,167 +1,365 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
-import { Upload, Trash2, Image, Grid3X3, List, Search, Star, X, Download } from 'lucide-react';
-import toast from 'react-hot-toast';
 import api from '../services/api';
+import toast from 'react-hot-toast';
+import {
+  Upload, Trash2, Image, Video, FileText, Grid3X3,
+  List, Search, Copy, X, ExternalLink, RefreshCw, Filter,
+} from 'lucide-react';
+
+const TYPE_ICON = { image: Image, video: Video, pdf: FileText };
+const TYPE_COLOR = { image:'badge-blue', video:'badge-purple', pdf:'badge-red' };
+
+function MediaCard({ item, onDelete, onCopy, viewMode }) {
+  const [hovered, setHovered] = useState(false);
+  const isImage = item.file_type === 'image' || item.file_url?.match(/\.(jpg|jpeg|png|webp|gif)/i);
+  const isVideo = item.file_type === 'video' || item.file_url?.match(/\.(mp4|mov|webm)/i);
+
+  if (viewMode === 'list') {
+    return (
+      <div className="flex items-center gap-4 px-4 py-3 border-b border-ink-100 dark:border-ink-800 hover:bg-ink-50/50 dark:hover:bg-ink-800/30 transition-colors group">
+        <div className="w-12 h-12 rounded-lg bg-ink-100 dark:bg-ink-700 flex items-center justify-center flex-shrink-0 overflow-hidden border border-ink-200 dark:border-ink-600">
+          {isImage
+            ? <img src={item.thumb_url || item.file_url} alt={item.alt_text} className="w-full h-full object-cover"/>
+            : <Video size={20} className="text-ink-400"/>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-ink-700 dark:text-ink-200 truncate">{item.alt_text || item.cloudinary_id || 'Untitled'}</p>
+          <p className="text-[10px] text-ink-400 truncate">{item.product_name || 'General'}</p>
+        </div>
+        <span className={`badge text-[10px] flex-shrink-0 ${TYPE_COLOR[item.file_type] || 'badge-gray'}`}>
+          {item.file_type || 'image'}
+        </span>
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onCopy(item.file_url)} title="Copy URL"
+            className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400 hover:text-ink-600 transition-colors">
+            <Copy size={13}/>
+          </button>
+          <a href={item.file_url} target="_blank" rel="noreferrer" title="Open"
+            className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400 hover:text-ink-600 transition-colors">
+            <ExternalLink size={13}/>
+          </a>
+          <button onClick={() => onDelete(item)} title="Delete"
+            className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500 transition-colors">
+            <Trash2 size={13}/>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative rounded-xl overflow-hidden border border-ink-200 dark:border-ink-700 bg-ink-100 dark:bg-ink-800 aspect-square"
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      {isImage ? (
+        <img src={item.thumb_url || item.file_url} alt={item.alt_text || ''}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
+      ) : isVideo ? (
+        <div className="w-full h-full flex items-center justify-center bg-ink-900">
+          <Video size={28} className="text-ink-400"/>
+        </div>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-ink-50 dark:bg-ink-800">
+          <FileText size={28} className="text-ink-400"/>
+        </div>
+      )}
+
+      {/* Overlay */}
+      <div className={`absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
+        <button onClick={() => onCopy(item.file_url)} title="Copy URL"
+          className="flex items-center gap-1.5 bg-white/90 text-ink-800 px-3 py-1.5 rounded-lg text-[11px] font-semibold hover:bg-white transition-colors">
+          <Copy size={11}/> Copy URL
+        </button>
+        <div className="flex gap-2">
+          <a href={item.file_url} target="_blank" rel="noreferrer"
+            className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30 transition-colors">
+            <ExternalLink size={13}/>
+          </a>
+          <button onClick={() => onDelete(item)}
+            className="p-2 bg-red-500/80 rounded-lg text-white hover:bg-red-500 transition-colors">
+            <Trash2 size={13}/>
+          </button>
+        </div>
+      </div>
+
+      {/* Product label */}
+      {item.product_name && (
+        <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/60 to-transparent">
+          <p className="text-[10px] text-white/80 truncate">{item.product_name}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MediaPage() {
-  const { collapsed, toggleSidebar } = useOutletContext();
-  const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { collapsed } = useOutletContext() || {};
+  const [media, setMedia]       = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress]   = useState(0);
   const [viewMode, setViewMode] = useState('grid');
-  const [search, setSearch] = useState('');
-  const [preview, setPreview] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const [search, setSearch]     = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [productFilter, setProductFilter] = useState('');
   const [products, setProducts] = useState([]);
+  const [preview, setPreview]   = useState(null);
+  const [stats, setStats]       = useState({ total: 0, images: 0, videos: 0 });
   const fileRef = useRef();
+  const dropRef = useRef();
 
-  const loadProducts = async () => {
-    try {
-      const res = await api.get('/products', { params: { limit: 100 } });
-      setProducts(res.data.data || []);
-      return res.data.data || [];
-    } catch { return []; }
-  };
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const prods = await loadProducts();
-      const allMedia = [];
-      for (const p of prods) {
-        if (p.media?.length) {
-          p.media.forEach(m => allMedia.push({ ...m, product_name: p.name, product_id: p.id }));
-        }
-      }
-      setMedia(allMedia);
+      // Load products to get their media
+      const res = await api.get('/products', { params: { limit: 200 } });
+      const prods = res.data.data || [];
+      setProducts(prods);
+
+      const all = [];
+      prods.forEach(p => {
+        (p.media || []).forEach(m => {
+          all.push({ ...m, product_name: p.name, product_id: p.id, product_sku: p.sku });
+        });
+      });
+
+      // Sort newest first
+      all.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      setMedia(all);
+      setStats({
+        total: all.length,
+        images: all.filter(m => m.file_type === 'image' || m.file_url?.match(/\.(jpg|jpeg|png|webp)/i)).length,
+        videos: all.filter(m => m.file_type === 'video' || m.file_url?.match(/\.(mp4|mov)/i)).length,
+      });
     } catch { toast.error('Failed to load media'); }
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
-  const handleUpload = async (e) => {
-    const files = Array.from(e.target.files);
+  // ── Upload ────────────────────────────────────────────────────────────────
+  const handleUpload = async (files, productId) => {
     if (!files.length) return;
-    if (!selectedProduct) { toast.error('Select a product first'); return; }
+    if (!productId) { toast.error('Select a product to upload media for'); return; }
     setUploading(true);
+    setProgress(0);
     try {
       const fd = new FormData();
       files.forEach(f => fd.append('files', f));
-      fd.append('file_type', 'image');
-      await api.post(`/products/${selectedProduct}/media`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post(`/products/${productId}/media`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: e => setProgress(Math.round((e.loaded / e.total) * 100)),
+      });
       toast.success(`${files.length} file(s) uploaded`);
       load();
-    } catch { toast.error('Upload failed'); }
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Upload failed');
+    }
     setUploading(false);
-    e.target.value = '';
+    setProgress(0);
+    if (fileRef.current) fileRef.current.value = '';
   };
 
-  const handleDelete = async (mediaId, productId) => {
-    if (!confirm('Delete this image?')) return;
+  // ── Delete ────────────────────────────────────────────────────────────────
+  const handleDelete = async (item) => {
+    if (!confirm(`Delete this file? It will be removed from the product gallery.`)) return;
     try {
-      await api.delete(`/products/${productId}/media/${mediaId}`);
-      toast.success('Deleted');
-      setMedia(m => m.filter(i => i.id !== mediaId));
-      if (preview?.id === mediaId) setPreview(null);
-    } catch { toast.error('Delete failed'); }
+      await api.delete(`/products/${item.product_id}/media/${item.id}`);
+      toast.success('File deleted');
+      setMedia(prev => prev.filter(m => m.id !== item.id));
+    } catch {
+      toast.error('Delete failed — try again');
+    }
   };
 
-  const filtered = media.filter(m =>
-    (!search || m.product_name?.toLowerCase().includes(search.toLowerCase()) || m.alt_text?.toLowerCase().includes(search.toLowerCase()))
-  );
+  // ── Copy URL ──────────────────────────────────────────────────────────────
+  const copyUrl = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('URL copied to clipboard');
+    } catch {
+      toast.error('Copy failed');
+    }
+  };
+
+  // ── Drag and drop ─────────────────────────────────────────────────────────
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length && productFilter) {
+      handleUpload(files, productFilter);
+    } else if (!productFilter) {
+      toast.error('Select a product first, then drop files');
+    }
+  };
+
+  // ── Filter ────────────────────────────────────────────────────────────────
+  const filtered = media.filter(m => {
+    if (typeFilter && !(m.file_type === typeFilter || m.file_url?.includes(`.${typeFilter}`))) return false;
+    if (productFilter && m.product_id !== productFilter) return false;
+    if (search && !m.alt_text?.toLowerCase().includes(search.toLowerCase()) &&
+        !m.product_name?.toLowerCase().includes(search.toLowerCase()) &&
+        !m.cloudinary_id?.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <>
-      <Topbar title="Media library" subtitle={`${media.length} files`}
+      <Topbar
+        title="Media Library"
+        subtitle={`${stats.total} files · ${stats.images} images · ${stats.videos} videos`}
         actions={
           <div className="flex items-center gap-2">
-            <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}
-              className="input-field text-xs py-1.5 w-48">
-              <option value="">Select product to upload</option>
-              {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-            <button onClick={() => fileRef.current.click()} disabled={uploading}
-              className="btn-gold flex items-center gap-1.5 text-xs">
-              <Upload size={14} /> {uploading ? 'Uploading…' : 'Upload'}
+            <button onClick={load} className="btn-ghost text-xs flex items-center gap-1">
+              <RefreshCw size={12}/> Refresh
             </button>
-            <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} />
+            <button onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="btn-gold flex items-center gap-1.5 text-xs disabled:opacity-50">
+              <Upload size={13}/> {uploading ? `Uploading ${progress}%…` : 'Upload files'}
+            </button>
           </div>
-        } />
+        }
+      />
 
-      <div className="flex-1 overflow-y-auto p-5">
-        {/* Toolbar */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search by product name…" className="input-field pl-9 py-2" />
-          </div>
-          <div className="flex gap-1 ml-auto">
-            <button onClick={() => setViewMode('grid')} className={`p-2 rounded ${viewMode === 'grid' ? 'bg-ink-100 dark:bg-ink-700' : ''}`}><Grid3X3 size={15} /></button>
-            <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-ink-100 dark:bg-ink-700' : ''}`}><List size={15} /></button>
-          </div>
+      <input ref={fileRef} type="file" multiple accept="image/*,video/*"
+        className="hidden" onChange={e => handleUpload(Array.from(e.target.files), productFilter)}/>
+
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Total files', value: stats.total, color: 'text-ink-700 dark:text-ink-200' },
+            { label: 'Images', value: stats.images, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'Videos', value: stats.videos, color: 'text-purple-600 dark:text-purple-400' },
+          ].map(s => (
+            <div key={s.label} className="card p-4">
+              <p className="text-[10px] text-ink-400 uppercase tracking-wide mb-1">{s.label}</p>
+              <p className={`text-2xl font-500 ${s.color}`}>{s.value}</p>
+            </div>
+          ))}
         </div>
 
-        {loading ? <p className="text-ink-400 text-sm">Loading…</p>
-        : filtered.length === 0 ? (
-          <div className="card text-center py-16">
-            <Image size={32} className="mx-auto text-ink-300 mb-3" />
-            <p className="text-ink-400 text-sm mb-1">No media files yet</p>
-            <p className="text-ink-300 text-xs">Select a product above then click Upload</p>
+        {/* Upload drop zone */}
+        <div
+          ref={dropRef}
+          onDragOver={e => e.preventDefault()}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors
+            ${productFilter
+              ? 'border-gold-300 dark:border-gold-700 hover:border-gold-400 cursor-pointer'
+              : 'border-ink-200 dark:border-ink-700'}`}
+          onClick={() => productFilter && fileRef.current?.click()}>
+          <Upload size={24} className="mx-auto text-ink-300 mb-2"/>
+          {productFilter ? (
+            <p className="text-xs text-ink-500">
+              Drop files here or click to upload to <strong className="text-ink-700 dark:text-ink-200">{products.find(p=>p.id===productFilter)?.name}</strong>
+            </p>
+          ) : (
+            <p className="text-xs text-ink-400">Select a product below to enable upload</p>
+          )}
+          {uploading && (
+            <div className="mt-3 max-w-xs mx-auto">
+              <div className="h-1.5 bg-ink-100 dark:bg-ink-700 rounded-full overflow-hidden">
+                <div className="h-full bg-gold-500 rounded-full transition-all duration-300" style={{ width:`${progress}%` }}/>
+              </div>
+              <p className="text-[10px] text-ink-400 mt-1">{progress}% uploaded</p>
+            </div>
+          )}
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[160px] max-w-xs">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"/>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search files…" className="input-field pl-8 py-1.5 text-xs"/>
+          </div>
+
+          <select value={productFilter} onChange={e => setProductFilter(e.target.value)}
+            className="input-field py-1.5 text-xs flex-1 min-w-[180px] max-w-[240px]">
+            <option value="">All products</option>
+            {products.map(p => (
+              <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
+            ))}
+          </select>
+
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+            className="input-field py-1.5 text-xs w-28">
+            <option value="">All types</option>
+            <option value="image">Images</option>
+            <option value="video">Videos</option>
+          </select>
+
+          <div className="flex gap-1 border border-ink-200 dark:border-ink-700 rounded-lg p-0.5">
+            <button onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode==='grid' ? 'bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200' : 'text-ink-400'}`}>
+              <Grid3X3 size={14}/>
+            </button>
+            <button onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode==='list' ? 'bg-ink-100 dark:bg-ink-700 text-ink-700 dark:text-ink-200' : 'text-ink-400'}`}>
+              <List size={14}/>
+            </button>
+          </div>
+
+          <span className="text-[11px] text-ink-400 ml-auto">{filtered.length} files</span>
+        </div>
+
+        {/* Media grid / list */}
+        {loading ? (
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+              {Array(12).fill(0).map((_,i) => (
+                <div key={i} className="aspect-square rounded-xl bg-ink-100 dark:bg-ink-800 animate-pulse"/>
+              ))}
+            </div>
+          ) : (
+            <div className="card divide-y divide-ink-100 dark:divide-ink-800">
+              {Array(8).fill(0).map((_,i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3">
+                  <div className="w-12 h-12 rounded-lg bg-ink-100 dark:bg-ink-800 animate-pulse"/>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-ink-100 dark:bg-ink-800 rounded animate-pulse w-1/2"/>
+                    <div className="h-2 bg-ink-100 dark:bg-ink-800 rounded animate-pulse w-1/3"/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : filtered.length === 0 ? (
+          <div className="card p-16 text-center">
+            <Image size={32} className="mx-auto text-ink-200 mb-3"/>
+            <p className="text-ink-400 text-xs">
+              {media.length === 0 ? 'No media uploaded yet. Select a product and upload files.' : 'No files match your filters.'}
+            </p>
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filtered.map(m => (
-              <div key={m.id} className="group relative bg-ink-100 dark:bg-ink-800 rounded-xl overflow-hidden aspect-square cursor-pointer"
-                onClick={() => setPreview(m)}>
-                <img src={m.thumb_url || m.file_url} alt={m.alt_text || ''} className="w-full h-full object-cover" />
-                {m.is_primary && <span className="absolute top-1.5 left-1.5 bg-gold-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-medium">Primary</span>}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                  <p className="text-white text-[10px] truncate">{m.product_name}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            {filtered.map(item => (
+              <MediaCard key={item.id} item={item} viewMode="grid"
+                onDelete={handleDelete} onCopy={copyUrl}/>
             ))}
           </div>
         ) : (
-          <div className="card">
-            {filtered.map((m, i) => (
-              <div key={m.id} className={`flex items-center gap-3 py-3 ${i < filtered.length - 1 ? 'border-b border-ink-100 dark:border-ink-800' : ''}`}>
-                <img src={m.thumb_url || m.file_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-ink-100" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink-700 dark:text-ink-200 truncate">{m.product_name}</p>
-                  <p className="text-xs text-ink-400 truncate">{m.alt_text || m.file_type}</p>
-                </div>
-                {m.is_primary && <span className="text-[10px] text-gold-600 font-medium bg-gold-50 dark:bg-gold-900/20 px-2 py-0.5 rounded-full">Primary</span>}
-                <div className="flex gap-1">
-                  <a href={m.file_url} target="_blank" rel="noreferrer" className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400"><Download size={13} /></a>
-                  <button onClick={() => handleDelete(m.id, m.product_id)} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500"><Trash2 size={13} /></button>
-                </div>
-              </div>
+          <div className="card overflow-hidden">
+            {filtered.map(item => (
+              <MediaCard key={item.id} item={item} viewMode="list"
+                onDelete={handleDelete} onCopy={copyUrl}/>
             ))}
           </div>
         )}
       </div>
 
-      {/* Preview modal */}
+      {/* Preview lightbox */}
       {preview && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
-          <div className="bg-white dark:bg-ink-900 rounded-2xl max-w-2xl w-full overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-ink-200 dark:border-ink-700">
-              <div>
-                <p className="font-medium text-sm text-ink-700 dark:text-ink-200">{preview.product_name}</p>
-                <p className="text-xs text-ink-400">{preview.file_type} · {preview.alt_text || 'No alt text'}</p>
-              </div>
-              <div className="flex gap-2">
-                <a href={preview.file_url} target="_blank" rel="noreferrer" className="btn-ghost text-xs flex items-center gap-1"><Download size={12} /> Open</a>
-                <button onClick={() => { handleDelete(preview.id, preview.product_id); setPreview(null); }} className="text-xs px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100">Delete</button>
-                <button onClick={() => setPreview(null)} className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><X size={16} /></button>
-              </div>
-            </div>
-            <img src={preview.file_url} alt={preview.alt_text} className="w-full max-h-96 object-contain bg-ink-50 dark:bg-ink-950" />
-          </div>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+          onClick={() => setPreview(null)}>
+          <button className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors">
+            <X size={20}/>
+          </button>
+          <img src={preview} alt="" className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={e => e.stopPropagation()}/>
         </div>
       )}
     </>
