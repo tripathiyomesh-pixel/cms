@@ -1,127 +1,166 @@
 'use client';
 import { useState } from 'react';
-import { customOrderAPI } from '@/lib/api';
-import { CheckCircle, Upload } from 'lucide-react';
+import Link from 'next/link';
+import DynamicPage from '@/components/builder/DynamicPage';
 
-const STEPS = ['Tell us your idea','Stone & metal','Budget','Submit'];
+const STEPS = [
+  { n: '01', title: 'Share Your Vision', desc: 'Tell us about the piece you have in mind — a sketch, a reference image, or just words.' },
+  { n: '02', title: 'Meet Our Artisans', desc: 'We arrange a private consultation at your preferred boutique or via video call.' },
+  { n: '03', title: 'Design & Approval', desc: 'Our team creates detailed renderings for your review and approval before crafting begins.' },
+  { n: '04', title: 'Crafted for You', desc: 'Your piece is handcrafted and delivered with full certification and lifetime care support.' },
+];
 
-export default function CustomPage() {
-  const [step, setStep]       = useState(0);
-  const [submitted, setSubmitted]= useState(false);
-  const [submitting, setSubmitting]= useState(false);
-  const [form, setForm]       = useState({
-    customer_name:'', customer_phone:'', customer_email:'',
-    description:'', metal_preference:'', stone_preference:'',
-    budget_min:'', budget_max:'', currency:'AED',
-  });
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+function StaticCustomPage() {
+  const [form, setForm]       = useState({ first_name:'', last_name:'', email:'', phone:'', country_code:'+971', description:'', budget:'' });
+  const [submitting, setSub]  = useState(false);
+  const [done, setDone]       = useState(false);
+  const [err, setErr]         = useState('');
 
-  const handleSubmit = async() => {
-    setSubmitting(true);
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.first_name || !form.description) return setErr('Please fill in your name and describe your vision.');
+    setSub(true); setErr('');
     try {
-      await customOrderAPI.submit({ ...form, budget_min:parseFloat(form.budget_min)||null, budget_max:parseFloat(form.budget_max)||null });
-      setSubmitted(true);
-    } catch { alert('Submission failed. Please try WhatsApp instead.'); }
-    setSubmitting(false);
+      const api = process.env.NEXT_PUBLIC_API_URL || '/api';
+      const res = await fetch(`${api}/custom-orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error('Submission failed');
+      setDone(true);
+    } catch (e) {
+      setErr('Something went wrong. Please try WhatsApp instead.');
+    }
+    setSub(false);
   };
 
-  if (submitted) return (
-    <div className="pt-24 max-w-xl mx-auto px-4 py-20 text-center">
-      <CheckCircle size={56} className="mx-auto text-green-500 mb-6"/>
-      <h2 className="font-serif text-3xl text-ink-800 mb-3">Request Received!</h2>
-      <p className="text-ink-400 mb-6">We'll review your custom jewellery request and contact you within 24 hours to discuss your design.</p>
-      <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP||''}`} target="_blank" rel="noreferrer" className="btn-gold">
-        💬 Chat on WhatsApp now
-      </a>
-    </div>
-  );
-
-  const inp = 'input-field';
-  const lbl = 'block text-sm font-medium text-ink-600 mb-2';
-
   return (
-    <div className="pt-24 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div className="text-center mb-10">
-        <h1 className="font-serif text-3xl lg:text-4xl text-ink-800 mb-3">Custom Jewellery</h1>
-        <p className="text-ink-400">Your design. Our craftsmanship. Tell us what you have in mind.</p>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* Hero */}
+      <div style={{ background: '#1a1a1a', padding: '100px 40px 80px', textAlign: 'center' }}>
+        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 16 }}>Bespoke Jewellery</p>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(40px,6vw,72px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, marginBottom: 20 }}>
+          Create Your Dream Piece
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.55)', maxWidth: 520, margin: '0 auto', lineHeight: 1.8 }}>
+          Our master craftsmen will bring your vision to life — a jewel that is uniquely, entirely yours.
+        </p>
       </div>
 
-      {/* Progress */}
-      <div className="flex items-center mb-10">
-        {STEPS.map((s,i)=>(
-          <div key={s} className="flex items-center flex-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${i<=step?'bg-gold-500 text-white':'bg-ink-100 text-ink-400'}`}>{i+1}</div>
-            <div className="flex-1 ml-2">
-              <p className={`text-xs font-medium ${i<=step?'text-gold-700':'text-ink-400'}`}>{s}</p>
-            </div>
-            {i<STEPS.length-1 && <div className={`h-0.5 flex-1 mx-2 ${i<step?'bg-gold-400':'bg-ink-200'}`}/>}
-          </div>
-        ))}
-      </div>
-
-      <div className="card p-8">
-        {step===0 && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-ink-700 mb-6">Tell us about your idea</h3>
-            <div><label className={lbl}>Your description *</label><textarea value={form.description} onChange={e=>set('description',e.target.value)} className={inp} rows={5} placeholder="Describe what you have in mind. For example: An engagement ring with an oval diamond, set in a simple pave band. I'd like the band to be delicate and feminine..."/></div>
-            <div><label className={lbl}>Reference images (optional)</label><div className="border-2 border-dashed border-ink-200 rounded-xl p-8 text-center cursor-pointer hover:border-gold-300 transition-colors"><Upload size={24} className="mx-auto text-ink-300 mb-2"/><p className="text-sm text-ink-400">Upload inspiration images</p><p className="text-xs text-ink-300 mt-1">Or share a Pinterest/Instagram link in the description</p></div></div>
-          </div>
-        )}
-
-        {step===1 && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-ink-700 mb-6">Stone & metal preferences</h3>
-            <div><label className={lbl}>Preferred metal</label>
-              <div className="grid grid-cols-3 gap-2">
-                {['18K Yellow Gold','18K White Gold','18K Rose Gold','22K Yellow Gold','Platinum 950','Platinum 900'].map(m=>(
-                  <button key={m} type="button" onClick={()=>set('metal_preference',m)}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-medium text-center transition-all ${form.metal_preference===m?'border-gold-500 bg-gold-50 text-gold-700':'border-ink-200 text-ink-500 hover:border-gold-300'}`}>{m}</button>
-                ))}
+      {/* Process steps */}
+      <div style={{ background: '#faf8f3', padding: '80px 40px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <p style={{ textAlign: 'center', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 12 }}>The Process</p>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, textAlign: 'center', color: '#1a1a1a', marginBottom: 56 }}>
+            From Vision to Reality
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32 }}>
+            {STEPS.map(s => (
+              <div key={s.n} style={{ textAlign: 'center' }}>
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 48, fontWeight: 300, color: '#e5ddd0', lineHeight: 1, marginBottom: 16 }}>{s.n}</p>
+                <h3 style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1a1a1a', marginBottom: 12 }}>{s.title}</h3>
+                <p style={{ fontSize: 13, color: '#6b6b6b', lineHeight: 1.8 }}>{s.desc}</p>
               </div>
-            </div>
-            <div><label className={lbl}>Centre stone preference</label>
-              <div className="grid grid-cols-3 gap-2">
-                {['Natural Diamond','Lab Diamond','Ruby','Sapphire','Emerald','Other gemstone','No stone','Not decided'].map(s=>(
-                  <button key={s} type="button" onClick={()=>set('stone_preference',s)}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-medium text-center transition-all ${form.stone_preference===s?'border-gold-500 bg-gold-50 text-gold-700':'border-ink-200 text-ink-500 hover:border-gold-300'}`}>{s}</button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-        )}
-
-        {step===2 && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-ink-700 mb-6">Budget & contact</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className={lbl}>Budget from</label><input type="number" value={form.budget_min} onChange={e=>set('budget_min',e.target.value)} className={inp} placeholder="5,000"/></div>
-              <div><label className={lbl}>Budget to</label><input type="number" value={form.budget_max} onChange={e=>set('budget_max',e.target.value)} className={inp} placeholder="15,000"/></div>
-            </div>
-            <div><label className={lbl}>Currency</label>
-              <select value={form.currency} onChange={e=>set('currency',e.target.value)} className={inp}>
-                {['AED','USD','SAR','INR','GBP','EUR'].map(c=><option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {step===3 && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-ink-700 mb-6">Your contact details</h3>
-            <div><label className={lbl}>Full name *</label><input value={form.customer_name} onChange={e=>set('customer_name',e.target.value)} className={inp} placeholder="Your name" required/></div>
-            <div><label className={lbl}>WhatsApp / Phone *</label><input type="tel" value={form.customer_phone} onChange={e=>set('customer_phone',e.target.value)} className={inp} placeholder="+971 50 000 0000" required/></div>
-            <div><label className={lbl}>Email (optional)</label><input type="email" value={form.customer_email} onChange={e=>set('customer_email',e.target.value)} className={inp} placeholder="your@email.com"/></div>
-          </div>
-        )}
-
-        <div className="flex gap-3 mt-8">
-          {step>0 && <button onClick={()=>setStep(s=>s-1)} className="btn-ghost px-6">Back</button>}
-          {step<STEPS.length-1
-            ? <button onClick={()=>setStep(s=>s+1)} className="btn-gold flex-1">Continue →</button>
-            : <button onClick={handleSubmit} disabled={submitting||!form.customer_name||!form.customer_phone} className="btn-gold flex-1 disabled:opacity-50">{submitting?'Submitting…':'Submit Request'}</button>
-          }
         </div>
       </div>
+
+      {/* Enquiry form */}
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '80px 40px' }}>
+        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 12 }}>Start Your Journey</p>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, color: '#1a1a1a', marginBottom: 8 }}>
+          Tell Us Your Vision
+        </h2>
+        <p style={{ color: '#6b6b6b', marginBottom: 40, lineHeight: 1.7 }}>
+          Share the details below and one of our consultants will be in touch within 24 hours.
+        </p>
+
+        {done ? (
+          <div style={{ background: '#f0f9f4', border: '1px solid #c8e6c9', borderRadius: 8, padding: 32, textAlign: 'center' }}>
+            <p style={{ fontSize: 32, marginBottom: 12 }}>✓</p>
+            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, marginBottom: 8, color: '#1a1a1a' }}>Enquiry Received</h3>
+            <p style={{ color: '#6b6b6b', lineHeight: 1.7 }}>Thank you! Our team will contact you within 24 hours to discuss your bespoke piece.</p>
+          </div>
+        ) : (
+          <form onSubmit={submit}>
+            {err && <p style={{ color: '#c62828', fontSize: 13, marginBottom: 16 }}>{err}</p>}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>First Name *</label>
+                <input value={form.first_name} onChange={e => set('first_name', e.target.value)} required
+                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>Last Name</label>
+                <input value={form.last_name} onChange={e => set('last_name', e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>Email</label>
+                <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>Phone (WhatsApp)</label>
+                <div style={{ display: 'flex' }}>
+                  <select value={form.country_code} onChange={e => set('country_code', e.target.value)}
+                    style={{ padding: '12px 8px', border: '1px solid #e5e0d8', borderRight: 'none', fontSize: 13, background: '#faf8f3', outline: 'none' }}>
+                    {['+971','+966','+965','+973','+968','+974','+91','+44','+1'].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                  <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="501234567"
+                    style={{ flex: 1, padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none' }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>Describe Your Vision *</label>
+              <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={5} required
+                placeholder="Tell us about the piece you have in mind — type of jewellery, occasion, gemstone preferences, any reference images you can share..."
+                style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 8 }}>Approximate Budget</label>
+              <select value={form.budget} onChange={e => set('budget', e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', border: '1px solid #e5e0d8', fontSize: 14, outline: 'none', background: '#fff' }}>
+                <option value="">Select a range</option>
+                <option>AED 5,000 – 15,000</option>
+                <option>AED 15,000 – 30,000</option>
+                <option>AED 30,000 – 60,000</option>
+                <option>AED 60,000 – 100,000</option>
+                <option>AED 100,000+</option>
+                <option>Let us advise</option>
+              </select>
+            </div>
+
+            <button type="submit" disabled={submitting}
+              style={{ width: '100%', background: submitting ? '#aaa' : '#1a1a1a', color: '#fff', border: 'none', padding: '16px', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: submitting ? 'not-allowed' : 'pointer' }}>
+              {submitting ? 'Sending...' : 'Submit Enquiry'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: 12, color: '#888', marginTop: 16 }}>
+              Prefer WhatsApp?{' '}
+              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '971501234567'}?text=${encodeURIComponent('Hi, I\'d like to enquire about a bespoke jewellery piece.')}`}
+                target="_blank" rel="noreferrer" style={{ color: '#25D366', fontWeight: 600 }}>
+                Chat with us directly
+              </a>
+            </p>
+          </form>
+        )}
+      </div>
     </div>
   );
+}
+
+export default function CustomPage() {
+  return <DynamicPage pageId="bespoke" fallback={<StaticCustomPage />} />;
 }
