@@ -1,200 +1,133 @@
-const express = require('express');
-const { DataTypes } = require('../../database/models');
-const sequelize = require('../../config/database');
+const express  = require('express');
+const router   = express.Router();
+const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { cache } = require('../../config/redis');
 
-const router = express.Router();
-
-// Define models inline (they're lightweight lookup tables)
-const Plugin = sequelize.define('Plugin', {
-  id:             { type: DataTypes.STRING(50), primaryKey: true },
-  name:           DataTypes.STRING(100),
-  description:    DataTypes.TEXT,
-  icon:           DataTypes.STRING(50),
-  color:          DataTypes.STRING(20),
-  version:        DataTypes.STRING(20),
-  category:       DataTypes.STRING(50),
-  author:         DataTypes.STRING(100),
-  is_premium:     DataTypes.BOOLEAN,
-  config_schema:  DataTypes.JSON,
-  product_fields: DataTypes.JSON,
-  validators:     DataTypes.JSON,
-}, { tableName: 'plugins', timestamps: true, updatedAt: false, paranoid: false });
-
-const InstalledPlugin = sequelize.define('InstalledPlugin', {
-  id:           { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  license_id:   DataTypes.UUID,
-  plugin_id:    DataTypes.STRING(50),
-  is_active:    { type: DataTypes.BOOLEAN, defaultValue: true },
-  settings:     { type: DataTypes.JSON, defaultValue: {} },
-  installed_at: DataTypes.DATE,
-}, { tableName: 'installed_plugins', createdAt: 'installed_at', paranoid: false });
-
-const ProductExtension = sequelize.define('ProductExtension', {
-  id:         { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  product_id: DataTypes.UUID,
-  plugin_id:  DataTypes.STRING(50),
-  data:       { type: DataTypes.JSON, defaultValue: {} },
-}, { tableName: 'product_extensions', paranoid: false });
-
-// ─── GET /plugins/marketplace — list all available plugins ──────
 router.get('/marketplace', authenticate, async (req, res) => {
   try {
     const cached = await cache.get('plugins:marketplace');
     if (cached) return success(res, cached);
-
-    const allPlugins = await Plugin.findAll({ order: [['name', 'ASC']] });
-    const installed  = await InstalledPlugin.findAll();
+    const { rows: plugins } = await pool.query(`SELECT * FROM plugins ORDER BY name ASC`);
+    const { rows: installed } = await pool.query(`SELECT * FROM installed_plugins`);
     const installedMap = {};
     installed.forEach(ip => { installedMap[ip.plugin_id] = ip; });
-
-    const data = allPlugins.map(p => ({
-      ...p.toJSON(),
+    const data = plugins.map(p => ({
+      ...p,
       installed:  !!installedMap[p.id],
       is_active:  installedMap[p.id]?.is_active || false,
       install_id: installedMap[p.id]?.id || null,
       settings:   installedMap[p.id]?.settings || {},
     }));
-
     await cache.set('plugins:marketplace', data, 600);
     success(res, data);
   } catch (e) { error(res, e.message); }
 });
 
-// ─── GET /plugins/active — only active plugins (for frontend) ──
 router.get('/active', authenticate, async (req, res) => {
   try {
     const cached = await cache.get('plugins:active');
     if (cached) return success(res, cached);
-
-    const active = await InstalledPlugin.findAll({ where: { is_active: true } });
-    const pluginIds = active.map(a => a.plugin_id);
-    const plugins = await Plugin.findAll({ where: { id: pluginIds } });
-
-    const data = plugins.map(p => {
-      const inst = active.find(a => a.plugin_id === p.id);
-      return { ...p.toJSON(), settings: inst?.settings || {} };
-    });
-
-    await cache.set('plugins:active', data, 300);
-    success(res, data);
+    const { rows } = await pool.query(`
+      SELECT p.*, ip.settings, ip.id as install_id
+      FROM plugins p
+      JOIN installed_plugins ip ON ip.plugin_id = p.id
+      WHERE ip.is_active = true`);
+    await cache.set('plugins:active', rows, 300);
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
-// ─── POST /plugins/install/:pluginId — install a plugin ─────────
-router.post('/install/:pluginId', authenticate, authorize(['super_admin', 'admin']), async (req, res) => {
+router.post('/install/:pluginId', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const plugin = await Plugin.findByPk(req.params.pluginId);
+    const { rows: [plugin] } = await pool.query(`SELECT * FROM plugins WHERE id=$1`, [req.params.pluginId]);
     if (!plugin) return error(res, 'Plugin not found', 404);
-
-    const exists = await InstalledPlugin.findOne({ where: { plugin_id: plugin.id } });
-    if (exists) return error(res, 'Plugin already installed', 409);
-
-    // Build default settings from config_schema
+    const { rows: exists } = await pool.query(`SELECT id FROM installed_plugins WHERE plugin_id=$1`, [plugin.id]);
+    if (exists.length) return error(res, 'Plugin already installed', 409);
     const defaults = {};
     if (plugin.config_schema) {
-      Object.entries(plugin.config_schema).forEach(([key, cfg]) => {
-        defaults[key] = cfg.default !== undefined ? cfg.default : null;
-      });
+      Object.entries(plugin.config_schema).forEach(([k,v]) => { defaults[k] = v.default ?? null; });
     }
-
-    const inst = await InstalledPlugin.create({
-      plugin_id: plugin.id,
-      is_active: true,
-      settings: defaults,
-      license_id: null, // TODO: get from license middleware
-    });
-
+    const { rows: [inst] } = await pool.query(
+      `INSERT INTO installed_plugins (plugin_id, is_active, settings) VALUES ($1,true,$2) RETURNING *`,
+      [plugin.id, JSON.stringify(defaults)]
+    );
     await cache.delPattern('plugins:*');
-    created(res, { ...plugin.toJSON(), install_id: inst.id, is_active: true, settings: inst.settings }, 'Plugin installed');
+    created(res, { ...plugin, install_id: inst.id, is_active: true, settings: inst.settings }, 'Plugin installed');
   } catch (e) { error(res, e.message); }
 });
 
-// ─── POST /plugins/uninstall/:pluginId ──────────────────────────
-router.post('/uninstall/:pluginId', authenticate, authorize(['super_admin', 'admin']), async (req, res) => {
+router.post('/uninstall/:pluginId', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const inst = await InstalledPlugin.findOne({ where: { plugin_id: req.params.pluginId } });
-    if (!inst) return error(res, 'Plugin not installed', 404);
-    await inst.destroy();
+    const { rowCount } = await pool.query(`DELETE FROM installed_plugins WHERE plugin_id=$1`, [req.params.pluginId]);
+    if (!rowCount) return error(res, 'Plugin not installed', 404);
     await cache.delPattern('plugins:*');
     success(res, {}, 'Plugin uninstalled');
   } catch (e) { error(res, e.message); }
 });
 
-// ─── PUT /plugins/toggle/:pluginId — activate/deactivate ────────
-router.put('/toggle/:pluginId', authenticate, authorize(['super_admin', 'admin']), async (req, res) => {
+router.put('/toggle/:pluginId', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const inst = await InstalledPlugin.findOne({ where: { plugin_id: req.params.pluginId } });
+    const { rows: [inst] } = await pool.query(`SELECT * FROM installed_plugins WHERE plugin_id=$1`, [req.params.pluginId]);
     if (!inst) return error(res, 'Plugin not installed', 404);
-    await inst.update({ is_active: !inst.is_active });
+    const { rows: [updated] } = await pool.query(
+      `UPDATE installed_plugins SET is_active=$1 WHERE plugin_id=$2 RETURNING *`,
+      [!inst.is_active, req.params.pluginId]
+    );
     await cache.delPattern('plugins:*');
-    success(res, { plugin_id: inst.plugin_id, is_active: inst.is_active }, `Plugin ${inst.is_active ? 'activated' : 'deactivated'}`);
+    success(res, { plugin_id: updated.plugin_id, is_active: updated.is_active });
   } catch (e) { error(res, e.message); }
 });
 
-// ─── PUT /plugins/settings/:pluginId — update plugin config ─────
-router.put('/settings/:pluginId', authenticate, authorize(['super_admin', 'admin']), async (req, res) => {
+router.put('/settings/:pluginId', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const inst = await InstalledPlugin.findOne({ where: { plugin_id: req.params.pluginId } });
+    const { rows: [inst] } = await pool.query(`SELECT * FROM installed_plugins WHERE plugin_id=$1`, [req.params.pluginId]);
     if (!inst) return error(res, 'Plugin not installed', 404);
-    await inst.update({ settings: { ...inst.settings, ...req.body } });
+    const merged = { ...(inst.settings||{}), ...req.body };
+    const { rows: [updated] } = await pool.query(
+      `UPDATE installed_plugins SET settings=$1 WHERE plugin_id=$2 RETURNING *`,
+      [JSON.stringify(merged), req.params.pluginId]
+    );
     await cache.delPattern('plugins:*');
-    success(res, inst, 'Settings updated');
+    success(res, updated, 'Settings updated');
   } catch (e) { error(res, e.message); }
 });
 
-// ─── GET /plugins/product-fields — merged fields for product form ─
 router.get('/product-fields', authenticate, async (req, res) => {
   try {
     const cached = await cache.get('plugins:product-fields');
     if (cached) return success(res, cached);
-
-    const active = await InstalledPlugin.findAll({ where: { is_active: true } });
-    const pluginIds = active.map(a => a.plugin_id);
-    const plugins = await Plugin.findAll({ where: { id: pluginIds } });
-
-    const fields = [];
-    plugins.forEach(p => {
-      if (p.product_fields?.length) {
-        fields.push({
-          plugin_id: p.id,
-          plugin_name: p.name,
-          icon: p.icon,
-          color: p.color,
-          fields: p.product_fields,
-        });
-      }
-    });
-
+    const { rows } = await pool.query(`
+      SELECT p.id, p.name, p.icon, p.color, p.product_fields
+      FROM plugins p JOIN installed_plugins ip ON ip.plugin_id=p.id
+      WHERE ip.is_active=true AND jsonb_array_length(COALESCE(p.product_fields,'[]'::jsonb)) > 0`);
+    const fields = rows.map(p => ({ plugin_id:p.id, plugin_name:p.name, icon:p.icon, color:p.color, fields:p.product_fields }));
     await cache.set('plugins:product-fields', fields, 300);
     success(res, fields);
   } catch (e) { error(res, e.message); }
 });
 
-// ─── POST /plugins/product/:productId/extension — save ext data ─
 router.post('/product/:productId/extension', authenticate, async (req, res) => {
   try {
     const { plugin_id, data } = req.body;
     if (!plugin_id || !data) return error(res, 'plugin_id and data required', 422);
-
-    const [ext, isNew] = await ProductExtension.upsert({
-      product_id: req.params.productId,
-      plugin_id,
-      data,
-    });
-
-    success(res, ext, isNew ? 'Extension created' : 'Extension updated');
+    const { rows: [ext] } = await pool.query(`
+      INSERT INTO product_extensions (product_id, plugin_id, data)
+      VALUES ($1,$2,$3)
+      ON CONFLICT (product_id, plugin_id) DO UPDATE SET data=$3, updated_at=NOW()
+      RETURNING *`,
+      [req.params.productId, plugin_id, JSON.stringify(data)]
+    );
+    success(res, ext);
   } catch (e) { error(res, e.message); }
 });
 
-// ─── GET /plugins/product/:productId/extensions — get ext data ──
 router.get('/product/:productId/extensions', authenticate, async (req, res) => {
   try {
-    const exts = await ProductExtension.findAll({ where: { product_id: req.params.productId } });
+    const { rows } = await pool.query(`SELECT * FROM product_extensions WHERE product_id=$1`, [req.params.productId]);
     const result = {};
-    exts.forEach(e => { result[e.plugin_id] = e.data; });
+    rows.forEach(e => { result[e.plugin_id] = e.data; });
     success(res, result);
   } catch (e) { error(res, e.message); }
 });

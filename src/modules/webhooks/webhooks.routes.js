@@ -1,95 +1,83 @@
-const express = require('express');
-const { DataTypes } = require('../../database/models');
-const sequelize = require('../../config/database');
+const express  = require('express');
+const router   = express.Router();
+const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const logger = require('../../config/logger');
 const crypto = require('crypto');
 
-const Webhook = sequelize.define('Webhook', {
-  id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  url:            { type: DataTypes.TEXT, allowNull: false },
-  events:         { type: DataTypes.JSON, defaultValue: [] },
-  secret:         { type: DataTypes.STRING(255) },
-  is_active:      { type: DataTypes.BOOLEAN, defaultValue: true },
-  last_triggered: { type: DataTypes.DATE },
-  last_status:    { type: DataTypes.INTEGER },
-  fail_count:     { type: DataTypes.INTEGER, defaultValue: 0 },
-}, { tableName: 'webhooks', paranoid: false, timestamps: true });
-
-const router = express.Router();
-
-// GET /webhooks
 router.get('/', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const hooks = await Webhook.findAll({ order: [['created_at', 'DESC']] });
-    success(res, hooks);
+    const { rows } = await pool.query(`SELECT * FROM webhooks ORDER BY created_at DESC`);
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
-// POST /webhooks
 router.post('/', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
     const { url, events } = req.body;
     if (!url || !events?.length) return error(res, 'url and events[] required', 422);
     const secret = crypto.randomBytes(32).toString('hex');
-    const hook = await Webhook.create({ url, events, secret });
+    const { rows: [hook] } = await pool.query(
+      `INSERT INTO webhooks (url, events, secret) VALUES ($1,$2,$3) RETURNING *`,
+      [url, JSON.stringify(events), secret]
+    );
     created(res, hook, 'Webhook registered');
   } catch (e) { error(res, e.message); }
 });
 
-// PUT /webhooks/:id
 router.put('/:id', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const hook = await Webhook.findByPk(req.params.id);
-    if (!hook) return error(res, 'Webhook not found', 404);
-    await hook.update(req.body);
-    success(res, hook, 'Webhook updated');
+    const { url, events, is_active } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE webhooks SET
+        url       = COALESCE($1, url),
+        events    = COALESCE($2, events),
+        is_active = COALESCE($3, is_active),
+        updated_at = NOW()
+       WHERE id=$4 RETURNING *`,
+      [url||null, events?JSON.stringify(events):null, is_active??null, req.params.id]
+    );
+    if (!rows.length) return error(res, 'Webhook not found', 404);
+    success(res, rows[0], 'Webhook updated');
   } catch (e) { error(res, e.message); }
 });
 
-// DELETE /webhooks/:id
 router.delete('/:id', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const hook = await Webhook.findByPk(req.params.id);
-    if (!hook) return error(res, 'Webhook not found', 404);
-    await hook.destroy();
+    const { rowCount } = await pool.query(`DELETE FROM webhooks WHERE id=$1`, [req.params.id]);
+    if (!rowCount) return error(res, 'Webhook not found', 404);
     success(res, {}, 'Webhook deleted');
   } catch (e) { error(res, e.message); }
 });
 
-/**
- * Trigger webhooks for an event — call from anywhere in the codebase
- * Usage: triggerWebhooks('product.updated', { id, name, ... })
- */
 const triggerWebhooks = async (event, payload) => {
   try {
-    const hooks = await Webhook.findAll({ where: { is_active: true } });
-    const matching = hooks.filter(h => h.events.includes(event) || h.events.includes('*'));
-
-    for (const hook of matching) {
+    const { rows: hooks } = await pool.query(
+      `SELECT * FROM webhooks WHERE is_active=true AND (events @> $1 OR events @> '["*"]')`,
+      [JSON.stringify([event])]
+    );
+    for (const hook of hooks) {
       const body = JSON.stringify({ event, data: payload, timestamp: new Date().toISOString() });
-      const signature = crypto.createHmac('sha256', hook.secret || '').update(body).digest('hex');
-
+      const signature = crypto.createHmac('sha256', hook.secret||'').update(body).digest('hex');
       try {
         const response = await fetch(hook.url, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Webhook-Signature': signature,
-            'X-Webhook-Event': event,
-          },
+          headers: { 'Content-Type':'application/json', 'X-Webhook-Signature':signature, 'X-Webhook-Event':event },
           body,
           signal: AbortSignal.timeout(10000),
         });
-        await hook.update({ last_triggered: new Date(), last_status: response.status, fail_count: 0 });
+        await pool.query(
+          `UPDATE webhooks SET last_triggered=NOW(), last_status=$1, fail_count=0 WHERE id=$2`,
+          [response.status, hook.id]
+        );
       } catch (e) {
-        await hook.update({ last_triggered: new Date(), last_status: 0, fail_count: hook.fail_count + 1 });
+        const newCount = (hook.fail_count||0) + 1;
+        await pool.query(
+          `UPDATE webhooks SET last_triggered=NOW(), last_status=0, fail_count=$1, is_active=$2 WHERE id=$3`,
+          [newCount, newCount < 10, hook.id]
+        );
         logger.error(`Webhook failed: ${hook.url} — ${e.message}`);
-        if (hook.fail_count >= 10) {
-          await hook.update({ is_active: false });
-          logger.warn(`Webhook disabled after 10 failures: ${hook.url}`);
-        }
       }
     }
   } catch (e) {
@@ -99,15 +87,3 @@ const triggerWebhooks = async (event, payload) => {
 
 module.exports = router;
 module.exports.triggerWebhooks = triggerWebhooks;
-
-/**
- * Available events:
- * product.created, product.updated, product.deleted
- * collection.created, collection.updated
- * order.created, order.status_changed
- * settings.updated
- * media.uploaded
- * plugin.installed, plugin.uninstalled
- * menu.updated
- * page.updated
- */

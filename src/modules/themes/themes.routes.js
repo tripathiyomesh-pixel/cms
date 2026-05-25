@@ -1,44 +1,14 @@
-const express = require('express');
-const { DataTypes } = require('../../database/models');
-const sequelize = require('../../config/database');
+const express  = require('express');
+const router   = express.Router();
+const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { cache } = require('../../config/redis');
 
-// ─── THEMES MODEL ──────────────────────────────────────────────
-const Theme = sequelize.define('Theme', {
-  id:               { type: DataTypes.STRING(50), primaryKey: true },
-  name:             { type: DataTypes.STRING(100), allowNull: false },
-  description:      DataTypes.TEXT,
-  preview_url:      DataTypes.TEXT,
-  category:         { type: DataTypes.ENUM('luxury','minimal','bridal','catalogue','ecommerce','custom'), defaultValue: 'minimal' },
-  is_premium:       { type: DataTypes.BOOLEAN, defaultValue: false },
-  price:            { type: DataTypes.DECIMAL(10,2), defaultValue: 0 },
-  version:          { type: DataTypes.STRING(20), defaultValue: '1.0.0' },
-  settings_schema:  { type: DataTypes.JSON, defaultValue: {} },
-  default_settings: { type: DataTypes.JSON, defaultValue: {} },
-  is_active:        { type: DataTypes.BOOLEAN, defaultValue: false },
-}, { tableName: 'themes', paranoid: false, timestamps: true });
-
-// ─── PAGE SECTIONS MODEL ───────────────────────────────────────
-const PageSection = sequelize.define('PageSection', {
-  id:           { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  page:         { type: DataTypes.STRING(100), defaultValue: 'homepage' },
-  section_key:  { type: DataTypes.STRING(100), allowNull: false },
-  section_type: { type: DataTypes.STRING(100), allowNull: false },
-  content:      { type: DataTypes.JSON, defaultValue: {} },
-  is_visible:   { type: DataTypes.BOOLEAN, defaultValue: true },
-  sort_order:   { type: DataTypes.INTEGER, defaultValue: 0 },
-  country_code: { type: DataTypes.STRING(5) },
-}, { tableName: 'page_sections', paranoid: false, timestamps: true });
-
-const router = express.Router();
-
-// ─── THEMES ROUTES ─────────────────────────────────────────────
 router.get('/themes', authenticate, async (req, res) => {
   try {
-    const themes = await Theme.findAll({ order: [['name', 'ASC']] });
-    success(res, themes);
+    const { rows } = await pool.query(`SELECT * FROM themes ORDER BY name ASC`);
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
@@ -46,62 +16,57 @@ router.get('/themes/active', async (req, res) => {
   try {
     const cached = await cache.get('theme:active');
     if (cached) return success(res, cached);
-    const theme = await Theme.findOne({ where: { is_active: true } });
-    if (theme) await cache.set('theme:active', theme, 600);
-    success(res, theme);
+    const { rows } = await pool.query(`SELECT * FROM themes WHERE is_active=true LIMIT 1`);
+    if (rows[0]) await cache.set('theme:active', rows[0], 600);
+    success(res, rows[0] || null);
   } catch (e) { error(res, e.message); }
 });
 
 router.put('/themes/:id/activate', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    await Theme.update({ is_active: false }, { where: {} });
-    const theme = await Theme.findByPk(req.params.id);
-    if (!theme) return error(res, 'Theme not found', 404);
-    await theme.update({ is_active: true });
+    await pool.query(`UPDATE themes SET is_active=false`);
+    const { rows } = await pool.query(`UPDATE themes SET is_active=true WHERE id=$1 RETURNING *`, [req.params.id]);
+    if (!rows.length) return error(res, 'Theme not found', 404);
     await cache.delPattern('theme:*');
-    success(res, theme, 'Theme activated');
+    success(res, rows[0], 'Theme activated');
   } catch (e) { error(res, e.message); }
 });
 
-// ─── PAGE SECTIONS ROUTES ──────────────────────────────────────
 router.get('/page-sections', async (req, res) => {
   try {
-    const { page = 'homepage' } = req.query;
+    const page = req.query.page || 'homepage';
     const key = `pages:${page}`;
     const cached = await cache.get(key);
     if (cached) return success(res, cached);
-    const sections = await PageSection.findAll({
-      where: { page, is_visible: true },
-      order: [['sort_order', 'ASC']],
-    });
-    await cache.set(key, sections, 300);
-    success(res, sections);
+    const { rows } = await pool.query(
+      `SELECT * FROM page_sections WHERE page=$1 AND is_visible=true ORDER BY sort_order ASC`,
+      [page]
+    );
+    await cache.set(key, rows, 300);
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
 router.get('/page-sections/all', authenticate, async (req, res) => {
   try {
-    const { page = 'homepage' } = req.query;
-    const sections = await PageSection.findAll({ where: { page }, order: [['sort_order', 'ASC']] });
-    success(res, sections);
+    const page = req.query.page || 'homepage';
+    const { rows } = await pool.query(
+      `SELECT * FROM page_sections WHERE page=$1 ORDER BY sort_order ASC`, [page]
+    );
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
 router.post('/page-sections', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
-    const section = await PageSection.create(req.body);
+    const { page='homepage', section_key, section_type, content={}, is_visible=true, sort_order=0, country_code } = req.body;
+    const { rows: [s] } = await pool.query(
+      `INSERT INTO page_sections (page,section_key,section_type,content,is_visible,sort_order,country_code)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [page, section_key, section_type, JSON.stringify(content), is_visible, sort_order, country_code||null]
+    );
     await cache.delPattern('pages:*');
-    created(res, section);
-  } catch (e) { error(res, e.message); }
-});
-
-router.put('/page-sections/:id', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
-  try {
-    const section = await PageSection.findByPk(req.params.id);
-    if (!section) return error(res, 'Section not found', 404);
-    await section.update(req.body);
-    await cache.delPattern('pages:*');
-    success(res, section, 'Section updated');
+    created(res, s);
   } catch (e) { error(res, e.message); }
 });
 
@@ -110,18 +75,39 @@ router.put('/page-sections/reorder', authenticate, authorize(['super_admin','adm
     const { sections } = req.body;
     if (!Array.isArray(sections)) return error(res, 'sections array required', 422);
     for (const s of sections) {
-      await PageSection.update({ sort_order: s.sort_order, is_visible: s.is_visible }, { where: { id: s.id } });
+      await pool.query(
+        `UPDATE page_sections SET sort_order=$1, is_visible=$2 WHERE id=$3`,
+        [s.sort_order, s.is_visible, s.id]
+      );
     }
     await cache.delPattern('pages:*');
     success(res, {}, 'Sections reordered');
   } catch (e) { error(res, e.message); }
 });
 
+router.put('/page-sections/:id', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  try {
+    const { content, is_visible, sort_order, section_type } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE page_sections SET
+        content      = COALESCE($1, content),
+        is_visible   = COALESCE($2, is_visible),
+        sort_order   = COALESCE($3, sort_order),
+        section_type = COALESCE($4, section_type),
+        updated_at   = NOW()
+       WHERE id=$5 RETURNING *`,
+      [content?JSON.stringify(content):null, is_visible??null, sort_order??null, section_type||null, req.params.id]
+    );
+    if (!rows.length) return error(res, 'Section not found', 404);
+    await cache.delPattern('pages:*');
+    success(res, rows[0], 'Section updated');
+  } catch (e) { error(res, e.message); }
+});
+
 router.delete('/page-sections/:id', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const section = await PageSection.findByPk(req.params.id);
-    if (!section) return error(res, 'Section not found', 404);
-    await section.destroy();
+    const { rowCount } = await pool.query(`DELETE FROM page_sections WHERE id=$1`, [req.params.id]);
+    if (!rowCount) return error(res, 'Section not found', 404);
     await cache.delPattern('pages:*');
     success(res, {}, 'Section deleted');
   } catch (e) { error(res, e.message); }

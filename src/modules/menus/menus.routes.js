@@ -1,75 +1,73 @@
-const express = require('express');
-const { DataTypes } = require('../../database/models');
-const sequelize = require('../../config/database');
+const express  = require('express');
+const router   = express.Router();
+const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { cache } = require('../../config/redis');
-const slugify = require('slugify');
+const slugify  = require('slugify');
 
-const Menu = sequelize.define('Menu', {
-  id:        { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  name:      { type: DataTypes.STRING(100), allowNull: false },
-  slug:      { type: DataTypes.STRING(100), unique: true },
-  location:  { type: DataTypes.ENUM('header','footer','sidebar','mobile','mega'), defaultValue: 'header' },
-  items:     { type: DataTypes.JSON, defaultValue: [] },
-  is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
-}, { tableName: 'menus', paranoid: false, timestamps: true });
-
-const router = express.Router();
-
-// GET /menus — all menus
 router.get('/', authenticate, async (req, res) => {
   try {
     const cached = await cache.get('menus:all');
     if (cached) return success(res, cached);
-    const menus = await Menu.findAll({ order: [['location', 'ASC'], ['name', 'ASC']] });
-    await cache.set('menus:all', menus, 600);
-    success(res, menus);
+    const { rows } = await pool.query(`SELECT * FROM menus ORDER BY location ASC, name ASC`);
+    await cache.set('menus:all', rows, 600);
+    success(res, rows);
   } catch (e) { error(res, e.message); }
 });
 
-// GET /menus/location/:location — for frontend rendering
 router.get('/location/:location', async (req, res) => {
   try {
     const key = `menus:loc:${req.params.location}`;
     const cached = await cache.get(key);
     if (cached) return success(res, cached);
-    const menu = await Menu.findOne({ where: { location: req.params.location, is_active: true } });
-    if (!menu) return error(res, 'Menu not found', 404);
-    await cache.set(key, menu, 600);
-    success(res, menu);
+    const { rows } = await pool.query(
+      `SELECT * FROM menus WHERE location=$1 AND is_active=true LIMIT 1`,
+      [req.params.location]
+    );
+    if (!rows.length) return error(res, 'Menu not found', 404);
+    await cache.set(key, rows[0], 600);
+    success(res, rows[0]);
   } catch (e) { error(res, e.message); }
 });
 
-// POST /menus
 router.post('/', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
-    const { name, location, items = [] } = req.body;
+    const { name, location = 'header', items = [] } = req.body;
     if (!name) return error(res, 'name is required', 422);
     const slug = slugify(name, { lower: true, strict: true });
-    const menu = await Menu.create({ name, slug, location, items });
+    const { rows } = await pool.query(
+      `INSERT INTO menus (name, slug, location, items) VALUES ($1,$2,$3,$4) RETURNING *`,
+      [name, slug, location, JSON.stringify(items)]
+    );
     await cache.delPattern('menus:*');
-    created(res, menu);
+    created(res, rows[0]);
   } catch (e) { error(res, e.message); }
 });
 
-// PUT /menus/:id
 router.put('/:id', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
-    const menu = await Menu.findByPk(req.params.id);
-    if (!menu) return error(res, 'Menu not found', 404);
-    await menu.update(req.body);
+    const { name, location, items, is_active } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE menus SET
+        name      = COALESCE($1, name),
+        location  = COALESCE($2, location),
+        items     = COALESCE($3, items),
+        is_active = COALESCE($4, is_active),
+        updated_at = NOW()
+       WHERE id=$5 RETURNING *`,
+      [name||null, location||null, items ? JSON.stringify(items) : null, is_active??null, req.params.id]
+    );
+    if (!rows.length) return error(res, 'Menu not found', 404);
     await cache.delPattern('menus:*');
-    success(res, menu, 'Menu updated');
+    success(res, rows[0], 'Menu updated');
   } catch (e) { error(res, e.message); }
 });
 
-// DELETE /menus/:id
 router.delete('/:id', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const menu = await Menu.findByPk(req.params.id);
-    if (!menu) return error(res, 'Menu not found', 404);
-    await menu.destroy();
+    const { rowCount } = await pool.query(`DELETE FROM menus WHERE id=$1`, [req.params.id]);
+    if (!rowCount) return error(res, 'Menu not found', 404);
     await cache.delPattern('menus:*');
     success(res, {}, 'Menu deleted');
   } catch (e) { error(res, e.message); }
