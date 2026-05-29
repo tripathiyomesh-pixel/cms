@@ -27,7 +27,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 20
-      start_period: 40s
+      start_period: 30s
     restart: unless-stopped
 
   redis:
@@ -51,8 +51,11 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     container_name: cms_backend
-    env_file: .env
+    # Uses .env file — copy .env.docker to .env before first run
+    env_file:
+      - .env.docker
     environment:
+      # Docker network overrides — these take priority over .env file
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: jewellery_cms
@@ -60,10 +63,14 @@ services:
       DB_PASS: CmsPass@2026
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      NODE_ENV: development
+      PORT: 4000
     ports:
       - "4000:4000"
     volumes:
+      # Mount src so code changes reflect without rebuild
       - ./src:/app/src
+      - ./scripts:/app/scripts
       - ./package.json:/app/package.json
     depends_on:
       postgres:
@@ -79,6 +86,8 @@ services:
       context: ./admin
       dockerfile: Dockerfile.admin
     container_name: admin_app
+    environment:
+      VITE_API_URL: http://localhost:4000/api
     ports:
       - "3000:3000"
     volumes:
@@ -97,7 +106,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: /api
       NEXT_PUBLIC_WHATSAPP: "971500000000"
-      NEXT_PUBLIC_STORE_NAME: "Luxury Jewellery"
+      NEXT_PUBLIC_STORE_NAME: "TEJORI"
       INTERNAL_API_URL: http://backend:4000/api
     ports:
       - "3001:3001"

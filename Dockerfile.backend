@@ -1,15 +1,19 @@
-# ── Backend Dockerfile (Development) ─────────────────────────
+# ── VANTIX-CMS Backend Dockerfile ──────────────────────────────
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first (cached layer)
+# Install dependencies first (layer cached unless package.json changes)
 COPY package*.json ./
 RUN npm install
 
-# Copy source
+# Copy source at build time (also mounted as volume in dev)
 COPY . .
+
+# Make startup script executable
+RUN chmod +x scripts/start.sh
 
 EXPOSE 4000
 
-CMD ["npx", "nodemon", "src/server.js"]
+# Use startup script — auto-runs migrations then starts nodemon
+CMD ["sh", "scripts/start.sh"]
