@@ -2,7 +2,7 @@
  * Migration 020 — Seed admin user + essential settings
  * 
  * Creates:
- *   - Admin user: admin@tejori.com / Admin@2026 (super_admin)
+ *   - Admin user: admin@vantix.io / Admin@2026 (super_admin)
  *   - Store settings row (id=1)
  *   - Default appointment slots for all locations
  *   - password_resets table if missing (some setups skip migration 012)
@@ -44,19 +44,19 @@ async function up() {
   const id   = crypto.randomUUID();
 
   const { rows: existing } = await client.query(
-    `SELECT id FROM users WHERE email = 'admin@tejori.com' LIMIT 1`
+    `SELECT id FROM users WHERE email = 'admin@vantix.io' LIMIT 1`
   );
 
   if (existing.length === 0) {
     await client.query(`
       INSERT INTO users (id, name, email, password, role, is_active, created_at, updated_at)
-      VALUES ($1, 'Admin', 'admin@tejori.com', $2, 'super_admin', true, NOW(), NOW())
+      VALUES ($1, 'Admin', 'admin@vantix.io', $2, 'super_admin', true, NOW(), NOW())
     `, [id, hash]);
-    console.log('✅ Admin user created: admin@tejori.com / Admin@2026');
+    console.log('✅ Admin user created: admin@vantix.io / Admin@2026');
   } else {
     // Update password in case it changed
     await client.query(
-      `UPDATE users SET password=$1, role='super_admin', is_active=true, updated_at=NOW() WHERE email='admin@tejori.com'`,
+      `UPDATE users SET password=$1, role='super_admin', is_active=true, updated_at=NOW() WHERE email='admin@vantix.io'`,
       [hash]
     );
     console.log('✅ Admin user already exists — password reset to Admin@2026');
@@ -121,7 +121,7 @@ async function up() {
   console.log('✅ Default settings seeded');
 
   console.log('\n🎉 Migration 020 complete');
-  console.log('   Login: admin@tejori.com / Admin@2026');
+  console.log('   Login: admin@vantix.io / Admin@2026');
 }
 
 up()

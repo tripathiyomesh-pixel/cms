@@ -660,22 +660,22 @@ async function run() {
 
   // ── SEED: Admin user ──────────────────────────────────────────────────────
   const { rows: existing } = await client.query(
-    `SELECT id FROM users WHERE email = 'admin@tejori.com' LIMIT 1`
+    `SELECT id FROM users WHERE email = 'admin@vantix.io' LIMIT 1`
   );
   if (existing.length === 0) {
     const hash = await bcrypt.hash('Admin@2026', 12);
     await client.query(`
       INSERT INTO users (name, email, password, role, is_active)
-      VALUES ('Admin', 'admin@tejori.com', $1, 'super_admin', true)
+      VALUES ('Admin', 'admin@vantix.io', $1, 'super_admin', true)
     `, [hash]);
-    console.log('✓ Admin user created: admin@tejori.com / Admin@2026');
+    console.log('✓ Admin user created: admin@vantix.io / Admin@2026');
   } else {
     const hash = await bcrypt.hash('Admin@2026', 12);
     await client.query(
-      `UPDATE users SET password=$1, role='super_admin', is_active=true WHERE email='admin@tejori.com'`,
+      `UPDATE users SET password=$1, role='super_admin', is_active=true WHERE email='admin@vantix.io'`,
       [hash]
     );
-    console.log('✓ Admin user password reset: admin@tejori.com / Admin@2026');
+    console.log('✓ Admin user password reset: admin@vantix.io / Admin@2026');
   }
 
   // ── SEED: Store settings ──────────────────────────────────────────────────
@@ -741,7 +741,7 @@ async function run() {
   console.log(`✓ ${slots} appointment slots seeded`);
 
   console.log('\n🎉 All migrations complete');
-  console.log('   Login: admin@tejori.com / Admin@2026');
+  console.log('   Login: admin@vantix.io / Admin@2026');
 }
 
 run()
