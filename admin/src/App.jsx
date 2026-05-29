@@ -1,7 +1,6 @@
 import UserGuidePage from './pages/UserGuidePage';
 import GoldRatePage from './pages/GoldRatePage';
 import WorkforcePage from './pages/WorkforcePage';
-import HomeBuilderPage from './pages/HomeBuilderPage';
 import MenuBuilderPage from './pages/MenuBuilderPage';
 import FrontendSettingsPage from './pages/FrontendSettingsPage';
 import ThemeEditorPage from './pages/ThemeEditorPage';
@@ -112,7 +111,7 @@ function AppRoutes() {
               <Route path="erp-integration" element={<ERPIntegrationPage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="theme-editor" element={<ThemeEditorPage />} />
-              <Route path="home-builder" element={<HomeBuilderPage />} />
+              <Route path="home-builder" element={<PageBuilderPage />} />
               <Route path="menu-builder" element={<MenuBuilderPage />} />
               <Route path="frontend-settings" element={<FrontendSettingsPage />} />
               <Route path="pearls" element={<PearlsPage />} />
