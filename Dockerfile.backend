@@ -1,19 +1,18 @@
-# ── VANTIX-CMS Backend Dockerfile ──────────────────────────────
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first (layer cached unless package.json changes)
+# Install dos2unix for line ending safety
+RUN apk add --no-cache dos2unix
+
 COPY package*.json ./
 RUN npm install
 
-# Copy all source at build time
 COPY . .
 
-# Make startup script executable
-RUN chmod +x scripts/start.sh
+# Force Unix line endings on the startup script
+RUN dos2unix scripts/start.sh && chmod +x scripts/start.sh
 
 EXPOSE 4000
 
-# Startup script: waits for postgres, runs migrate.js, starts nodemon
 CMD ["sh", "scripts/start.sh"]
