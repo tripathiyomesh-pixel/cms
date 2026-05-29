@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Copy source at build time (also mounted as volume in dev)
+# Copy all source at build time
 COPY . .
 
 # Make startup script executable
@@ -15,5 +15,5 @@ RUN chmod +x scripts/start.sh
 
 EXPOSE 4000
 
-# Use startup script — auto-runs migrations then starts nodemon
+# Startup script: waits for postgres, runs migrate.js, starts nodemon
 CMD ["sh", "scripts/start.sh"]
