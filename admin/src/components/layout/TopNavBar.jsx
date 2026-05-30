@@ -313,7 +313,7 @@ function UserMenu() {
 }
 
 // ── MAIN TOPNAVBAR ────────────────────────────────────────────
-export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, onToggleSidebar, bp="desktop" }) {
+export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, onToggleSidebar, bp="desktop", comfort=false, onToggleComfort }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const menuRef = useRef();
 
@@ -406,6 +406,38 @@ export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, 
 
         {/* Right side — always visible */}
         <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Comfort Mode toggle — desktop only */}
+          {bp !== 'mobile' && (
+            <button
+              onClick={onToggleComfort}
+              title={comfort ? 'Comfort Mode ON — click to turn off' : 'Comfort Mode OFF — click to turn on'}
+              className={`
+                flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold
+                transition-all duration-200 border select-none
+                ${comfort
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                  : 'bg-white dark:bg-ink-800 text-ink-400 dark:text-ink-500 border-ink-200 dark:border-ink-700 hover:text-ink-600 dark:hover:text-ink-300'
+                }
+              `}
+            >
+              {/* Simple eye/relax icon */}
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5 6.5-5 6.5-5S11.5 3 8 3z"/>
+                <circle cx="8" cy="8" r="2"/>
+              </svg>
+              <span>Comfort</span>
+              {/* ON/OFF pill */}
+              <span className={`
+                text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none
+                ${comfort
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-ink-200 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
+                }
+              `}>
+                {comfort ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
           {/* Nav mode toggle — desktop only */}
           {bp !== 'mobile' && <button
             onClick={onToggleNavMode}

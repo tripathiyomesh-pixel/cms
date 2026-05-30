@@ -2,3 +2,26 @@
 /* Hide scrollbar but keep scroll functionality */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Comfort Mode ──────────────────────────────────────────────
+   Applied via html.comfort class when Comfort Mode is ON.
+   Increases line height, spacing and font size slightly
+   for a more relaxed, easier-to-read interface.
+   Reference: Sage Accounting comfortable reading mode.
+─────────────────────────────────────────────────────────────── */
+html.comfort {
+  font-size: 15px;
+}
+html.comfort .text-xs    { font-size: 0.8rem !important; }
+html.comfort .text-sm    { font-size: 0.9rem !important; }
+html.comfort .text-\[11px\] { font-size: 0.78rem !important; }
+html.comfort .text-\[12px\] { font-size: 0.8rem !important; }
+html.comfort .text-\[13px\] { font-size: 0.85rem !important; }
+html.comfort td, html.comfort th {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+html.comfort .py-2  { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+html.comfort .py-3  { padding-top: 0.875rem !important; padding-bottom: 0.875rem !important; }
+html.comfort .gap-1 { gap: 0.375rem !important; }
+html.comfort .gap-2 { gap: 0.625rem !important; }

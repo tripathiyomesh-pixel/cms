@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopNavBar from './TopNavBar';
+import AppFooter from './AppFooter';
 
-const NAV_MODE_KEY  = 'jcms_nav_mode';
-const SIDEBAR_KEY   = 'jcms_sidebar_collapsed';
+const NAV_MODE_KEY    = 'jcms_nav_mode';
+const SIDEBAR_KEY     = 'jcms_sidebar_collapsed';
+const COMFORT_KEY     = 'jcms_comfort_mode';
 
 function useBreakpoint() {
   const [bp, setBp] = useState('desktop');
@@ -22,15 +24,21 @@ function useBreakpoint() {
 
 export default function AppLayout() {
   const bp = useBreakpoint();
-  const [navMode,   setNavMode]   = useState(() => localStorage.getItem(NAV_MODE_KEY) || 'sidebar');
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_KEY) === 'true');
+  const [navMode,    setNavMode]    = useState(() => localStorage.getItem(NAV_MODE_KEY)  || 'sidebar');
+  const [collapsed,  setCollapsed]  = useState(() => localStorage.getItem(SIDEBAR_KEY)  === 'true');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [comfort,    setComfort]    = useState(() => localStorage.getItem(COMFORT_KEY)   === 'true');
 
   // Auto-collapse on tablet
   useEffect(() => {
     if (bp === 'tablet' && !collapsed) setCollapsed(true);
     if (bp === 'mobile') setMobileOpen(false);
   }, [bp]);
+
+  // Apply comfort mode class to root html element
+  useEffect(() => {
+    document.documentElement.classList.toggle('comfort', comfort);
+  }, [comfort]);
 
   const toggleNavMode = () => {
     const next = navMode === 'sidebar' ? 'topbar' : 'sidebar';
@@ -48,17 +56,24 @@ export default function AppLayout() {
     }
   };
 
-  const ctx = { collapsed, toggleSidebar, navMode, toggleNavMode, bp };
+  const toggleComfort = () => {
+    const next = !comfort;
+    setComfort(next);
+    localStorage.setItem(COMFORT_KEY, String(next));
+  };
+
+  const ctx = { collapsed, toggleSidebar, navMode, toggleNavMode, bp, comfort, toggleComfort };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-ink-50 dark:bg-ink-900">
-      {/* Top bar — always visible on desktop/tablet, hidden on mobile when sidebar shown */}
       <TopNavBar
         navMode={navMode}
         onToggleNavMode={toggleNavMode}
         sidebarCollapsed={collapsed}
         onToggleSidebar={toggleSidebar}
         bp={bp}
+        comfort={comfort}
+        onToggleComfort={toggleComfort}
       />
 
       <div className="flex flex-1 overflow-hidden relative">
@@ -79,8 +94,14 @@ export default function AppLayout() {
           </div>
         )}
 
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <Outlet context={ctx}/>
+        {/* Main content — scrollable, footer flows at bottom */}
+        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden min-w-0">
+          {/* Page content */}
+          <div className="flex-1">
+            <Outlet context={ctx}/>
+          </div>
+          {/* Footer at natural bottom of scroll — only visible when scrolled down */}
+          <AppFooter />
         </main>
       </div>
     </div>
