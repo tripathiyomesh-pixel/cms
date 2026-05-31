@@ -67,59 +67,65 @@ function GuestRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
+      {/* ── Public ── */}
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+
+      {/* ── Full-screen tools (NO sidebar/layout) ── */}
+      <Route path="/page-builder"  element={<ProtectedRoute><PageBuilderPage /></ProtectedRoute>} />
+      <Route path="/home-builder"  element={<ProtectedRoute><PageBuilderPage /></ProtectedRoute>} />
+
+      {/* ── Admin with AppLayout (sidebar + topbar) ── */}
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route index element={<DashboardPage />} />
-        <Route path="products" element={<ProductsPage />} />
-        <Route path="products/new" element={<ProductFormPage />} />
-        <Route path="products/:id" element={<ProductFormPage />} />
+        <Route path="products"                   element={<ProductsPage />} />
+        <Route path="products/new"               element={<ProductFormPage />} />
+        <Route path="products/:id"               element={<ProductFormPage />} />
         <Route path="jewellery-specs/:productId" element={<JewellerySpecsForm />} />
-        <Route path="categories" element={<CategoriesPage />} />
-        <Route path="collections" element={<CollectionsPage />} />
-        <Route path="media" element={<MediaPage />} />
-        <Route path="inventory" element={<InventoryPage />} />
-        <Route path="marketing" element={<MarketingPage />} />
-        <Route path="orders" element={<OrdersPage />} />
-        <Route path="enquiries" element={<EnquiriesPage />} />
-        <Route path="appointments" element={<AppointmentsAdminPage />} />
-        <Route path="customers" element={<CustomersPage />} />
-        <Route path="locations" element={<StoreLocationsPage />} />
-        <Route path="trust-badges" element={<TrustBadgesPage />} />
-        <Route path="plugins" element={<PluginsPage />} />
-        <Route path="users" element={<Navigate to="/workforce" replace />} />
-              <Route path="workforce" element={<WorkforcePage />} />
-              <Route path="gold-rates" element={<GoldRatePage />} />
-              <Route path="guide" element={<UserGuidePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="audit-log" element={<AuditLogPage />} />
-        <Route path="dev-status" element={<DevStatusPage />} />
-        <Route path="diamonds" element={<DiamondsPage />} />
-        <Route path="diamonds/new" element={<DiamondFormPage />} />
-        <Route path="diamonds/:id" element={<DiamondFormPage />} />
-        <Route path="gemstones" element={<GemstonesPage />} />
-        <Route path="gemstones/new" element={<GemstoneFormPage />} />
-        <Route path="gemstones/:id" element={<GemstoneFormPage />} />
-        <Route path="mountings" element={<MountingsPage />} />
-              <Route path="mountings/new" element={<MountingFormPage />} />
-              <Route path="mountings/:id" element={<MountingFormPage />} />
-                <Route path="custom-orders" element={<CustomOrdersPage />} />
-        <Route path="feature-flags" element={<FeatureFlagsPage />} />
-              <Route path="appearance" element={<AppearancePage />} />
-              <Route path="rapnet" element={<RapNetSettingsPage />} />
-              <Route path="exhibitions" element={<ExhibitionsPage />} />
-              <Route path="page-builder" element={<PageBuilderPage />} />
-              <Route path="erp-integration" element={<ERPIntegrationPage />} />
-              <Route path="payments" element={<PaymentsPage />} />
-              <Route path="theme-editor" element={<ThemeEditorPage />} />
-              <Route path="home-builder" element={<PageBuilderPage />} />
-              <Route path="menu-builder" element={<MenuBuilderPage />} />
-              <Route path="frontend-settings" element={<FrontendSettingsPage />} />
-              <Route path="pearls" element={<PearlsPage />} />
-              <Route path="pearls/new" element={<PearlFormPage />} />
-              <Route path="pearls/:id" element={<PearlFormPage />} />
-              <Route path="import" element={<ImportEnginePage />} />
-              <Route path="blog" element={<BlogPage />} />
+        <Route path="categories"                 element={<CategoriesPage />} />
+        <Route path="collections"                element={<CollectionsPage />} />
+        <Route path="media"                      element={<MediaPage />} />
+        <Route path="inventory"                  element={<InventoryPage />} />
+        <Route path="marketing"                  element={<MarketingPage />} />
+        <Route path="orders"                     element={<OrdersPage />} />
+        <Route path="enquiries"                  element={<EnquiriesPage />} />
+        <Route path="appointments"               element={<AppointmentsAdminPage />} />
+        <Route path="customers"                  element={<CustomersPage />} />
+        <Route path="locations"                  element={<StoreLocationsPage />} />
+        <Route path="trust-badges"               element={<TrustBadgesPage />} />
+        <Route path="plugins"                    element={<PluginsPage />} />
+        <Route path="users"                      element={<Navigate to="/workforce" replace />} />
+        <Route path="workforce"                  element={<WorkforcePage />} />
+        <Route path="gold-rates"                 element={<GoldRatePage />} />
+        <Route path="guide"                      element={<UserGuidePage />} />
+        <Route path="settings"                   element={<SettingsPage />} />
+        <Route path="audit-log"                  element={<AuditLogPage />} />
+        <Route path="dev-status"                 element={<DevStatusPage />} />
+        <Route path="diamonds"                   element={<DiamondsPage />} />
+        <Route path="diamonds/new"               element={<DiamondFormPage />} />
+        <Route path="diamonds/:id"               element={<DiamondFormPage />} />
+        <Route path="gemstones"                  element={<GemstonesPage />} />
+        <Route path="gemstones/new"              element={<GemstoneFormPage />} />
+        <Route path="gemstones/:id"              element={<GemstoneFormPage />} />
+        <Route path="mountings"                  element={<MountingsPage />} />
+        <Route path="mountings/new"              element={<MountingFormPage />} />
+        <Route path="mountings/:id"              element={<MountingFormPage />} />
+        <Route path="custom-orders"              element={<CustomOrdersPage />} />
+        <Route path="feature-flags"              element={<FeatureFlagsPage />} />
+        <Route path="appearance"                 element={<AppearancePage />} />
+        <Route path="rapnet"                     element={<RapNetSettingsPage />} />
+        <Route path="exhibitions"                element={<ExhibitionsPage />} />
+        <Route path="erp-integration"            element={<ERPIntegrationPage />} />
+        <Route path="payments"                   element={<PaymentsPage />} />
+        <Route path="theme-editor"               element={<ThemeEditorPage />} />
+        <Route path="menu-builder"               element={<MenuBuilderPage />} />
+        <Route path="frontend-settings"          element={<FrontendSettingsPage />} />
+        <Route path="pearls"                     element={<PearlsPage />} />
+        <Route path="pearls/new"                 element={<PearlFormPage />} />
+        <Route path="pearls/:id"                 element={<PearlFormPage />} />
+        <Route path="import"                     element={<ImportEnginePage />} />
+        <Route path="blog"                       element={<BlogPage />} />
       </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -53,6 +53,7 @@ const auditRoutes          = require('./modules/audit/audit.routes');
 const jewelleryRoutes = require('./modules/jewellery/jewellery.routes');
 const appointmentRoutes = require('./modules/jewellery/appointments.routes');
 const themeRoutes       = require('./modules/themes/themes.routes');
+const pagesRoutes      = require('./modules/pages/pages.routes');
 
 const app = express();
 
@@ -138,6 +139,7 @@ app.use('/api/audit',          auditRoutes);
 app.use('/api/jewellery', jewelleryRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api',             themeRoutes);
+app.use('/api/pages',      pagesRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` }));
