@@ -1,13 +1,12 @@
-# ── Admin Panel Dockerfile (Development) ─────────────────────
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first (cached layer)
+# Copy package files first (better layer caching)
 COPY package*.json ./
 RUN npm install
 
-# Copy source
+# Copy all source
 COPY . .
 
 EXPOSE 3000

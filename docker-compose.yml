@@ -82,7 +82,8 @@ services:
       context: ./admin
       dockerfile: Dockerfile.admin
     container_name: admin_app
-    # No VITE_API_URL — let Vite proxy handle /api → backend:4000
+    environment:
+      VITE_BACKEND_URL: http://backend:4000
     ports:
       - "3000:3000"
     volumes:
