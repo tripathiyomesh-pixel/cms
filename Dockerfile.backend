@@ -2,7 +2,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dos2unix for line ending safety
+# dos2unix fixes Windows CRLF line endings in shell scripts
 RUN apk add --no-cache dos2unix
 
 COPY package*.json ./
@@ -10,8 +10,9 @@ RUN npm install
 
 COPY . .
 
-# Force Unix line endings on the startup script
-RUN dos2unix scripts/start.sh && chmod +x scripts/start.sh
+# Strip CRLF from every shell script in the image — belt and suspenders
+RUN find . -name "*.sh" -exec dos2unix {} \; && \
+    find . -name "*.sh" -exec chmod +x {} \;
 
 EXPOSE 4000
 
