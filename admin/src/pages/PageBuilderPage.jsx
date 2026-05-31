@@ -213,6 +213,37 @@ export default function PageBuilderPage() {
 
       editorRef.current = editor;
 
+      // Inject CSS into the MAIN document to hide GrapesJS built-in UI
+      // (the iframe gets KILL_GJS_UI_CSS via the 'load' event below)
+      const mainStyle = document.createElement('style');
+      mainStyle.id = 'vx-gjs-overrides';
+      mainStyle.textContent = `
+        /* Hide GrapesJS built-in panels rendered in main document */
+        .gjs-pn-panels { display: none !important; }
+        .gjs-block-category .gjs-caret { display: none !important; }
+        /* Fix "less xOk" — these are LESS variable inputs rendered outside canvas */
+        .gjs-sm-sector .gjs-sm-properties .gjs-sm-field-colorp,
+        .gjs-field-colorp { display: flex !important; }
+        /* Make sure block manager fills our container properly */
+        #vx-blocks .gjs-blocks-c { 
+          display: flex !important; flex-direction: column !important; 
+          padding: 6px !important; gap: 3px !important;
+        }
+        #vx-blocks .gjs-block { 
+          width: 100% !important; margin: 0 !important;
+          min-height: 36px !important;
+        }
+        #vx-blocks .gjs-block-category .gjs-title {
+          font-size: 9px !important; letter-spacing: 2px !important;
+          text-transform: uppercase !important; color: #c9a96e !important;
+          padding: 8px 10px !important; cursor: pointer !important;
+          background: #0a0a0a !important; border-bottom: 1px solid #1a1a1a !important;
+        }
+      \`;
+      if (!document.getElementById('vx-gjs-overrides')) {
+        document.head.appendChild(mainStyle);
+      }
+
       // Inject our CSS overrides into the GrapesJS iframe canvas
       editor.on('load', () => {
         const frame = editor.Canvas.getFrameEl();
@@ -407,8 +438,8 @@ export default function PageBuilderPage() {
 
         {/* ── CANVAS ─────────────────────────────────────────────────────── */}
         <div style={{ flex:1, position:'relative', overflow:'hidden', background:'#2a2a2a' }}>
-          {/* GrapesJS mounts here */}
-          <div ref={wrapRef} style={{ width:'100%', height:'100%' }} />
+          {/* GrapesJS mounts here — must be absolute to fill parent properly */}
+          <div ref={wrapRef} style={{ position:'absolute', inset:0 }} />
         </div>
 
         {/* ── RIGHT PANEL: style / traits / layers ───────────────────────── */}
