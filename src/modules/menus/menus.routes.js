@@ -4,7 +4,7 @@ const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { cache } = require('../../config/redis');
-const slugify  = require('slugify');
+const { makeSlug } = require('../../common/slug.util');
 
 router.get('/', authenticate, async (req, res) => {
   try {
@@ -35,7 +35,7 @@ router.post('/', authenticate, authorize(['super_admin','admin','manager']), asy
   try {
     const { name, location = 'header', items = [] } = req.body;
     if (!name) return error(res, 'name is required', 422);
-    const slug = slugify(name, { lower: true, strict: true });
+    const slug = makeSlug(name);
     const { rows } = await pool.query(
       `INSERT INTO menus (name, slug, location, items) VALUES ($1,$2,$3,$4) RETURNING *`,
       [name, slug, location, JSON.stringify(items)]

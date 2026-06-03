@@ -118,3 +118,35 @@ cd admin && npm run build
 3. DB_PASS changed from default
 4. NODE_ENV=production
 5. CLOUDINARY_* for media
+
+---
+
+## ✅ Completed — Phase 4 continued (same session)
+
+### Media Library Backend (`src/modules/products/media.routes.js` — new)
+Registered at `/api/media/*`
+
+| Endpoint | Description |
+|----------|-------------|
+| GET /api/media | Paginated media browser (search, file_type, product_id filters) |
+| GET /api/media/folders | Products-as-folders list with media count |
+| POST /api/media/bulk-delete | Delete up to 50 files in one request |
+| PATCH /api/media/:id | Update alt_text, set as primary |
+| DELETE /api/media/:id | Delete single file |
+| POST /api/media/upload/:productId | Upload files for a product |
+
+### MediaPage.jsx improvements
+- Now uses `/api/media` endpoint (server-side pagination, filter) instead of loading all products
+- Bulk selection: Select All toggle + per-item checkbox (planned via toggleSelect)
+- Bulk Delete button: appears when items selected, calls `/api/media/bulk-delete`
+- Folder list loaded from `/api/media/folders`
+- Stats from server (total, images, videos)
+
+### Slug utility rollout
+Replaced inline `slugify(...)` calls with shared `makeSlug()` from `src/common/slug.util.js` in:
+- `categories.routes.js`
+- `collections.routes.js`
+- `menus.routes.js`
+- `blog.routes.js`
+
+Eliminates 4 duplicate implementations with slightly different options.

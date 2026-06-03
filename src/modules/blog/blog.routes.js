@@ -1,4 +1,5 @@
 const express = require('express');
+const { makeSlug } = require('../../common/slug.util');
 const router  = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const db = require('../../config/db.pool');
@@ -31,7 +32,7 @@ router.post('/', authenticate, authorize(ROLES), async (req, res) => {
   try {
     const {title,slug,content,excerpt,cover_image,status='draft',tags=[],seo_title,seo_description,category}=req.body;
     if(!title) return res.status(422).json({ success:false, message:'title required' });
-    const autoSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const autoSlug = slug || makeSlug(title);
     const [r]=await db.execute(
       `INSERT INTO blog_posts (title,slug,content,excerpt,cover_image,status,tags,seo_title,seo_description,category,author_name,author_id,published_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
       [title,autoSlug,content||null,excerpt||null,cover_image||null,status,JSON.stringify(tags),seo_title||null,seo_description||null,category||null,req.user.name,req.user.id,status==='published'?new Date():null]

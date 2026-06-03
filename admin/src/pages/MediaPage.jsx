@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import {
   Upload, Trash2, Image, Video, FileText, Grid3X3,
   List, Search, Copy, X, ExternalLink, RefreshCw, Filter,
+  CheckSquare, Square, Trash,
 } from 'lucide-react';
 
 const TYPE_ICON = { image: Image, video: Video, pdf: FileText };
@@ -106,35 +107,37 @@ export default function MediaPage() {
   const [products, setProducts] = useState([]);
   const [preview, setPreview]   = useState(null);
   const [stats, setStats]       = useState({ total: 0, images: 0, videos: 0 });
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [folders, setFolders] = useState([]);
   const fileRef = useRef();
   const dropRef = useRef();
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Load products to get their media
-      const res = await api.get('/products', { params: { limit: 200 } });
-      const prods = res.data.data || [];
-      setProducts(prods);
-
-      const all = [];
-      prods.forEach(p => {
-        (p.media || []).forEach(m => {
-          all.push({ ...m, product_name: p.name, product_id: p.id, product_sku: p.sku });
+      const [mediaRes, foldersRes, productsRes] = await Promise.all([
+        api.get('/media', { params: {
+          limit: 96, search: search || undefined,
+          file_type: typeFilter || undefined,
+          product_id: productFilter || undefined,
+        }}),
+        api.get('/media/folders').catch(() => ({ data: { data: [] } })),
+        api.get('/products', { params: { limit: 200 } }).catch(() => ({ data: { data: [] } })),
+      ]);
+      setMedia(mediaRes.data.data || []);
+      setFolders(foldersRes.data.data || []);
+      setProducts(productsRes.data.data || []);
+      if (mediaRes.data.stats) {
+        setStats({
+          total:  parseInt(mediaRes.data.stats.total  || 0),
+          images: parseInt(mediaRes.data.stats.images || 0),
+          videos: parseInt(mediaRes.data.stats.videos || 0),
         });
-      });
-
-      // Sort newest first
-      all.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-      setMedia(all);
-      setStats({
-        total: all.length,
-        images: all.filter(m => m.file_type === 'image' || m.file_url?.match(/\.(jpg|jpeg|png|webp)/i)).length,
-        videos: all.filter(m => m.file_type === 'video' || m.file_url?.match(/\.(mp4|mov)/i)).length,
-      });
+      }
     } catch { toast.error('Failed to load media'); }
     setLoading(false);
-  }, []);
+  }, [search, typeFilter, productFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -170,6 +173,36 @@ export default function MediaPage() {
       setMedia(prev => prev.filter(m => m.id !== item.id));
     } catch {
       toast.error('Delete failed — try again');
+    }
+  };
+
+  // ── Bulk delete ───────────────────────────────────────────────────────────
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size) return;
+    if (!confirm(`Delete ${selectedIds.size} file(s)? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      await api.post('/media/bulk-delete', { ids: Array.from(selectedIds) });
+      toast.success(`${selectedIds.size} file(s) deleted`);
+      setSelectedIds(new Set());
+      load();
+    } catch { toast.error('Bulk delete failed'); }
+    setBulkDeleting(false);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === media.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(media.map(m => m.id)));
     }
   };
 
@@ -304,6 +337,24 @@ export default function MediaPage() {
           </div>
 
           <span className="text-[11px] text-ink-400 ml-auto">{filtered.length} files</span>
+
+          {/* Bulk selection controls */}
+          <button onClick={selectAll}
+            className="btn-ghost flex items-center gap-1.5 text-xs py-1.5"
+            title={selectedIds.size === media.length ? 'Deselect all' : 'Select all'}>
+            {selectedIds.size === media.length && media.length > 0
+              ? <CheckSquare size={13} className="text-brand-500"/>
+              : <Square size={13}/>}
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
+          </button>
+
+          {selectedIds.size > 0 && (
+            <button onClick={handleBulkDelete} disabled={bulkDeleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors">
+              {bulkDeleting ? <RefreshCw size={12} className="animate-spin"/> : <Trash size={12}/>}
+              Delete {selectedIds.size}
+            </button>
+          )}
         </div>
 
         {/* Media grid / list */}

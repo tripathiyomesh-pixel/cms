@@ -1,6 +1,6 @@
 const express  = require('express');
 const router   = express.Router();
-const slugify  = require('slugify');
+const { makeSlug } = require('../../common/slug.util');
 const { pool } = require('../../config/database');
 const { success, created, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
@@ -47,7 +47,7 @@ router.post('/', authenticate, authorize(['super_admin','admin','manager']), asy
   try {
     const { name, parent_id, description, sort_order=0, image_url, seo_title, seo_desc } = req.body;
     if (!name) return error(res, 'name is required', 422);
-    const slug = slugify(name, { lower:true, strict:true });
+    const slug = makeSlug(name);
     const { rows: [cat] } = await pool.query(
       `INSERT INTO categories (name,slug,parent_id,description,sort_order,image_url,seo_title,seo_desc)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
@@ -63,7 +63,7 @@ router.put('/:id', authenticate, authorize(['super_admin','admin','manager']), a
     const { rows: [existing] } = await pool.query(`SELECT * FROM categories WHERE id=$1`, [req.params.id]);
     if (!existing) return error(res, 'Category not found', 404);
     const { name, parent_id, description, sort_order, image_url, is_active, seo_title, seo_desc } = req.body;
-    const slug = name && name !== existing.name ? slugify(name, { lower:true, strict:true }) : existing.slug;
+    const slug = name && name !== existing.name ? makeSlug(name) : existing.slug;
     const { rows: [cat] } = await pool.query(
       `UPDATE categories SET
         name=COALESCE($1,name), slug=$2, parent_id=COALESCE($3,parent_id),
