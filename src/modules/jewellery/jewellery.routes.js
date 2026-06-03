@@ -187,13 +187,30 @@ router.post('/enquiries', async (req, res) => {
     const { license_id, product_id, enquiry_type, channel, customer_name,
             customer_phone, customer_email, country_code, message,
             product_sku, product_name, product_price } = req.body;
-    await db.query(
+    const result = await db.query(
       `INSERT INTO enquiries (license_id,product_id,enquiry_type,channel,customer_name,
         customer_phone,customer_email,country_code,message,product_sku,product_name,product_price) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
       [license_id, product_id||null, enquiry_type||'product', channel||'form',
        customer_name||null, customer_phone||null, customer_email||null,
        country_code||'AE', message||null, product_sku||null, product_name||null, product_price||null]
     );
+    const enquiryId = result[0]?.insertId || result.rows?.[0]?.id || null;
+
+    // Auto-sync to CRM (fire-and-forget — never block the response)
+    if (customer_phone || customer_email) {
+      const { syncToCrm } = require('../appointments/appointments.routes');
+      syncToCrm({
+        customerName:  customer_name  || 'Unknown',
+        customerPhone: customer_phone || customer_email || '',
+        customerEmail: customer_email,
+        source:        channel === 'whatsapp' ? 'whatsapp' : 'website',
+        interest:      product_name ? `${enquiry_type || 'Enquiry'} — ${product_name}` : (enquiry_type || 'Product enquiry'),
+        activityType:  'enquiry',
+        activityTitle: `Enquiry: ${product_name || enquiry_type || 'Product'}${message ? ' — ' + message.substring(0, 80) : ''}`,
+        resourceId:    enquiryId,
+      }).catch(() => {});
+    }
+
     return res.json(successResponse({}, 'Enquiry submitted'));
   } catch (e) {
     return res.status(500).json(errorResponse(e.message));

@@ -1,6 +1,7 @@
 import UserGuidePage from './pages/UserGuidePage';
 import SeoPage from './pages/SeoPage';
 import PagesAdminPage from './pages/PagesAdminPage';
+import ReportsPage from './pages/ReportsPage';
 import GoldRatePage from './pages/GoldRatePage';
 import WorkforcePage from './pages/WorkforcePage';
 import MenuBuilderPage from './pages/MenuBuilderPage';
@@ -96,6 +97,7 @@ function AppRoutes() {
         <Route path="customers"                  element={<CustomersPage />} />
         <Route path="customers/:id"              element={<CustomerDetailPage />} />
         <Route path="crm"                        element={<CrmPage />} />
+        <Route path="reports"                    element={<ReportsPage />} />
         <Route path="locations"                  element={<StoreLocationsPage />} />
         <Route path="trust-badges"               element={<TrustBadgesPage />} />
         <Route path="plugins"                    element={<PluginsPage />} />

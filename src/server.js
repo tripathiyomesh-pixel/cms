@@ -47,6 +47,7 @@ const certVerifyRoutes   = require('./modules/content/certificate_verify.routes'
 const dashboardRoutes      = require('./modules/dashboard/dashboard.routes');
 const customerRoutes       = require('./modules/customers/customers.routes');
 const crmRoutes            = require('./modules/customers/crm.routes');
+const reportsRoutes        = require('./modules/reports/reports.routes');
 const { router: notificationRoutes, notifyAdmins } = require('./modules/notifications/notifications.routes');
 const storefrontRoutes     = require('./modules/storefront/storefront.routes');
 const auditRoutes          = require('./modules/audit/audit.routes');
@@ -130,6 +131,7 @@ app.use('/api/verify',        certVerifyRoutes);
 app.use('/api/dashboard',      dashboardRoutes);
 app.use('/api/customers',      customerRoutes);
 app.use('/api/crm',            crmRoutes);
+app.use('/api/reports',        reportsRoutes);
 app.use('/api/notifications',  notificationRoutes);
 app.use('/api/ring-builder', (req,res)=>res.redirect(307,'/api/storefront/ring-builder'));
 app.use('/sitemap.xml', seoRoutes);

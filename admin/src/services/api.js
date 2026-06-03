@@ -360,3 +360,12 @@ export const crmAPI = {
   // Stats
   stats:           ()                   => api.get('/crm/stats'),
 };
+
+// ─── REPORTS ──────────────────────────────────────────────────
+export const reportsAPI = {
+  revenue:      (p) => api.get('/reports/revenue',      { params: p }),
+  enquiries:    (p) => api.get('/reports/enquiries',    { params: p }),
+  appointments: (p) => api.get('/reports/appointments', { params: p }),
+  crm:          (p) => api.get('/reports/crm',          { params: p }),
+  customers:    (p) => api.get('/reports/customers',    { params: p }),
+};

@@ -7,7 +7,7 @@ import {
   Circle, Star, MapPin, Upload, BookOpen, Megaphone,
   Settings, ChevronDown, ChevronUp, DollarSign, Zap,
   Paintbrush, Layout, LayoutList, Square, Globe, Briefcase,
-  HelpCircle, Activity, Search, FileText, Target,
+  HelpCircle, Activity, Search, FileText, Target, BarChart2,
 } from 'lucide-react';
 
 // ── NAVIGATION DEFINITION ─────────────────────────────────────
@@ -66,6 +66,7 @@ const NAV_SECTIONS = [
   {
     label: 'System',
     items: [
+      { to:'/reports',         icon:BarChart2,       text:'Reports',          capability:'settings.manage' },
       { to:'/workforce',       icon:Briefcase,       text:'Workforce',        capability:'workforce.view' },
       { to:'/gold-rates',       icon:DollarSign,      text:'Gold rates',       capability:'gold_rates.view' },
       { to:'/users',           icon:Users,           text:'Users',            capability:'users.view' },

@@ -1,81 +1,75 @@
 # VANTIX CMS — Work In Progress
 
-**Last updated:** 2026-06-03 (Session 2)
-**Phase:** Phase 2 — CRM, Email Wiring, Orders
-**Stack:** Node.js + Express + PostgreSQL 16 + Redis · Admin: React/Vite · Storefront: Next.js
+**Last updated:** 2026-06-03 (Session 3)
+**Phase:** Phase 4 — Automation, Reports, Media Library
+**Repo:** https://github.com/tripathiyomesh-pixel/cms.git
 
 ---
 
-## ✅ Completed — Bug Fix Session
+## ✅ Completed — This Session (Phase 4)
 
-11 critical bugs fixed. See git log `2f701b9` for full list.
+### CRM Automation (zero-friction lead capture)
 
-Key fixes: JWT split-brain, missing reset-password endpoint, db.pool.js crash on missing .env,
-pages table SERIAL→UUID, missing PATCH /publish endpoint.
+**appointments.routes.js — full rewrite:**
+- Bug fix: `notifyAdmins()` was called inside GET / (fires on every admin list load). Now only fires inside POST / on actual new booking.
+- New appointment → `syncToCrm()` called automatically:
+  - Finds or creates a `leads` record (by phone number)
+  - If lead exists at 'new' stage, advances to 'contacted'
+  - Finds or creates a `customers` record
+  - Logs to `customer_activities` timeline
+- Appointment confirmed → logs another CRM timeline event + sends confirmation email
+- `syncToCrm()` exported for reuse
+
+**jewellery.routes.js — enquiries POST:**
+- Product enquiry submitted → `syncToCrm()` fires automatically
+- Creates/updates lead, creates customer, logs activity to timeline
+- Source = 'whatsapp' or 'website' based on channel
+- Interest populated from product_name + enquiry_type
+
+Net result: every enquiry and appointment now automatically appears in the CRM
+without any admin intervention.
+
+### Reports Module
+
+**Backend: `src/modules/reports/reports.routes.js`** (new)
+Registered at `/api/reports/*`
+
+| Endpoint | Description | CSV |
+|----------|-------------|-----|
+| GET /api/reports/revenue | Monthly revenue breakdown, KPIs | ✅ |
+| GET /api/reports/enquiries | Daily enquiry volume, funnel stats, top products | ✅ |
+| GET /api/reports/appointments | Daily appt volume, by-purpose breakdown | ✅ |
+| GET /api/reports/crm | Pipeline stages, by-source, recent wins | ✅ |
+| GET /api/reports/customers | Monthly growth, top customers by activity | ✅ |
+
+All endpoints: `?format=csv` returns downloadable CSV, `?days=N` for window filter.
+
+**Admin UI: `ReportsPage.jsx`** — 5-tab reports dashboard
+- Revenue: KPI row (total revenue, orders, avg order, VAT), monthly bar chart, full monthly table
+- Enquiries: KPI row, top enquired products bar chart, daily table
+- Appointments: KPI row, by-purpose breakdown bars
+- CRM Pipeline: stage breakdown with value, by-source grid, recent wins list
+- Customers: monthly growth chart, top customers table
+- Export CSV button on every tab (downloads via direct URL)
+- Year selector for revenue, day-range selector (30/60/90/180/365) for others
+- Added to sidebar under System section
 
 ---
 
-## ✅ Completed — Phase 1 Core CMS (Session 2)
+## ✅ Previously Completed
 
-### Email Service (`src/services/email.service.js`)
-- nodemailer wrapper with HTML templates: password-reset, welcome, order-confirmation, appointment-confirmation
-- Brand tokens from env (STORE_NAME, BRAND_COLOR, STORE_LOGO_URL)
-- Graceful dev mode (logs to console when SMTP not configured)
-- Wired: forgot-password sends reset emails, appointment confirms send emails, order confirms send emails
+### Bug Fix Session
+11 critical bugs — see git log `2f701b9`.
 
-### SEO Module (`src/modules/storefront/seo.routes.js`)
-- Redirect Manager: GET/POST/PATCH/DELETE /api/seo/redirects (301/302, toggle, hit count)
-- SEO Audit: GET /api/seo/audit/:type/:slug (score 0-100, grade A-D, issue categorisation)
-- Robots.txt: admin-configurable via settings DB
-- SMTP test + status endpoints
-- seo_redirects table auto-created
+### Phase 1 — Core CMS
+Email service, SEO + redirect manager, Pages admin, PageBuilder publish fix.
 
-### Admin UI — Phase 1
-- `SeoPage.jsx` — Redirects | robots.txt | SEO Audit | Email Settings (4 tabs)
-- `PagesAdminPage.jsx` — Pages list with publish/unpublish/archive
-- `PageBuilderPage.jsx` — Publish now correctly calls PATCH /publish endpoint
-- Sidebar: Pages, SEO & Email added
+### Phase 2 — CRM
+Full CRM routes (timeline, notes, leads), Kanban board, Customer detail page,
+order/appointment confirmation emails.
 
----
-
-## ✅ Completed — Phase 2 CRM (This Session)
-
-### CRM Backend (`src/modules/customers/crm.routes.js`)
-Tables auto-created: `customer_notes`, `customer_activities`, `leads`
-
-| Endpoint | Description |
-|----------|-------------|
-| GET /api/crm/customers/:id/timeline | Activity timeline |
-| POST /api/crm/customers/:id/activities | Log manual activity |
-| GET/POST /api/crm/customers/:id/notes | Customer notes |
-| PATCH/DELETE /api/crm/customers/:customerId/notes/:noteId | Edit/delete note |
-| GET /api/crm/leads | Lead list with filters |
-| GET /api/crm/leads/board | Kanban board data grouped by stage |
-| GET/POST /api/crm/leads/:id | Individual lead |
-| PATCH /api/crm/leads/:id | Update stage, fields |
-| DELETE /api/crm/leads/:id | Soft delete |
-| GET /api/crm/stats | Pipeline summary + recent activities |
-
-### CRM Admin UI
-- `CrmPage.jsx` — 3 tabs: Kanban Board | Lead List | Stats
-  - Kanban: 6-stage pipeline (new→contacted→qualified→proposal→won/lost)
-  - Per-column: count, pipeline value, add button, move shortcuts
-  - Lead cards: priority icon, contact links, WhatsApp, quick stage move
-  - List view: sortable, filterable by stage + search
-  - Stats: KPI row, stage breakdown with bars, recent activity feed
-- `CustomerDetailPage.jsx` — /customers/:id
-  - Profile card with avatar, contact actions, WhatsApp
-  - Activity timeline with type icons (enquiry/appointment/order/note/call/whatsapp/visit)
-  - Notes tab: add/pin/delete notes
-  - Linked enquiries tab
-  - Linked orders tab
-  - Log Activity modal (call/email/whatsapp/visit/note)
-- `CustomersPage.jsx` — added "View Full Profile & Timeline" button
-- Sidebar: CRM & Leads added to Commerce section
-
-### Orders
-- Order confirmation email fires when status → confirmed
-- PATCH /:id/status now wired to emailService
+### Phase 3 — Storefront
+Customer orders page (/account/orders), Dashboard CRM pipeline widget.
 
 ---
 
@@ -83,81 +77,44 @@ Tables auto-created: `customer_notes`, `customer_activities`, `leads`
 
 | Module | Backend | Admin UI | Storefront |
 |--------|---------|----------|------------|
-| Auth & Users | ✅ | ✅ | — |
+| **Reports** | ✅ | ✅ | — |
+| **CRM Automation** | ✅ | — | — |
+| Auth & Users | ✅ | ✅ | ✅ |
 | Products | ✅ | ✅ | ✅ |
-| Jewellery Specs | ✅ | ✅ | ✅ |
-| Diamonds | ✅ | ✅ | ✅ |
-| Gemstones | ✅ | ✅ | — |
-| Pearls | ✅ | ✅ | — |
-| Mountings | ✅ | ✅ | — |
-| Categories | ✅ | ✅ | ✅ |
-| Collections | ✅ | ✅ | ✅ |
-| Inventory | ✅ | ✅ | — |
-| Marketing | ✅ | ✅ | ✅ |
-| **CRM & Leads** | ✅ | ✅ | — |
-| **Customer Timeline** | ✅ | ✅ | — |
-| **Customer Notes** | ✅ | ✅ | — |
-| Enquiries | ✅ | ✅ | — |
-| Appointments | ✅ | ✅ | ✅ |
-| Orders | ✅ | ✅ | — |
-| Custom Orders | ✅ | ✅ | — |
+| CRM & Leads | ✅ | ✅ | — |
+| Customer Timeline | ✅ | ✅ | — |
+| Orders | ✅ | ✅ | ✅ |
 | Blog | ✅ | ✅ | ✅ |
-| **Pages Admin** | ✅ | ✅ | ✅ |
-| **SEO & Redirects** | ✅ | ✅ | — |
-| **Email Service** | ✅ | — | — |
+| Pages | ✅ | ✅ | ✅ |
+| SEO & Redirects | ✅ | ✅ | — |
+| Email Service | ✅ | — | — |
 | Media Library | ✅ | ✅ | — |
-| Menus | ✅ | ✅ | ✅ |
-| Themes | ✅ | ✅ | ✅ |
-| Settings | ✅ | ✅ | — |
-| Feature Flags | ✅ | ✅ | — |
-| Gold Rates | ✅ | ✅ | ✅ |
-| RapNet | ✅ | ✅ | — |
-| ERP Integration | ✅ | ✅ | — |
-| Exhibitions | ✅ | ✅ | ✅ |
-| Import Engine | ✅ | ✅ | — |
-| Audit Log | ✅ | ✅ | — |
-| Workforce | ✅ | ✅ | — |
-| Payments | ✅ | ✅ | — |
-| Plugins | ✅ | ✅ | — |
-| Webhooks | ✅ | ✅ | — |
+| All other modules | ✅ | ✅ | partial |
 
 ---
 
-## 🔜 Phase 3 — Next Session
+## 🔜 Next Session Priority
 
-Priority order:
-
-1. **Storefront: Orders** — customer-facing order tracking page (/account/orders)
-2. **Storefront: Wishlist** — fully functional wishlist page with localStorage sync + API
-3. **Media Library Admin** — folder management, bulk delete, drag-to-upload improvements
-4. **Dashboard** — wire CRM stats widget into main dashboard
-5. **Booking flow** — storefront appointment form auto-creates CRM activity
-6. **Reports** — basic revenue report + CSV export
+1. **Media Library** — bulk delete, folder management, drag-drop upload zone improvements
+2. **Slug utility rollout** — replace inline slugify in products/categories/blog with shared `slug.util.js`
+3. **Webhook delivery** — ensure enquiry + appointment webhooks fire for ERP integrations
+4. **Settings page** — wire SMTP settings editor (so admins can update without SSH/env)
+5. **Search** — wire OpenSearch/PostgreSQL FTS for global admin search
 
 ---
 
-## VM Deploy Commands
+## VM Deploy
 
 ```bash
-cd /var/www/cms
-git pull origin main
-node scripts/migrate.js     # idempotent — safe to re-run
+cd /var/www/cms && git pull origin main
+node scripts/migrate.js
 pm2 restart jewellery-cms
 cd admin && npm run build
 ```
 
-## Docker Commands
-
-```bash
-docker compose up -d
-docker compose exec backend node scripts/migrate.js
-docker compose logs -f backend
-```
-
 ## ⚠️ Required Before Production
-
-1. Set JWT_SECRET (min 64 random chars) in .env
-2. Configure SMTP_* for emails to actually send
-3. Change DB_PASS from default
-4. Set NODE_ENV=production
-5. Configure CLOUDINARY_* for media
+1. JWT_SECRET (64+ random chars)
+2. SMTP_* for email sending
+3. DB_PASS changed from default
+4. NODE_ENV=production
+5. CLOUDINARY_* for media
