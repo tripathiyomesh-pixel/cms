@@ -47,6 +47,21 @@ async function run() {
     )
   `); console.log('✓ users');
 
+  // Bug fix: password_resets was only created in migration 020_seed_admin.js.
+  // If someone ran individual migrations out of order or skipped 020, the
+  // forgot-password flow would crash with "relation password_resets does not exist".
+  // Now it is guaranteed to exist right after the users table it depends on.
+  await q(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      token      VARCHAR(255) NOT NULL UNIQUE,
+      expires_at TIMESTAMP    NOT NULL,
+      created_at TIMESTAMP    DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
+  `); console.log('✓ password_resets');
+
   await q(`
     CREATE TABLE IF NOT EXISTS categories (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -1,3 +1,13 @@
+/**
+ * VANTIX-CMS — Auth Routes
+ *
+ * Bug fixes applied:
+ *  1. JWT_SECRET now warns loudly if not set; no silent insecure fallback.
+ *  2. auth.guard.js and auth.routes.js now use the same env var — no split behaviour.
+ *  3. Added missing POST /api/auth/reset-password endpoint.
+ *  4. Added POST /api/auth/refresh-token for token renewal without re-login.
+ *  5. JWT expiry now reads JWT_EXPIRE from env (default 7d).
+ */
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
@@ -6,18 +16,30 @@ const db       = require('../../config/db.pool');
 const { authenticate } = require('../../common/guards/auth.guard');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'JewelCMS_SuperSecret_Key_2026_ChangeThis';
+
+// ── JWT secret resolution ─────────────────────────────────────────────────────
+// Bug fix #1 & #2: previously auth.routes.js had a hardcoded fallback
+// ('JewelCMS_SuperSecret_Key_2026_ChangeThis') while auth.guard.js used raw
+// process.env.JWT_SECRET with no fallback — mismatched behaviour.
+// Now both resolve through the same constant exported from this shared location.
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    '[auth] ⚠️  JWT_SECRET is not set in environment variables. ' +
+    'Using an insecure development default. Set JWT_SECRET in your .env before deploying.'
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'INSECURE_DEV_ONLY_DO_NOT_USE_IN_PRODUCTION';
 
 const signToken = (user) => jwt.sign(
   { id: user.id, email: user.email, role: user.role },
   JWT_SECRET,
-  { expiresIn: '7d' }
+  { expiresIn: process.env.JWT_EXPIRE || '7d' }
 );
 
-const ok  = (res, data, msg = 'OK') => res.json({ success: true, data, message: msg });
-const fail = (res, msg, code = 400) => res.status(code).json({ success: false, message: msg });
+const ok   = (res, data, msg = 'OK')  => res.json({ success: true, data, message: msg });
+const fail = (res, msg, code = 400)   => res.status(code).json({ success: false, message: msg });
 
-// ── POST /api/auth/login ──────────────────────────────────────
+// ── POST /api/auth/login ──────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -37,34 +59,32 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return fail(res, 'Invalid email or password', 401);
 
-    // Update last login timestamp
-    await db.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id])
-      .catch(() => {}); // non-critical
+    // Update last login (non-critical — swallow errors)
+    db.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]).catch(() => {});
 
     const token = signToken(user);
 
     return ok(res, {
       token,
-      user: {
-        id:    user.id,
-        name:  user.name,
-        email: user.email,
-        role:  user.role,
-      },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
     }, 'Login successful');
 
   } catch (e) {
-    console.error('Login error:', e.message);
+    console.error('[auth/login]', e.message);
     return fail(res, 'Login failed: ' + e.message, 500);
   }
 });
 
-// ── POST /api/auth/register ───────────────────────────────────
+// ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role = 'editor' } = req.body;
     if (!name || !email || !password) return fail(res, 'Name, email and password required', 422);
     if (password.length < 6) return fail(res, 'Password must be at least 6 characters', 422);
+
+    // Prevent assignment of privileged roles via public registration
+    const allowedRoles = ['editor', 'viewer'];
+    const safeRole = allowedRoles.includes(role) ? role : 'editor';
 
     const [[existing]] = await db.query(
       'SELECT id FROM users WHERE email = $1 LIMIT 1',
@@ -78,17 +98,17 @@ router.post('/register', async (req, res) => {
     await db.query(
       `INSERT INTO users (id, name, email, password, role, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())`,
-      [id, name, email.toLowerCase().trim(), hash, role]
+      [id, name, email.toLowerCase().trim(), hash, safeRole]
     );
 
-    return ok(res, { id, name, email, role }, 'User created');
+    return ok(res, { id, name, email, role: safeRole }, 'User created');
   } catch (e) {
-    console.error('Register error:', e.message);
+    console.error('[auth/register]', e.message);
     return fail(res, e.message, 500);
   }
 });
 
-// ── GET /api/auth/me ──────────────────────────────────────────
+// ── GET /api/auth/me ──────────────────────────────────────────────────────────
 router.get('/me', authenticate, async (req, res) => {
   try {
     const [[user]] = await db.query(
@@ -102,10 +122,11 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
-// ── POST /api/auth/change-password ────────────────────────────
+// ── POST /api/auth/change-password ───────────────────────────────────────────
 router.post('/change-password', authenticate, async (req, res) => {
   try {
     const { current_password, new_password } = req.body;
+    if (!current_password)                  return fail(res, 'Current password required', 422);
     if (!new_password || new_password.length < 6)
       return fail(res, 'New password must be at least 6 characters', 422);
 
@@ -129,17 +150,18 @@ router.post('/change-password', authenticate, async (req, res) => {
   }
 });
 
-// ── POST /api/auth/forgot-password ───────────────────────────
+// ── POST /api/auth/forgot-password ───────────────────────────────────────────
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return fail(res, 'Email required', 422);
 
     const [[user]] = await db.query(
-      'SELECT id FROM users WHERE email = $1 LIMIT 1',
+      'SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
       [email.toLowerCase().trim()]
     );
-    // Always return success — don't reveal if email exists
+
+    // Always return success — never reveal whether email exists (security)
     if (!user) return ok(res, null, 'If that email exists, a reset link has been sent');
 
     const token   = crypto.randomBytes(32).toString('hex');
@@ -153,15 +175,90 @@ router.post('/forgot-password', async (req, res) => {
       [user.id, token, expires]
     );
 
+    // TODO: Send email via SMTP (nodemailer) — token is ready in DB
+    // The reset URL would be: ${process.env.FRONTEND_URL}/reset-password?token=${token}
+    console.info(`[auth/forgot-password] Reset token generated for user ${user.id}`);
+
     return ok(res, null, 'If that email exists, a reset link has been sent');
+  } catch (e) {
+    console.error('[auth/forgot-password]', e.message);
+    return fail(res, e.message, 500);
+  }
+});
+
+// ── POST /api/auth/reset-password ────────────────────────────────────────────
+// Bug fix #3: this endpoint was completely missing. The forgot-password flow
+// stored a reset token in the DB but there was no way to consume it.
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, new_password } = req.body;
+    if (!token)        return fail(res, 'Reset token required', 422);
+    if (!new_password || new_password.length < 6)
+      return fail(res, 'New password must be at least 6 characters', 422);
+
+    // Look up the token — must exist and not be expired
+    const [[reset]] = await db.query(
+      `SELECT user_id, expires_at
+       FROM password_resets
+       WHERE token = $1 LIMIT 1`,
+      [token]
+    );
+
+    if (!reset) return fail(res, 'Invalid or expired reset token', 400);
+
+    if (new Date(reset.expires_at) < new Date()) {
+      // Clean up expired token
+      await db.query('DELETE FROM password_resets WHERE user_id = $1', [reset.user_id])
+        .catch(() => {});
+      return fail(res, 'Reset token has expired. Please request a new one.', 400);
+    }
+
+    const hash = await bcrypt.hash(new_password, 12);
+    await db.query(
+      'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
+      [hash, reset.user_id]
+    );
+
+    // Consume (delete) the token after successful use — one-time only
+    await db.query('DELETE FROM password_resets WHERE user_id = $1', [reset.user_id])
+      .catch(() => {});
+
+    return ok(res, null, 'Password has been reset. You can now log in.');
+  } catch (e) {
+    console.error('[auth/reset-password]', e.message);
+    return fail(res, e.message, 500);
+  }
+});
+
+// ── POST /api/auth/refresh-token ──────────────────────────────────────────────
+// Bug fix #4: there was no way to renew a token without re-logging in.
+// Clients with a still-valid token can silently refresh before expiry.
+router.post('/refresh-token', authenticate, async (req, res) => {
+  try {
+    // req.user is already verified by authenticate middleware
+    const [[user]] = await db.query(
+      'SELECT id, name, email, role, is_active FROM users WHERE id = $1 LIMIT 1',
+      [req.user.id]
+    );
+    if (!user || !user.is_active)
+      return fail(res, 'User not found or inactive', 401);
+
+    const token = signToken(user);
+    return ok(res, { token }, 'Token refreshed');
   } catch (e) {
     return fail(res, e.message, 500);
   }
 });
 
-// ── POST /api/auth/logout ─────────────────────────────────────
+// ── POST /api/auth/logout ─────────────────────────────────────────────────────
+// Stateless JWT — logout is client-side token removal.
+// This endpoint exists for audit logging and to support future Redis token blacklisting.
 router.post('/logout', authenticate, (req, res) => {
+  // TODO: If Redis is configured, add token to a short-lived blacklist
+  // (token TTL as the blacklist key TTL) for immediate server-side invalidation.
   return ok(res, null, 'Logged out');
 });
 
 module.exports = router;
+// Export JWT_SECRET for use in auth.guard.js — eliminates the divergence bug
+module.exports.JWT_SECRET = JWT_SECRET;

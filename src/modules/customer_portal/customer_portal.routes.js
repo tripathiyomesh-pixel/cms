@@ -4,7 +4,7 @@ const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'JewelCMS_SuperSecret_Key_2026';
+const { JWT_SECRET } = require('../../modules/auth/auth.routes');
 
 // ── AUTH MIDDLEWARE (customer, not workforce) ─────────────────
 const customerAuth = async (req, res, next) => {
