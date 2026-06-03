@@ -336,3 +336,27 @@ export const seoAPI = {
   smtpStatus:     ()          => api.get('/seo/smtp-status'),
   testEmail:      (to)        => api.post('/seo/test-email', { to }),
 };
+
+// ─── CRM ──────────────────────────────────────────────────────
+export const crmAPI = {
+  // Activity timeline
+  timeline:        (customerId, params) => api.get(`/crm/customers/${customerId}/timeline`, { params }),
+  logActivity:     (customerId, d)      => api.post(`/crm/customers/${customerId}/activities`, d),
+
+  // Notes
+  notes:           (customerId)         => api.get(`/crm/customers/${customerId}/notes`),
+  addNote:         (customerId, d)      => api.post(`/crm/customers/${customerId}/notes`, d),
+  updateNote:      (customerId, id, d)  => api.patch(`/crm/customers/${customerId}/notes/${id}`, d),
+  deleteNote:      (customerId, id)     => api.delete(`/crm/customers/${customerId}/notes/${id}`),
+
+  // Leads
+  leads:           (params)             => api.get('/crm/leads', { params }),
+  leadsBoard:      ()                   => api.get('/crm/leads/board'),
+  getLead:         (id)                 => api.get(`/crm/leads/${id}`),
+  createLead:      (d)                  => api.post('/crm/leads', d),
+  updateLead:      (id, d)              => api.patch(`/crm/leads/${id}`, d),
+  deleteLead:      (id)                 => api.delete(`/crm/leads/${id}`),
+
+  // Stats
+  stats:           ()                   => api.get('/crm/stats'),
+};

@@ -7,7 +7,7 @@ import {
   Circle, Star, MapPin, Upload, BookOpen, Megaphone,
   Settings, ChevronDown, ChevronUp, DollarSign, Zap,
   Paintbrush, Layout, LayoutList, Square, Globe, Briefcase,
-  HelpCircle, Activity, Search, FileText,
+  HelpCircle, Activity, Search, FileText, Target,
 } from 'lucide-react';
 
 // ── NAVIGATION DEFINITION ─────────────────────────────────────
@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
       { to:'/appointments',    icon:Calendar,        text:'Appointments',     capability:'appointments.view' },
       { to:'/custom-orders',   icon:Package,         text:'Custom orders',    capability:'orders.view' },
       { to:'/customers',       icon:Users,           text:'Customers',        capability:'customers.view' },
+      { to:'/crm',             icon:Target,          text:'CRM & Leads',      capability:'customers.view' },
       { to:'/exhibitions',     icon:MapPin,          text:'Exhibitions',      capability:'marketing.view' },
     ],
   },

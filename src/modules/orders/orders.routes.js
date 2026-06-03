@@ -60,11 +60,30 @@ router.patch('/:id/status', authenticate, authorize(['super_admin', 'admin', 'ma
     const { status, notes } = req.body;
     const valid = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
     if (!valid.includes(status)) return res.status(422).json({ success: false, message: 'Invalid status' });
+
     await db.query(
       'UPDATE orders SET status = $1, notes = COALESCE($2, notes), updated_at = NOW() WHERE id = $3',
       [status, notes || null, req.params.id]
     );
     await cache.del('orders:stats');
+
+    // Send order confirmation email when status → confirmed
+    if (status === 'confirmed') {
+      const [rows] = await db.query('SELECT * FROM orders WHERE id = $1 LIMIT 1', [req.params.id]);
+      const order = rows[0];
+      if (order?.customer_email) {
+        const emailService = require('../../services/email.service');
+        emailService.sendOrderConfirmation({
+          to:           order.customer_email,
+          orderNumber:  order.order_number,
+          customerName: order.customer_name || 'Valued Customer',
+          items:        Array.isArray(order.items) ? order.items : (JSON.parse(order.items || '[]')),
+          total:        order.total_amount,
+          currency:     order.currency || 'AED',
+        }).catch(e => console.error('[orders] Email send failed:', e.message));
+      }
+    }
+
     res.json({ success: true, message: 'Updated' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });

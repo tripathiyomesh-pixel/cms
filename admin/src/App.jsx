@@ -41,6 +41,8 @@ import JewellerySpecsForm from './pages/JewellerySpecsForm';
 import StoreLocationsPage from './pages/StoreLocationsPage';
 import TrustBadgesPage from './pages/TrustBadgesPage';
 import CustomersPage from './pages/CustomersPage';
+import CrmPage from './pages/CrmPage';
+import CustomerDetailPage from './pages/CustomerDetailPage';
 import OrdersPage from './pages/OrdersPage';
 import AuditLogPage from './pages/AuditLogPage';
 import DevStatusPage from './pages/DevStatusPage';
@@ -92,6 +94,8 @@ function AppRoutes() {
         <Route path="enquiries"                  element={<EnquiriesPage />} />
         <Route path="appointments"               element={<AppointmentsAdminPage />} />
         <Route path="customers"                  element={<CustomersPage />} />
+        <Route path="customers/:id"              element={<CustomerDetailPage />} />
+        <Route path="crm"                        element={<CrmPage />} />
         <Route path="locations"                  element={<StoreLocationsPage />} />
         <Route path="trust-badges"               element={<TrustBadgesPage />} />
         <Route path="plugins"                    element={<PluginsPage />} />

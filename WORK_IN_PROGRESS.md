@@ -1,133 +1,147 @@
 # VANTIX CMS — Work In Progress
 
-**Last updated:** 2026-06-03
-**Phase:** Bug Fix Session → Phase 1 Core CMS Completion
+**Last updated:** 2026-06-03 (Session 2)
+**Phase:** Phase 2 — CRM, Email Wiring, Orders
 **Stack:** Node.js + Express + PostgreSQL 16 + Redis · Admin: React/Vite · Storefront: Next.js
 
 ---
 
-## ✅ Bug Fixes Applied (2026-06-03)
+## ✅ Completed — Bug Fix Session
 
-All bugs identified in the Analysis Report have been resolved.
+11 critical bugs fixed. See git log `2f701b9` for full list.
 
-### Critical Fixes
+Key fixes: JWT split-brain, missing reset-password endpoint, db.pool.js crash on missing .env,
+pages table SERIAL→UUID, missing PATCH /publish endpoint.
 
-| # | File | Bug | Fix |
-|---|------|-----|-----|
-| 1 | `src/config/db.pool.js` | No env var fallbacks — crashed if `.env` missing | Added safe fallbacks matching `database.js` |
-| 2 | `src/modules/auth/auth.routes.js` | Hardcoded `JWT_SECRET` fallback was different string to `auth.guard.js` — tokens could silently fail verification | Single resolved constant; warns loudly if unset |
-| 3 | `src/common/guards/auth.guard.js` | Used raw `process.env.JWT_SECRET` (no fallback) — split-brain with auth.routes.js | Now imports same constant from auth.routes.js |
-| 4 | `src/modules/auth/auth.routes.js` | Missing `POST /api/auth/reset-password` endpoint — forgot-password stored tokens with no way to consume them | Full endpoint added: validates token, checks expiry, updates password, deletes token (one-time use) |
-| 5 | `src/modules/auth/auth.routes.js` | Missing `POST /api/auth/refresh-token` — no way to renew tokens without re-login | Added endpoint using existing `authenticate` guard |
-| 6 | `src/modules/auth/auth.routes.js` | `register()` accepted any `role` value — could create `super_admin` via public API | Now restricts to `['editor', 'viewer']` |
-| 7 | `src/modules/customer_portal/customer_portal.routes.js` | Hardcoded different JWT secret string — customer tokens could not be verified consistently | Now imports shared constant |
-| 8 | `src/modules/pages/pages.routes.js` | `id` column was `SERIAL` (integer) — inconsistent with every other table (UUID) | Migrated to `UUID DEFAULT gen_random_uuid()` |
-| 9 | `src/modules/pages/pages.routes.js` | No `PATCH /publish` endpoint — builder had no way to change page status without resaving full HTML | Added `PATCH /:slug/publish` |
-| 10 | `src/modules/pages/pages.routes.js` | DELETE had no role guard — any editor could delete pages | Added `authorize(['admin', 'super_admin'])` |
-| 11 | `scripts/migrate.js` | `password_resets` table only created in migration 020 — skipping it caused crashes | Now guaranteed right after `users` table |
+---
 
-### Code Quality Fixes
+## ✅ Completed — Phase 1 Core CMS (Session 2)
 
-| File | Change |
-|------|--------|
-| `src/common/slug.util.js` | **NEW** — centralised `makeSlug()` + `makeUniqueSlug()`. Eliminates duplication across products, categories, collections, menus. |
-| `.env.example` | Comprehensive documentation, security warnings, all vars listed |
+### Email Service (`src/services/email.service.js`)
+- nodemailer wrapper with HTML templates: password-reset, welcome, order-confirmation, appointment-confirmation
+- Brand tokens from env (STORE_NAME, BRAND_COLOR, STORE_LOGO_URL)
+- Graceful dev mode (logs to console when SMTP not configured)
+- Wired: forgot-password sends reset emails, appointment confirms send emails, order confirms send emails
+
+### SEO Module (`src/modules/storefront/seo.routes.js`)
+- Redirect Manager: GET/POST/PATCH/DELETE /api/seo/redirects (301/302, toggle, hit count)
+- SEO Audit: GET /api/seo/audit/:type/:slug (score 0-100, grade A-D, issue categorisation)
+- Robots.txt: admin-configurable via settings DB
+- SMTP test + status endpoints
+- seo_redirects table auto-created
+
+### Admin UI — Phase 1
+- `SeoPage.jsx` — Redirects | robots.txt | SEO Audit | Email Settings (4 tabs)
+- `PagesAdminPage.jsx` — Pages list with publish/unpublish/archive
+- `PageBuilderPage.jsx` — Publish now correctly calls PATCH /publish endpoint
+- Sidebar: Pages, SEO & Email added
+
+---
+
+## ✅ Completed — Phase 2 CRM (This Session)
+
+### CRM Backend (`src/modules/customers/crm.routes.js`)
+Tables auto-created: `customer_notes`, `customer_activities`, `leads`
+
+| Endpoint | Description |
+|----------|-------------|
+| GET /api/crm/customers/:id/timeline | Activity timeline |
+| POST /api/crm/customers/:id/activities | Log manual activity |
+| GET/POST /api/crm/customers/:id/notes | Customer notes |
+| PATCH/DELETE /api/crm/customers/:customerId/notes/:noteId | Edit/delete note |
+| GET /api/crm/leads | Lead list with filters |
+| GET /api/crm/leads/board | Kanban board data grouped by stage |
+| GET/POST /api/crm/leads/:id | Individual lead |
+| PATCH /api/crm/leads/:id | Update stage, fields |
+| DELETE /api/crm/leads/:id | Soft delete |
+| GET /api/crm/stats | Pipeline summary + recent activities |
+
+### CRM Admin UI
+- `CrmPage.jsx` — 3 tabs: Kanban Board | Lead List | Stats
+  - Kanban: 6-stage pipeline (new→contacted→qualified→proposal→won/lost)
+  - Per-column: count, pipeline value, add button, move shortcuts
+  - Lead cards: priority icon, contact links, WhatsApp, quick stage move
+  - List view: sortable, filterable by stage + search
+  - Stats: KPI row, stage breakdown with bars, recent activity feed
+- `CustomerDetailPage.jsx` — /customers/:id
+  - Profile card with avatar, contact actions, WhatsApp
+  - Activity timeline with type icons (enquiry/appointment/order/note/call/whatsapp/visit)
+  - Notes tab: add/pin/delete notes
+  - Linked enquiries tab
+  - Linked orders tab
+  - Log Activity modal (call/email/whatsapp/visit/note)
+- `CustomersPage.jsx` — added "View Full Profile & Timeline" button
+- Sidebar: CRM & Leads added to Commerce section
+
+### Orders
+- Order confirmation email fires when status → confirmed
+- PATCH /:id/status now wired to emailService
 
 ---
 
 ## 📦 Module Status
 
-| Module | Backend | Admin UI | Storefront | Notes |
-|--------|---------|----------|------------|-------|
-| Auth & Users | ✅ Complete | ✅ | — | reset-password now works |
-| Products CRUD | ✅ | ✅ | ✅ | |
-| Jewellery Specs | ✅ | ✅ | — | 5-tab form |
-| Diamonds | ✅ | ✅ | ✅ | |
-| Gemstones | ✅ | ✅ | — | |
-| Pearls | ✅ | ✅ | — | |
-| Mountings | ✅ | ✅ | — | |
-| Categories | ✅ | ✅ | ✅ | |
-| Collections | ✅ | ✅ | ✅ | |
-| Inventory | ✅ | ✅ | — | |
-| Marketing/Banners | ✅ | ✅ | ✅ | |
-| Enquiries CRM | ✅ | ✅ | — | WhatsApp link |
-| Appointments | ✅ | ✅ | ✅ | Cartier-style modal |
-| Store Locations | ✅ | ✅ | ✅ | |
-| Trust Badges | ✅ | ✅ | ✅ | |
-| Orders | ✅ | ✅ | — | |
-| Customers | ✅ | ✅ | — | |
-| Custom Orders | ✅ | ✅ | — | |
-| Blog | ✅ | ✅ | — | |
-| Page Builder | ✅ | ✅ | ✅ | GrapesJS, UUID fix applied |
-| Media Library | ✅ | ✅ | — | Cloudinary |
-| Menus | ✅ | ✅ | ✅ | |
-| Themes | ✅ | ✅ | ✅ | |
-| Settings | ✅ | ✅ | — | |
-| Feature Flags | ✅ | ✅ | — | |
-| Gold Rates | ✅ | ✅ | ✅ | |
-| RapNet | ✅ | ✅ | — | live proxy only |
-| ERP Integration | ✅ | ✅ | — | |
-| Exhibitions | ✅ | ✅ | ✅ | |
-| Import Engine | ✅ | ✅ | — | |
-| Audit Log | ✅ | ✅ | — | |
-| Workforce | ✅ | ✅ | — | |
-| Payments | ✅ | ✅ | — | |
-| Notifications | ✅ | — | — | schema only |
-| Plugins | ✅ | ✅ | — | |
-| Webhooks | ✅ | ✅ | — | |
-| Certificate Verify | ✅ | — | ✅ | |
+| Module | Backend | Admin UI | Storefront |
+|--------|---------|----------|------------|
+| Auth & Users | ✅ | ✅ | — |
+| Products | ✅ | ✅ | ✅ |
+| Jewellery Specs | ✅ | ✅ | ✅ |
+| Diamonds | ✅ | ✅ | ✅ |
+| Gemstones | ✅ | ✅ | — |
+| Pearls | ✅ | ✅ | — |
+| Mountings | ✅ | ✅ | — |
+| Categories | ✅ | ✅ | ✅ |
+| Collections | ✅ | ✅ | ✅ |
+| Inventory | ✅ | ✅ | — |
+| Marketing | ✅ | ✅ | ✅ |
+| **CRM & Leads** | ✅ | ✅ | — |
+| **Customer Timeline** | ✅ | ✅ | — |
+| **Customer Notes** | ✅ | ✅ | — |
+| Enquiries | ✅ | ✅ | — |
+| Appointments | ✅ | ✅ | ✅ |
+| Orders | ✅ | ✅ | — |
+| Custom Orders | ✅ | ✅ | — |
+| Blog | ✅ | ✅ | ✅ |
+| **Pages Admin** | ✅ | ✅ | ✅ |
+| **SEO & Redirects** | ✅ | ✅ | — |
+| **Email Service** | ✅ | — | — |
+| Media Library | ✅ | ✅ | — |
+| Menus | ✅ | ✅ | ✅ |
+| Themes | ✅ | ✅ | ✅ |
+| Settings | ✅ | ✅ | — |
+| Feature Flags | ✅ | ✅ | — |
+| Gold Rates | ✅ | ✅ | ✅ |
+| RapNet | ✅ | ✅ | — |
+| ERP Integration | ✅ | ✅ | — |
+| Exhibitions | ✅ | ✅ | ✅ |
+| Import Engine | ✅ | ✅ | — |
+| Audit Log | ✅ | ✅ | — |
+| Workforce | ✅ | ✅ | — |
+| Payments | ✅ | ✅ | — |
+| Plugins | ✅ | ✅ | — |
+| Webhooks | ✅ | ✅ | — |
 
 ---
 
-## 🔜 Phase 1 — Core CMS Completion (Next Session)
+## 🔜 Phase 3 — Next Session
 
-### Priority Tasks
+Priority order:
 
-1. **SEO Module — missing endpoints**
-   - `GET /api/seo/audit/:slug` — page-level SEO score
-   - `POST /api/seo/redirect` — redirect manager (301/302)
-   - Auto-generate `robots.txt` from settings
-   - Sitemap already exists — add to migration guarantee
-
-2. **Media Library Admin UI**
-   - Grid/list view with search + filter by type
-   - Folder management
-   - Bulk delete
-   - Copy URL button
-
-3. **Blog Module Storefront**
-   - Blog listing page with category filter
-   - Blog detail page
-   - Related posts widget
-
-4. **Email Service (SMTP)**
-   - Wire nodemailer to `forgot-password` flow (token is stored, email not sent yet)
-   - Template: password-reset.html
-   - Template: welcome.html
-
-5. **Admin: Publish / Status Controls**
-   - Wire the new `PATCH /:slug/publish` endpoint in `PageBuilderPage.jsx`
-   - Add status badge to pages list
+1. **Storefront: Orders** — customer-facing order tracking page (/account/orders)
+2. **Storefront: Wishlist** — fully functional wishlist page with localStorage sync + API
+3. **Media Library Admin** — folder management, bulk delete, drag-to-upload improvements
+4. **Dashboard** — wire CRM stats widget into main dashboard
+5. **Booking flow** — storefront appointment form auto-creates CRM activity
+6. **Reports** — basic revenue report + CSV export
 
 ---
 
-## 🔜 Phase 2 — E-Commerce & CRM (After Phase 1)
-
-- Storefront: Product detail page with full jewellery specs
-- Storefront: Cart → Checkout → Order confirmation
-- CRM: Lead pipeline (Kanban board)
-- CRM: Activity timeline per customer
-- Customer portal: Order history + tracking
-- Payment gateway: Stripe or Telr (UAE)
-
----
-
-## VM Commands
+## VM Deploy Commands
 
 ```bash
 cd /var/www/cms
 git pull origin main
-node scripts/migrate.js         # safe to re-run — all idempotent
+node scripts/migrate.js     # idempotent — safe to re-run
 pm2 restart jewellery-cms
 cd admin && npm run build
 ```
@@ -140,12 +154,10 @@ docker compose exec backend node scripts/migrate.js
 docker compose logs -f backend
 ```
 
----
-
 ## ⚠️ Required Before Production
 
-1. Set a real `JWT_SECRET` in `.env` (minimum 64 random chars)
-2. Configure `SMTP_*` vars for password reset emails to actually send
-3. Change `DB_PASS` from default `CmsPass@2026`
-4. Set `NODE_ENV=production`
-5. Configure `CLOUDINARY_*` for media uploads
+1. Set JWT_SECRET (min 64 random chars) in .env
+2. Configure SMTP_* for emails to actually send
+3. Change DB_PASS from default
+4. Set NODE_ENV=production
+5. Configure CLOUDINARY_* for media

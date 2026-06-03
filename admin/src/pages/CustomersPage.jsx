@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { customersAPI } from '../services/api';
 import { Users, Search, Download, Phone, Mail, ChevronLeft, ChevronRight, X, MessageCircle, Calendar } from 'lucide-react';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 export default function CustomersPage() {
   const { collapsed, toggleSidebar } = useOutletContext();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -155,6 +156,13 @@ export default function CustomersPage() {
                     <MessageCircle size={13} /> Enquiries
                   </button>
                 </div>
+
+                {/* View full profile */}
+                <button
+                  onClick={() => navigate(`/customers/${selected.id}`)}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors mb-3 font-medium">
+                  <ChevronRight size={13}/> View Full Profile & Timeline
+                </button>
 
                 {selected.notes && (
                   <div className="bg-ink-50 dark:bg-ink-800 rounded-lg p-3 text-xs text-ink-500">
