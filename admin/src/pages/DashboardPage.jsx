@@ -147,6 +147,84 @@ const QUICK_ACTIONS = [
 ];
 
 // ── MAIN DASHBOARD ────────────────────────────────────────────
+// ── CRM PIPELINE WIDGET ───────────────────────────────────────
+const PIPELINE_STAGES = [
+  { key:'new',       label:'New',       color:'#94a3b8' },
+  { key:'contacted', label:'Contacted', color:'#60a5fa' },
+  { key:'qualified', label:'Qualified', color:'#a78bfa' },
+  { key:'proposal',  label:'Proposal',  color:'#fbbf24' },
+  { key:'won',       label:'Won',       color:'#34d399' },
+  { key:'lost',      label:'Lost',      color:'#f87171' },
+];
+
+function CrmPipelineWidget() {
+  const navigate = useNavigate();
+  const [crmStats, setCrmStats] = useState(null);
+
+  useEffect(() => {
+    api.get('/crm/stats')
+      .then(r => setCrmStats(r.data.data))
+      .catch(() => {});
+  }, []);
+
+  if (!crmStats) return null;
+
+  const totalLeads = crmStats.total_leads || 1;
+  const openValue = Object.entries(crmStats.pipeline || {})
+    .filter(([k]) => !['won','lost'].includes(k))
+    .reduce((s, [, d]) => s + (d.value || 0), 0);
+
+  return (
+    <div className="card p-5">
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+        <div>
+          <p style={{ fontSize:13, fontWeight:700, color:'var(--color-text-primary)' }}>CRM Pipeline</p>
+          <p style={{ fontSize:11, color:'var(--color-text-tertiary)', marginTop:2 }}>
+            {crmStats.open_leads} open · AED {(openValue||0).toLocaleString()} pipeline value
+          </p>
+        </div>
+        <button onClick={() => navigate('/crm')}
+          style={{ fontSize:11, color:'#b8860b', background:'transparent', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+          Manage <ChevronRight size={11}/>
+        </button>
+      </div>
+
+      <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:64 }}>
+        {PIPELINE_STAGES.map(stage => {
+          const data = crmStats.pipeline?.[stage.key] || { count: 0 };
+          const pct = Math.round(((data.count||0) / totalLeads) * 100);
+          return (
+            <div key={stage.key} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+              <span style={{ fontSize:9, fontWeight:700, color:'var(--color-text-secondary)' }}>{data.count||0}</span>
+              <div style={{ width:'100%', height: Math.max((pct/100)*50, data.count>0?8:0), background:stage.color, borderRadius:'3px 3px 0 0', opacity: stage.key==='lost'?0.6:1, transition:'height .4s ease' }}/>
+              <span style={{ fontSize:8, color:'var(--color-text-tertiary)', textAlign:'center', whiteSpace:'nowrap' }}>{stage.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {crmStats.recent_activities?.length > 0 && (
+        <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid var(--color-border-tertiary)' }}>
+          <p style={{ fontSize:10, fontWeight:600, color:'var(--color-text-tertiary)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:10 }}>Recent CRM Activity</p>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {crmStats.recent_activities.slice(0,3).map((a,i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontSize:14 }}>
+                  {a.type==='note'?'📝':a.type==='enquiry'?'💬':a.type==='appointment'?'📅':'🔔'}
+                </span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:11, color:'var(--color-text-secondary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.title}</p>
+                  {a.customer_name && <p style={{ fontSize:10, color:'var(--color-text-tertiary)' }}>{a.customer_name}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { collapsed } = useOutletContext()||{};
   const { user }      = useAuth();
@@ -356,6 +434,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* CRM Pipeline Widget */}
+        <CrmPipelineWidget/>
 
       </div>
     </>

@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, Heart, Calendar, MessageSquare, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { User, Heart, Calendar, MessageSquare, Settings, LogOut, ChevronRight, ShoppingBag } from 'lucide-react';
 
 const NAV = [
   { href:'/account',             icon:User,         label:'My Profile' },
+  { href:'/account/orders',      icon:ShoppingBag,  label:'My Orders' },
   { href:'/account/wishlist',    icon:Heart,        label:'Wishlist' },
   { href:'/account/appointments',icon:Calendar,     label:'Appointments' },
   { href:'/account/enquiries',   icon:MessageSquare,label:'Enquiries' },
