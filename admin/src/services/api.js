@@ -297,3 +297,42 @@ export const blogAPI = {
   update: (id,d) => api.patch(`/blog/${id}`, d),
   delete: (id)   => api.delete(`/blog/${id}`),
 };
+
+// ─── PAGES ────────────────────────────────────────────────────
+export const pagesAPI = {
+  list:      ()           => api.get('/pages'),
+  get:       (slug)       => api.get(`/pages/${slug}`),
+  save:      (slug, d)    => api.put(`/pages/${slug}`, d),
+  publish:   (slug, s)    => api.patch(`/pages/${slug}/publish`, { status: s }),
+  create:    (d)          => api.post('/pages', d),
+  delete:    (slug)       => api.delete(`/pages/${slug}`),
+};
+
+// ─── MEDIA ────────────────────────────────────────────────────
+export const mediaAPI = {
+  list:      (p)          => api.get('/media', { params: p }),
+  upload:    (fd, onProg) => api.post('/media/upload', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: onProg,
+  }),
+  delete:    (id)         => api.delete(`/media/${id}`),
+  update:    (id, d)      => api.patch(`/media/${id}`, d),
+  folders:   ()           => api.get('/media/folders'),
+};
+
+// ─── SEO ──────────────────────────────────────────────────────
+export const seoAPI = {
+  // Redirects
+  redirects:      (p)         => api.get('/seo/redirects', { params: p }),
+  createRedirect: (d)         => api.post('/seo/redirects', d),
+  updateRedirect: (id, d)     => api.patch(`/seo/redirects/${id}`, d),
+  deleteRedirect: (id)        => api.delete(`/seo/redirects/${id}`),
+  // Audit
+  audit:          (type, slug)=> api.get(`/seo/audit/${type}/${slug}`),
+  // Robots
+  getRobots:      ()          => fetch('/api/seo/robots.txt').then(r => r.text()),
+  saveRobots:     (content)   => api.put('/seo/robots', { content }),
+  // Email
+  smtpStatus:     ()          => api.get('/seo/smtp-status'),
+  testEmail:      (to)        => api.post('/seo/test-email', { to }),
+};

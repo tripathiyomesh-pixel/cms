@@ -175,9 +175,11 @@ router.post('/forgot-password', async (req, res) => {
       [user.id, token, expires]
     );
 
-    // TODO: Send email via SMTP (nodemailer) — token is ready in DB
-    // The reset URL would be: ${process.env.FRONTEND_URL}/reset-password?token=${token}
-    console.info(`[auth/forgot-password] Reset token generated for user ${user.id}`);
+    // Send reset email (non-blocking — never fail the request if email fails)
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+    const emailService = require('../../services/email.service');
+    emailService.sendPasswordReset({ to: email.toLowerCase().trim(), resetUrl })
+      .catch(e => console.error('[auth/forgot-password] Email send failed:', e.message));
 
     return ok(res, null, 'If that email exists, a reset link has been sent');
   } catch (e) {

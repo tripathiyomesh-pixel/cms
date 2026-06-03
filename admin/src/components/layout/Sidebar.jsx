@@ -7,7 +7,7 @@ import {
   Circle, Star, MapPin, Upload, BookOpen, Megaphone,
   Settings, ChevronDown, ChevronUp, DollarSign, Zap,
   Paintbrush, Layout, LayoutList, Square, Globe, Briefcase,
-  HelpCircle, Activity,
+  HelpCircle, Activity, Search, FileText,
 } from 'lucide-react';
 
 // ── NAVIGATION DEFINITION ─────────────────────────────────────
@@ -55,9 +55,11 @@ const NAV_SECTIONS = [
   {
     label: 'Website Builder',
     items: [
+      { to:'/pages',           icon:FileText,        text:'Pages',            capability:'builder.view' },
       { to:'/menu-builder',    icon:LayoutList,      text:'Menu builder',     capability:'builder.view' },
-      { to:'/page-builder',    icon:Square,          text:'Custom pages',     capability:'builder.view' },
+      { to:'/page-builder',    icon:Square,          text:'Page builder',     capability:'builder.view' },
       { to:'/frontend-settings',icon:Globe,          text:'Frontend settings',capability:'settings.view' },
+      { to:'/seo',             icon:Search,          text:'SEO & Email',      capability:'settings.view' },
     ],
   },
   {

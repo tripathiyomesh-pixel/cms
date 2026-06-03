@@ -67,8 +67,35 @@ router.patch('/:id', authenticate, authorize(['super_admin','admin','manager']),
     const { status, notes } = req.body;
     await db.query('UPDATE appointments SET status=COALESCE($1,status),notes=COALESCE($2,notes),updated_at=NOW() WHERE id=$3',
       [status||null, notes||null, req.params.id]);
-    res.json({ success:true, message:'Updated' });
-  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+
+    // Send confirmation email when status changes to 'confirmed'
+    if (status === 'confirmed') {
+      const [[appt]] = await db.query(
+        `SELECT a.*, sl.name as location_name
+         FROM appointments a
+         LEFT JOIN store_locations sl ON sl.id = a.location_id
+         WHERE a.id = $1 LIMIT 1`,
+        [req.params.id]
+      ).catch(() => [[]]);
+
+      if (appt?.customer_email) {
+        const emailService = require('../../services/email.service');
+        emailService.sendAppointmentConfirmation({
+          to:         appt.customer_email,
+          name:       appt.customer_name || 'Valued Customer',
+          bookingRef: appt.booking_ref || appt.id?.slice(0, 8).toUpperCase(),
+          date:       appt.preferred_date
+            ? new Date(appt.preferred_date).toLocaleDateString('en-AE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+            : '—',
+          time:       appt.preferred_time || '—',
+          location:   appt.location_name || 'Our Boutique',
+          purpose:    appt.purpose || 'Jewellery consultation',
+        }).catch(e => console.error('[appointments] Email send failed:', e.message));
+      }
+    }
+
+    res.json({ success: true, message: 'Updated' });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
 module.exports = router;

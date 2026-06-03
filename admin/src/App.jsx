@@ -1,4 +1,6 @@
 import UserGuidePage from './pages/UserGuidePage';
+import SeoPage from './pages/SeoPage';
+import PagesAdminPage from './pages/PagesAdminPage';
 import GoldRatePage from './pages/GoldRatePage';
 import WorkforcePage from './pages/WorkforcePage';
 import MenuBuilderPage from './pages/MenuBuilderPage';
@@ -124,6 +126,8 @@ function AppRoutes() {
         <Route path="pearls/:id"                 element={<PearlFormPage />} />
         <Route path="import"                     element={<ImportEnginePage />} />
         <Route path="blog"                       element={<BlogPage />} />
+        <Route path="seo"                        element={<SeoPage />} />
+        <Route path="pages"                      element={<PagesAdminPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

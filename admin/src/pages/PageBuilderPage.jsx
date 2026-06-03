@@ -317,12 +317,20 @@ export default function PageBuilderPage() {
     setMsg('');
     try {
       const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Always save content first
       await axios.put(`${API}/pages/${active.slug}`, {
         html:        gjs.getHtml(),
         css:         gjs.getCss(),
         grapes_data: gjs.getProjectData(),
-        status:      publish ? 'published' : undefined,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers });
+
+      // Then change status via dedicated endpoint (bug fix: was sending status in PUT)
+      if (publish) {
+        await axios.patch(`${API}/pages/${active.slug}/publish`, { status: 'published' }, { headers });
+      }
+
       setMsg(publish ? '✓ Published' : '✓ Saved');
       setTimeout(() => setMsg(''), 3000);
     } catch (e) {
