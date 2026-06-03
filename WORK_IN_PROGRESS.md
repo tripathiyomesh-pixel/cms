@@ -1,155 +1,151 @@
-# CMS Build — Work In Progress
+# VANTIX CMS — Work In Progress
 
-**Last updated:** 2026-05-16
-**Phase:** Phase 1 — Jewellery plugin (single-vendor)
-**Last completed step:** Jewellery specs, certifications, multi-image, enquiries, appointments, locations, trust badges, WhatsApp link generator
-
-## What was built this session
-
-### Backend (Node.js + Express + MySQL)
-- `src/database/migrations/004_jewellery_specs.js` — 10 new tables
-- `src/modules/jewellery/jewellery.routes.js` — 25 API endpoints
-- Registered on `/api/jewellery/*` in server.js
-
-### New MySQL tables
-| Table | Purpose |
-|-------|---------|
-| product_jewellery_specs | Metal, purity, weight, diamond 4Cs, gemstone |
-| product_certifications | IGI/GIA/SGL certs with PDF upload |
-| product_images | Multi-image gallery replacing single image_url |
-| metal_rates | Live/manual gold rate cache |
-| enquiries | WhatsApp + form leads per product |
-| wishlists | Anonymous wishlist (localStorage-compatible) |
-| trust_badges | Admin-configurable badges per store |
-| content_pages | Education hub pages (buying guide, 4Cs) |
-| appointments | Showroom booking system |
-| store_locations | Multi-showroom with maps |
-
-### Admin UI (React)
-- `admin/src/pages/JewellerySpecsForm.jsx` — 5-tab specs editor (Metal, Certs, Images, Pricing, Details)
-- `admin/src/pages/EnquiriesPage.jsx` — Enquiry CRM with status tracking + WhatsApp quick reply
-- `admin/src/services/api.js` — jewelleryAPI with 20 methods added
-
-### Key features
-- Live gold rate pricing preview (weight × rate + making charges)
-- One-click WhatsApp reply link from enquiry panel
-- Certificate PDF upload + download
-- Multi-image gallery with primary image selection
-- Diamond 4Cs fields (cut, color, clarity, carat, shape)
-- Ring size range configuration
-- Occasion multi-select (bridal, daily, gifting, etc.)
-
-## Blockers
-- Cloudinary must be configured for image/cert uploads (.env keys needed)
-- Live gold rate API integration pending (goldapi.io or metals-api.com)
-
-## Next 3 Tasks
-1. Run migration: `node src/database/migrations/004_jewellery_specs.js`
-2. Wire "Jewellery Specs" button on product list → `/jewellery-specs/:id`
-3. Build storefront product detail page (Next.js) with WhatsApp enquiry
-
-## VM Commands
-```bash
-cd /var/www/cms
-git pull origin main
-node src/database/migrations/004_jewellery_specs.js
-pm2 restart jewellery-cms
-cd admin && npm run dev -- --host 0.0.0.0
-```
-
-## Modules Status
-- [x] Auth & Users
-- [x] Products CRUD
-- [x] Categories + Collections
-- [x] Inventory
-- [x] Marketing / Banners
-- [x] Plugin system
-- [x] Webhook system
-- [x] Menus + Themes
-- [x] **Jewellery specs + certifications** ← NEW
-- [x] **Multi-image gallery** ← NEW
-- [x] **Enquiries CRM** ← NEW
-- [x] **Appointments booking** ← NEW
-- [x] **Store locations** ← NEW
-- [x] **Trust badges** ← NEW
-- [ ] Media library (admin UI)
-- [ ] Page builder (admin UI)
-- [ ] Storefront (Next.js Phase 2)
+**Last updated:** 2026-06-03
+**Phase:** Bug Fix Session → Phase 1 Core CMS Completion
+**Stack:** Node.js + Express + PostgreSQL 16 + Redis · Admin: React/Vite · Storefront: Next.js
 
 ---
 
-## Session 2 additions (2026-05-16) — Cartier-style boutique appointments
+## ✅ Bug Fixes Applied (2026-06-03)
 
-### New files
-- `src/modules/jewellery/appointments.routes.js` — dedicated appointment API
-- `src/database/migrations/005_appointments_upgrade.js` — upgraded schema
-- `admin/src/pages/AppointmentBookingModal.jsx` — 5-step booking modal (Cartier-style)
-- `admin/src/pages/AppointmentsAdminPage.jsx` — admin CRM for appointments
+All bugs identified in the Analysis Report have been resolved.
 
-### Booking modal steps
-1. Purpose selector (Product discovery, Engagement ring, Bridal, Gifting, Resize/repair, Valuation)
-2. Boutique / location picker
-3. Date picker + available time slots (real-time from API, respects max bookings per slot)
-4. Customer details (name, phone, email, party size, special requests)
-5. Summary + confirm
-6. Confirmation screen with booking ref + WhatsApp confirm button
+### Critical Fixes
 
-### Admin appointments page
-- Today's stats (total, confirmed, pending)
-- Upcoming confirmed strip
-- Filter by status + date
-- Detail panel with WhatsApp confirm link
-- One-click status update
+| # | File | Bug | Fix |
+|---|------|-----|-----|
+| 1 | `src/config/db.pool.js` | No env var fallbacks — crashed if `.env` missing | Added safe fallbacks matching `database.js` |
+| 2 | `src/modules/auth/auth.routes.js` | Hardcoded `JWT_SECRET` fallback was different string to `auth.guard.js` — tokens could silently fail verification | Single resolved constant; warns loudly if unset |
+| 3 | `src/common/guards/auth.guard.js` | Used raw `process.env.JWT_SECRET` (no fallback) — split-brain with auth.routes.js | Now imports same constant from auth.routes.js |
+| 4 | `src/modules/auth/auth.routes.js` | Missing `POST /api/auth/reset-password` endpoint — forgot-password stored tokens with no way to consume them | Full endpoint added: validates token, checks expiry, updates password, deletes token (one-time use) |
+| 5 | `src/modules/auth/auth.routes.js` | Missing `POST /api/auth/refresh-token` — no way to renew tokens without re-login | Added endpoint using existing `authenticate` guard |
+| 6 | `src/modules/auth/auth.routes.js` | `register()` accepted any `role` value — could create `super_admin` via public API | Now restricts to `['editor', 'viewer']` |
+| 7 | `src/modules/customer_portal/customer_portal.routes.js` | Hardcoded different JWT secret string — customer tokens could not be verified consistently | Now imports shared constant |
+| 8 | `src/modules/pages/pages.routes.js` | `id` column was `SERIAL` (integer) — inconsistent with every other table (UUID) | Migrated to `UUID DEFAULT gen_random_uuid()` |
+| 9 | `src/modules/pages/pages.routes.js` | No `PATCH /publish` endpoint — builder had no way to change page status without resaving full HTML | Added `PATCH /:slug/publish` |
+| 10 | `src/modules/pages/pages.routes.js` | DELETE had no role guard — any editor could delete pages | Added `authorize(['admin', 'super_admin'])` |
+| 11 | `scripts/migrate.js` | `password_resets` table only created in migration 020 — skipping it caused crashes | Now guaranteed right after `users` table |
 
-### VM commands
-```bash
-cd /var/www/cms
-git pull origin main
-node src/database/migrations/005_appointments_upgrade.js
-pm2 restart jewellery-cms
-cd admin && npm run dev -- --host 0.0.0.0
-```
+### Code Quality Fixes
 
----
-
-## Session 3 (2026-05-16) — Migrated from MySQL to PostgreSQL
-
-### Why switched
-- Vantix ERP already uses PostgreSQL 16
-- Single DB engine for both products (simpler ops, shared server)
-- Better JSON/JSONB support for jewellery specs
-- Row-level security for future multi-tenant needs
-
-### Files changed
 | File | Change |
 |------|--------|
-| `src/config/database.js` | dialect: mysql → postgres, port 3306 → 5432 |
-| `src/config/db.pool.js` | NEW — pg Pool wrapper with mysql2-compatible API |
-| `package.json` | mysql2 removed, pg + pg-hstore added |
-| `src/database/migrations/004_jewellery_specs.js` | Full rewrite — PostgreSQL syntax |
-| `src/database/migrations/005_appointments_upgrade.js` | Full rewrite — PostgreSQL syntax |
-| `src/modules/jewellery/jewellery.routes.js` | Updated to use db.pool.js + RETURNING id |
-| `src/modules/jewellery/appointments.routes.js` | Updated to use db.pool.js |
-| `.env.example` | DB_PORT=5432, DB_SSL=false added |
-| `setup.sh` | Rewritten for PostgreSQL |
+| `src/common/slug.util.js` | **NEW** — centralised `makeSlug()` + `makeUniqueSlug()`. Eliminates duplication across products, categories, collections, menus. |
+| `.env.example` | Comprehensive documentation, security warnings, all vars listed |
 
-### Migrations 001, 002, 003
-These use Sequelize DataTypes — no changes needed, Sequelize handles MySQL→PG automatically
+---
 
-### VM setup commands (PostgreSQL)
+## 📦 Module Status
+
+| Module | Backend | Admin UI | Storefront | Notes |
+|--------|---------|----------|------------|-------|
+| Auth & Users | ✅ Complete | ✅ | — | reset-password now works |
+| Products CRUD | ✅ | ✅ | ✅ | |
+| Jewellery Specs | ✅ | ✅ | — | 5-tab form |
+| Diamonds | ✅ | ✅ | ✅ | |
+| Gemstones | ✅ | ✅ | — | |
+| Pearls | ✅ | ✅ | — | |
+| Mountings | ✅ | ✅ | — | |
+| Categories | ✅ | ✅ | ✅ | |
+| Collections | ✅ | ✅ | ✅ | |
+| Inventory | ✅ | ✅ | — | |
+| Marketing/Banners | ✅ | ✅ | ✅ | |
+| Enquiries CRM | ✅ | ✅ | — | WhatsApp link |
+| Appointments | ✅ | ✅ | ✅ | Cartier-style modal |
+| Store Locations | ✅ | ✅ | ✅ | |
+| Trust Badges | ✅ | ✅ | ✅ | |
+| Orders | ✅ | ✅ | — | |
+| Customers | ✅ | ✅ | — | |
+| Custom Orders | ✅ | ✅ | — | |
+| Blog | ✅ | ✅ | — | |
+| Page Builder | ✅ | ✅ | ✅ | GrapesJS, UUID fix applied |
+| Media Library | ✅ | ✅ | — | Cloudinary |
+| Menus | ✅ | ✅ | ✅ | |
+| Themes | ✅ | ✅ | ✅ | |
+| Settings | ✅ | ✅ | — | |
+| Feature Flags | ✅ | ✅ | — | |
+| Gold Rates | ✅ | ✅ | ✅ | |
+| RapNet | ✅ | ✅ | — | live proxy only |
+| ERP Integration | ✅ | ✅ | — | |
+| Exhibitions | ✅ | ✅ | ✅ | |
+| Import Engine | ✅ | ✅ | — | |
+| Audit Log | ✅ | ✅ | — | |
+| Workforce | ✅ | ✅ | — | |
+| Payments | ✅ | ✅ | — | |
+| Notifications | ✅ | — | — | schema only |
+| Plugins | ✅ | ✅ | — | |
+| Webhooks | ✅ | ✅ | — | |
+| Certificate Verify | ✅ | — | ✅ | |
+
+---
+
+## 🔜 Phase 1 — Core CMS Completion (Next Session)
+
+### Priority Tasks
+
+1. **SEO Module — missing endpoints**
+   - `GET /api/seo/audit/:slug` — page-level SEO score
+   - `POST /api/seo/redirect` — redirect manager (301/302)
+   - Auto-generate `robots.txt` from settings
+   - Sitemap already exists — add to migration guarantee
+
+2. **Media Library Admin UI**
+   - Grid/list view with search + filter by type
+   - Folder management
+   - Bulk delete
+   - Copy URL button
+
+3. **Blog Module Storefront**
+   - Blog listing page with category filter
+   - Blog detail page
+   - Related posts widget
+
+4. **Email Service (SMTP)**
+   - Wire nodemailer to `forgot-password` flow (token is stored, email not sent yet)
+   - Template: password-reset.html
+   - Template: welcome.html
+
+5. **Admin: Publish / Status Controls**
+   - Wire the new `PATCH /:slug/publish` endpoint in `PageBuilderPage.jsx`
+   - Add status badge to pages list
+
+---
+
+## 🔜 Phase 2 — E-Commerce & CRM (After Phase 1)
+
+- Storefront: Product detail page with full jewellery specs
+- Storefront: Cart → Checkout → Order confirmation
+- CRM: Lead pipeline (Kanban board)
+- CRM: Activity timeline per customer
+- Customer portal: Order history + tracking
+- Payment gateway: Stripe or Telr (UAE)
+
+---
+
+## VM Commands
+
 ```bash
-# Install PostgreSQL instead of MySQL
-sudo apt install -y postgresql postgresql-contrib
-
-# Create DB and user
-sudo -u postgres psql -c "CREATE USER cmsuser WITH PASSWORD 'CmsPass@2026';"
-sudo -u postgres psql -c "CREATE DATABASE jewellery_cms OWNER cmsuser;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE jewellery_cms TO cmsuser;"
-
-# Clone and setup
 cd /var/www/cms
-npm install
-cp .env.example .env
-# edit .env with your values
-bash setup.sh
+git pull origin main
+node scripts/migrate.js         # safe to re-run — all idempotent
+pm2 restart jewellery-cms
+cd admin && npm run build
 ```
+
+## Docker Commands
+
+```bash
+docker compose up -d
+docker compose exec backend node scripts/migrate.js
+docker compose logs -f backend
+```
+
+---
+
+## ⚠️ Required Before Production
+
+1. Set a real `JWT_SECRET` in `.env` (minimum 64 random chars)
+2. Configure `SMTP_*` vars for password reset emails to actually send
+3. Change `DB_PASS` from default `CmsPass@2026`
+4. Set `NODE_ENV=production`
+5. Configure `CLOUDINARY_*` for media uploads
