@@ -4,7 +4,11 @@ const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
 
-const { JWT_SECRET } = require('../../modules/auth/auth.routes');
+if (!process.env.CUSTOMER_JWT_SECRET && !process.env.JWT_SECRET) {
+  console.error('FATAL: CUSTOMER_JWT_SECRET env var not set');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET;
 
 // ── AUTH MIDDLEWARE (customer, not workforce) ─────────────────
 const customerAuth = async (req, res, next) => {
@@ -55,7 +59,7 @@ router.post('/login', async (req, res) => {
 
     await db.query('UPDATE customer_accounts SET last_login=NOW() WHERE id=$1', [account.id]);
 
-    const token = jwt.sign({ id:account.id, email:account.email, type:'customer' }, JWT_SECRET + '_customer', { expiresIn:'30d' });
+    const token = jwt.sign({ id:account.id, email:account.email, type:'customer' }, JWT_SECRET + '_customer', { expiresIn:'7d' });
 
     res.json({
       success: true,
@@ -132,7 +136,7 @@ router.get('/appointments', customerAuth, async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT id, appointment_date, appointment_time, type, status, notes, branch, created_at
-       FROM appointments WHERE customer_email=$1 ORDER BY appointment_date DESC LIMIT 20`,
+       FROM appointments WHERE (customer_account_id=$1 OR customer_email=$2) ORDER BY appointment_date DESC LIMIT 20`,
       [req.customer.email]
     );
     res.json({ success:true, data:rows });
