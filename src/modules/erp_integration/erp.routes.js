@@ -77,6 +77,17 @@ router.post('/webhook', require('express').raw({ type: '*/*' }), async (req, res
       await logSync('webhook', 'inbound', 'failed', req.body, null, 'Invalid signature');
       return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
     }
+
+  // Replay protection — deduplicate event IDs within 5 minutes
+  const eventId = req.headers['x-event-id'] || req.headers['x-webhook-id'] || '';
+  if (eventId) {
+    const [dup] = await db.query(
+      "SELECT id FROM erp_sync_log WHERE event_id=$1 AND created_at > NOW()-INTERVAL '5 minutes' LIMIT 1",
+      [eventId]
+    ).catch(() => [[]]);
+    if (dup.length) return res.status(200).json({ success:true, message:'Duplicate event ignored' });
+  }
+
   }
 
   const { event, data } = req.body;
