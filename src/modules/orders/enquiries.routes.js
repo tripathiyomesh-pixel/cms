@@ -3,7 +3,17 @@
  * Public POST captures product enquiry → syncs CRM lead + logs activity
  * Admin GET/PATCH manages enquiry list
  */
-const express  = require('express');
+const express   = require('express');
+const rateLimit = require('express-rate-limit');
+
+const enquiryLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max: 10,
+  keyGenerator: (req) => req.ip,
+  message: { success:false, message:'Too many enquiries from this IP, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders:   false,
+});
 const router   = express.Router();
 const db       = require('../../config/db.pool');
 const { pool } = require('../../config/database');
@@ -74,7 +84,7 @@ function buildWhatsAppUrl({ phone, productName, sku, message }) {
 }
 
 // ─── POST / — Submit enquiry (public) ─────────────────────────
-router.post('/', async (req, res) => {
+router.post('/', enquiryLimiter, async (req, res) => {
   try {
     const {
       customer_name, customer_phone, customer_email,
