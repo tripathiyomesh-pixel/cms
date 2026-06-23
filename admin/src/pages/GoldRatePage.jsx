@@ -2,379 +2,258 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import api from '../services/api';
-import { RefreshCw, Save, TrendingUp, TrendingDown, Minus, History, Shield, Edit2, Check, X } from 'lucide-react';
+import {
+  RefreshCw, Save, TrendingUp, TrendingDown, Minus,
+  History, Shield, Edit2, Check, X, AlertCircle,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const CAPABILITIES = [
-  { group:'Dashboard',   caps:['dashboard.view'] },
-  { group:'Products',    caps:['products.view','products.create','products.edit','products.delete','products.publish'] },
-  { group:'Diamonds',    caps:['diamonds.view','diamonds.create','diamonds.edit','diamonds.delete'] },
-  { group:'Gemstones',   caps:['gemstones.view','gemstones.create','gemstones.edit','gemstones.delete'] },
-  { group:'Inventory',   caps:['inventory.view','inventory.manage','inventory.import'] },
-  { group:'Orders',      caps:['orders.view','orders.create','orders.manage','orders.approve'] },
-  { group:'Enquiries',   caps:['enquiries.view','enquiries.manage','enquiries.assign'] },
-  { group:'Appointments',caps:['appointments.view','appointments.create','appointments.manage'] },
-  { group:'Customers',   caps:['customers.view','customers.create','customers.edit','customers.delete'] },
-  { group:'Exhibitions', caps:['exhibitions.view','exhibitions.manage'] },
-  { group:'Marketing',   caps:['marketing.view','marketing.manage'] },
-  { group:'Blog',        caps:['blog.view','blog.manage'] },
-  { group:'Media',       caps:['media.view','media.manage'] },
-  { group:'Builder',     caps:['builder.view','builder.manage'] },
-  { group:'Settings',    caps:['settings.view','settings.manage'] },
-  { group:'Users',       caps:['users.view','users.manage','workforce.view','workforce.manage'] },
-  { group:'Reports',     caps:['reports.view','reports.export'] },
-  { group:'Suppliers',   caps:['suppliers.view','suppliers.manage'] },
-  { group:'ERP',         caps:['erp.view','erp.manage'] },
-  { group:'Payments',    caps:['payments.view','payments.manage'] },
-  { group:'Gold Rates',  caps:['gold_rates.view','gold_rates.manage'] },
+const KARATS = [
+  { key:'rate_24k', label:'24 Karat (Pure Gold)' },
+  { key:'rate_22k', label:'22 Karat' },
+  { key:'rate_21k', label:'21 Karat' },
+  { key:'rate_18k', label:'18 Karat' },
+  { key:'rate_14k', label:'14 Karat' },
 ];
 
-const ROLE_COLORS = {
-  super_admin:'purple', admin:'blue', boutique_manager:'amber',
-  sales_staff:'green', inventory_staff:'orange', marketing_staff:'pink',
-  crm_staff:'teal', accountant:'yellow', viewer:'gray',
-};
-
-const lbl = 'block text-[11px] font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-1.5';
-const inp = 'input-field text-sm';
-
-// ── GOLD RATE DISPLAY ─────────────────────────────────────────
-function GoldRateCard({ purity, rate, prev, label }) {
-  const change = prev ? rate - prev : 0;
+function GoldRateCard({ label, rate, prev }) {
+  const change = prev != null ? rate - prev : 0;
   const Icon = change > 0 ? TrendingUp : change < 0 ? TrendingDown : Minus;
   const changeColor = change > 0 ? 'text-green-600' : change < 0 ? 'text-red-500' : 'text-ink-400';
-
   return (
     <div className="card p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <p className="text-[10px] font-bold text-ink-400 uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-2xl font-bold text-ink-800 dark:text-ink-100">AED {rate?.toFixed(2)}</p>
-          <p className="text-[11px] text-ink-400 mt-0.5">per gram</p>
+      <p className="text-[10px] font-bold text-ink-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-2xl font-semibold text-ink-800 dark:text-ink-100 mb-1">
+        AED {rate ? parseFloat(rate).toLocaleString('en-AE', { minimumFractionDigits:2, maximumFractionDigits:2 }) : '—'}
+      </p>
+      {change !== 0 && (
+        <div className={`flex items-center gap-1 text-xs ${changeColor}`}>
+          <Icon size={11}/>
+          <span>{change > 0 ? '+' : ''}{change.toFixed(2)} vs prev</span>
         </div>
-        <div className={`flex items-center gap-1 ${changeColor}`}>
-          <Icon size={14}/>
-          <span className="text-xs font-semibold">{change > 0 ? '+' : ''}{change.toFixed(2)}</span>
-        </div>
-      </div>
-      <div className="h-0.5 rounded-full" style={{ background: `linear-gradient(to right, #b8860b, #d4a843)`, opacity: 0.4 }}/>
+      )}
     </div>
   );
 }
 
-// ── ROLE EDITOR ────────────────────────────────────────────────
-function RoleEditor({ role, onClose, onSaved }) {
-  const [caps, setCaps] = useState({ ...role.capabilities });
-  const [saving, setSaving] = useState(false);
-
-  const toggle = (cap) => setCaps(c => ({ ...c, [cap]: !c[cap] }));
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await api.put(`/gold-rates/roles/${role.role}`, { capabilities: caps });
-      toast.success(`${role.label} permissions updated`);
-      onSaved();
-      onClose();
-    } catch(e) { toast.error('Failed to save'); }
-    setSaving(false);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-ink-900 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ink-100 dark:border-ink-800">
-          <div>
-            <h3 className="text-base font-bold text-ink-700 dark:text-ink-200">Edit: {role.label}</h3>
-            <p className="text-xs text-ink-400">{role.description}</p>
-          </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><X size={16}/></button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
-          {CAPABILITIES.map(group => (
-            <div key={group.group}>
-              <p className="text-[10px] font-bold text-ink-400 uppercase tracking-widest mb-2">{group.group}</p>
-              <div className="flex flex-wrap gap-2">
-                {group.caps.map(cap => (
-                  <button key={cap} onClick={() => toggle(cap)}
-                    className={`text-[11px] px-3 py-1.5 rounded-full border font-medium transition-all ${caps[cap] ? 'bg-gold-500 border-gold-500 text-white' : 'border-ink-200 dark:border-ink-700 text-ink-500 hover:border-gold-300'}`}>
-                    {cap}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="px-6 py-4 border-t border-ink-100 dark:border-ink-800 flex gap-3">
-          <button onClick={onClose} className="btn-ghost flex-1 justify-center text-xs">Cancel</button>
-          <button onClick={save} disabled={saving} className="btn-gold flex-1 justify-center text-xs">
-            {saving ? 'Saving…' : 'Save permissions'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── MAIN PAGE ──────────────────────────────────────────────────
 export default function GoldRatePage() {
-  const { collapsed } = useOutletContext()||{};
-  const [tab,        setTab]        = useState('gold');
-  const [current,    setCurrent]    = useState(null);
-  const [history,    setHistory]    = useState([]);
-  const [roles,      setRoles]      = useState([]);
-  const [scraping,   setScraping]   = useState(false);
-  const [editRole,   setEditRole]   = useState(null);
-  const [manual,     setManual]     = useState({ rate_24k:'', rate_22k:'', rate_21k:'', rate_18k:'' });
+  const { collapsed } = useOutletContext() || {};
+  const [current,   setCurrent]   = useState(null);
+  const [history,   setHistory]   = useState([]);
+  const [scraping,  setScraping]  = useState(false);
+  const [saving,    setSaving]    = useState(false);
+  const [tab,       setTab]       = useState('current');
+  const [editMode,  setEditMode]  = useState(false);
+  const [form,      setForm]      = useState({ rate_24k:'', rate_22k:'', rate_21k:'', rate_18k:'', rate_14k:'' });
 
-  const loadGold = () => {
-    api.get('/gold-rates/current').then(r => {
-      setCurrent(r.data.data);
-      if (r.data.data) {
-        setManual({
-          rate_24k: r.data.data.rate_24k || '',
-          rate_22k: r.data.data.rate_22k || '',
-          rate_21k: r.data.data.rate_21k || '',
-          rate_18k: r.data.data.rate_18k || '',
-        });
-      }
-    }).catch(()=>{});
-    api.get('/gold-rates/history').then(r => setHistory(r.data.data||[])).catch(()=>{});
-  };
-
-  const loadRoles = () => {
-    api.get('/gold-rates/roles').then(r => setRoles(r.data.data||[])).catch(()=>{});
-  };
-
-  useEffect(() => { loadGold(); loadRoles(); }, []);
-
-  // Auto-derive lower karats from 24k
-  const handle24k = (v) => {
-    const r24 = parseFloat(v);
-    if (r24 > 0) {
-      setManual({
-        rate_24k: v,
-        rate_22k: (r24 * 22/24).toFixed(2),
-        rate_21k: (r24 * 21/24).toFixed(2),
-        rate_18k: (r24 * 18/24).toFixed(2),
-      });
-    } else {
-      setManual(m => ({ ...m, rate_24k: v }));
-    }
-  };
-
-  const saveManual = async () => {
-    if (!manual.rate_24k) return toast.error('Enter 24K rate');
+  const load = async () => {
     try {
-      await api.post('/gold-rates/manual', manual);
-      toast.success('Gold rate updated');
-      loadGold();
-    } catch { toast.error('Failed to save'); }
+      const r = await api.get('/gold-rates/current');
+      const d = r.data.data;
+      setCurrent(d);
+      if (d) setForm({
+        rate_24k: d.rate_24k || '',
+        rate_22k: d.rate_22k || '',
+        rate_21k: d.rate_21k || '',
+        rate_18k: d.rate_18k || '',
+        rate_14k: d.rate_14k || '',
+      });
+    } catch {}
   };
 
-  const scrapeNow = async () => {
+  const loadHistory = async () => {
+    try { const r = await api.get('/gold-rates/history'); setHistory(r.data.data || []); } catch {}
+  };
+
+  useEffect(() => { load(); loadHistory(); }, []);
+
+  const handleScrape = async () => {
     setScraping(true);
     try {
-      const res = await api.post('/gold-rates/scrape');
-      toast.success(`Fetched from ${res.data.data?.source || 'web'}`);
-      loadGold();
-    } catch(e) {
-      toast.error(e.response?.data?.message || 'Scraping failed — check internet');
-    }
+      await api.post('/gold-rates/scrape');
+      await load();
+      toast.success('Gold rates refreshed from market data');
+    } catch { toast.error('Scrape failed — enter manually'); }
     setScraping(false);
   };
 
-  const prev = history?.[1];
+  const handleManualSave = async () => {
+    if (!form.rate_24k) { toast.error('24K rate required'); return; }
+    setSaving(true);
+    try {
+      await api.post('/gold-rates/manual', form);
+      await load();
+      await loadHistory();
+      setEditMode(false);
+      toast.success('Gold rates updated');
+    } catch { toast.error('Save failed'); }
+    setSaving(false);
+  };
+
+  const autoCalc = (val24k) => {
+    const v = parseFloat(val24k);
+    if (!v) return;
+    setForm(f => ({
+      ...f,
+      rate_24k: val24k,
+      rate_22k: f.rate_22k || (v * 22/24).toFixed(2),
+      rate_21k: f.rate_21k || (v * 21/24).toFixed(2),
+      rate_18k: f.rate_18k || (v * 18/24).toFixed(2),
+      rate_14k: f.rate_14k || (v * 14/24).toFixed(2),
+    }));
+  };
+
+  const lbl = 'block text-[11px] font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-1.5';
+  const inp = 'input-field text-sm';
 
   return (
     <>
-      <Topbar title="Gold rates & permissions"
-        subtitle="Live Dubai gold rates + dynamic role permissions"
+      <Topbar
+        title="Gold rates"
+        subtitle={current ? `Last updated: ${new Date(current.fetched_at || current.created_at).toLocaleString('en-AE')}` : 'No rates loaded yet'}
         actions={
-          tab === 'gold' && (
-            <button onClick={scrapeNow} disabled={scraping}
+          <div className="flex items-center gap-2">
+            <button onClick={handleScrape} disabled={scraping}
               className="btn-ghost flex items-center gap-1.5 text-xs disabled:opacity-50">
               <RefreshCw size={13} className={scraping ? 'animate-spin' : ''}/>
-              {scraping ? 'Fetching…' : 'Fetch from web'}
+              {scraping ? 'Fetching…' : 'Refresh from market'}
             </button>
-          )
+            {!editMode ? (
+              <button onClick={() => setEditMode(true)} className="btn-gold flex items-center gap-1.5 text-xs">
+                <Edit2 size={13}/> Enter manually
+              </button>
+            ) : (
+              <>
+                <button onClick={() => setEditMode(false)} className="btn-ghost flex items-center gap-1.5 text-xs">
+                  <X size={13}/> Cancel
+                </button>
+                <button onClick={handleManualSave} disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs disabled:opacity-50">
+                  <Check size={13}/>{saving ? 'Saving…' : 'Save rates'}
+                </button>
+              </>
+            )}
+          </div>
         }
       />
 
-      {/* Tabs */}
-      <div className="flex border-b border-ink-200/60 dark:border-ink-800 px-6 bg-white dark:bg-ink-900 flex-shrink-0">
-        {[['gold','Gold Rates',TrendingUp],['roles','Role Permissions',Shield]].map(([id,label,Icon])=>(
-          <button key={id} onClick={()=>setTab(id)}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-all ${tab===id?'border-gold-500 text-gold-600':'border-transparent text-ink-400 hover:text-ink-600'}`}>
-            <Icon size={14}/>{label}
-          </button>
-        ))}
-      </div>
+      <div className="p-6 space-y-6">
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-ink-200/60 dark:border-ink-800">
+          {[['current','Current Rates'],['history','Rate History']].map(([k,l]) => (
+            <button key={k} onClick={() => setTab(k)}
+              className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-all ${tab===k?'border-gold-500 text-gold-600':'border-transparent text-ink-400 hover:text-ink-600'}`}>
+              {l}
+            </button>
+          ))}
+        </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-
-        {/* ── GOLD RATES TAB ─────────────────────────────────── */}
-        {tab === 'gold' && (
-          <div className="max-w-4xl space-y-6">
-            {/* Current rates */}
-            {current && (
-              <>
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">Current rates — AED per gram</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-ink-400">Source: {current.source}</span>
-                      <span className="text-[10px] text-ink-400">·</span>
-                      <span className="text-[10px] text-ink-400">{new Date(current.fetched_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai'})}</span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <GoldRateCard purity="24K" label="24 Karat (Pure)" rate={parseFloat(current.rate_24k)} prev={parseFloat(prev?.rate_24k||0)}/>
-                    <GoldRateCard purity="22K" label="22 Karat" rate={parseFloat(current.rate_22k)} prev={parseFloat(prev?.rate_22k||0)}/>
-                    <GoldRateCard purity="21K" label="21 Karat" rate={parseFloat(current.rate_21k)} prev={0}/>
-                    <GoldRateCard purity="18K" label="18 Karat" rate={parseFloat(current.rate_18k)} prev={parseFloat(prev?.rate_18k||0)}/>
-                  </div>
-                </div>
-
-                {/* Pricing formula display */}
-                <div className="card p-5 bg-gold-50 dark:bg-gold-900/10 border-gold-200 dark:border-gold-800">
-                  <p className="text-xs font-bold text-gold-700 dark:text-gold-400 mb-3 uppercase tracking-wide">How jewellery price is calculated</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div className="p-3 bg-white dark:bg-ink-800 rounded-xl">
-                      <p className="text-[10px] text-ink-400 mb-1">Gold value</p>
-                      <p className="text-sm font-bold text-ink-700 dark:text-ink-200">Weight × Rate</p>
-                      <p className="text-[11px] text-ink-400 mt-1">e.g. 10g × AED {parseFloat(current.rate_22k).toFixed(0)} = AED {(10*parseFloat(current.rate_22k)).toFixed(0)}</p>
-                    </div>
-                    <div className="flex items-center justify-center text-2xl text-ink-300">+</div>
-                    <div className="p-3 bg-white dark:bg-ink-800 rounded-xl">
-                      <p className="text-[10px] text-ink-400 mb-1">Making charge</p>
-                      <p className="text-sm font-bold text-ink-700 dark:text-ink-200">Gold value × Making%</p>
-                      <p className="text-[11px] text-ink-400 mt-1">e.g. 12% = AED {(10*parseFloat(current.rate_22k)*0.12).toFixed(0)}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 p-3 bg-gold-500/10 rounded-xl text-center">
-                    <p className="text-xs font-bold text-gold-700 dark:text-gold-400">
-                      Final price = AED {(10*parseFloat(current.rate_22k) + 10*parseFloat(current.rate_22k)*0.12).toFixed(0)} (10g 22K ring at 12% making charge)
-                    </p>
-                    <p className="text-[10px] text-gold-600 mt-1">Updates automatically when gold rate changes</p>
-                  </div>
-                </div>
-              </>
+        {tab === 'current' && (
+          <>
+            {/* Current rate cards */}
+            {current && !editMode && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {KARATS.map(k => (
+                  <GoldRateCard key={k.key} label={k.label} rate={current[k.key]} prev={null}/>
+                ))}
+              </div>
             )}
 
-            {/* Manual update */}
-            <div className="card p-5">
-              <p className={lbl + ' mb-4'}>Manual rate entry (AED per gram)</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className={lbl}>24K (Pure gold)</label>
-                  <input type="number" step="0.25" value={manual.rate_24k} onChange={e=>handle24k(e.target.value)} className={inp} placeholder="547.00"/>
-                  <p className="text-[10px] text-ink-400 mt-1">Others auto-calculate</p>
+            {/* Manual entry form */}
+            {editMode && (
+              <div className="card p-6 max-w-lg">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield size={14} className="text-gold-500"/>
+                  <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200">Manual Rate Entry</h3>
                 </div>
-                <div>
-                  <label className={lbl}>22K</label>
-                  <input type="number" step="0.25" value={manual.rate_22k} onChange={e=>setManual(m=>({...m,rate_22k:e.target.value}))} className={inp} placeholder="524.75"/>
+                <div className="space-y-3">
+                  <div>
+                    <label className={lbl}>24 Karat rate (AED/gram) *</label>
+                    <input type="number" step="0.01" value={form.rate_24k}
+                      onChange={e => autoCalc(e.target.value)}
+                      className={inp} placeholder="e.g. 315.00"/>
+                    <p className="text-[10px] text-ink-400 mt-1">Other karats auto-calculated from this value</p>
+                  </div>
+                  {KARATS.slice(1).map(k => (
+                    <div key={k.key}>
+                      <label className={lbl}>{k.label} (AED/gram)</label>
+                      <input type="number" step="0.01" value={form[k.key]}
+                        onChange={e => setForm(f => ({ ...f, [k.key]: e.target.value }))}
+                        className={inp} placeholder="Auto-calculated"/>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label className={lbl}>21K</label>
-                  <input type="number" step="0.25" value={manual.rate_21k} onChange={e=>setManual(m=>({...m,rate_21k:e.target.value}))} className={inp} placeholder="500.00"/>
-                </div>
-                <div>
-                  <label className={lbl}>18K</label>
-                  <input type="number" step="0.25" value={manual.rate_18k} onChange={e=>setManual(m=>({...m,rate_18k:e.target.value}))} className={inp} placeholder="410.25"/>
+                <div className="flex items-start gap-2 mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                  <AlertCircle size={13} className="text-amber-600 mt-0.5 flex-shrink-0"/>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                    Manual rates override scraped rates. They will be visible on the storefront immediately after saving.
+                  </p>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <button onClick={saveManual} className="btn-gold flex items-center gap-1.5 text-xs"><Save size={12}/> Save rate</button>
-                <button onClick={scrapeNow} disabled={scraping} className="btn-ghost flex items-center gap-1.5 text-xs disabled:opacity-50">
-                  <RefreshCw size={12} className={scraping?'animate-spin':''}/> Fetch from Dubai City of Gold
-                </button>
-              </div>
-            </div>
+            )}
 
-            {/* Rate history */}
-            {history.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-3 flex items-center gap-2"><History size={12}/> Rate history</p>
-                <div className="card overflow-hidden">
-                  <table className="w-full">
-                    <thead><tr className="border-b border-ink-100 dark:border-ink-800">
-                      {['Date & Time','24K','22K','18K','Source'].map(h=><th key={h} className="text-left text-[10px] font-bold text-ink-400 uppercase tracking-wider px-4 py-3">{h}</th>)}
-                    </tr></thead>
-                    <tbody className="divide-y divide-ink-50 dark:divide-ink-800">
-                      {history.slice(0,15).map(r=>(
-                        <tr key={r.id} className="hover:bg-ink-50 dark:hover:bg-ink-800/50">
-                          <td className="px-4 py-2.5 text-xs text-ink-500">{new Date(r.recorded_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai',hour12:true})}</td>
-                          <td className="px-4 py-2.5 text-sm font-semibold text-gold-600">{parseFloat(r.rate_24k).toFixed(2)}</td>
-                          <td className="px-4 py-2.5 text-sm text-ink-600 dark:text-ink-300">{parseFloat(r.rate_22k).toFixed(2)}</td>
-                          <td className="px-4 py-2.5 text-sm text-ink-600 dark:text-ink-300">{parseFloat(r.rate_18k).toFixed(2)}</td>
-                          <td className="px-4 py-2.5 text-xs text-ink-400">{r.source}</td>
-                        </tr>
+            {/* Source badge */}
+            {current && !editMode && (
+              <div className="flex items-center gap-2">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${current.source === 'manual' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                  {current.source === 'manual' ? '🖊 Manually entered' : '🔄 Auto-scraped'}
+                </span>
+                {current.fetched_at && (
+                  <span className="text-xs text-ink-400">{new Date(current.fetched_at).toLocaleString('en-AE')}</span>
+                )}
+              </div>
+            )}
+
+            {!current && !editMode && (
+              <div className="card p-8 text-center">
+                <p className="text-ink-400 text-sm mb-3">No gold rates loaded yet.</p>
+                <div className="flex justify-center gap-3">
+                  <button onClick={handleScrape} className="btn-gold text-xs">Fetch from market</button>
+                  <button onClick={() => setEditMode(true)} className="btn-ghost text-xs">Enter manually</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'history' && (
+          <div className="card overflow-hidden">
+            <div className="px-5 py-3 border-b border-ink-100 dark:border-ink-800 flex items-center gap-2">
+              <History size={13} className="text-ink-400"/>
+              <span className="text-xs font-medium text-ink-600 dark:text-ink-300">Rate history (last 90 records)</span>
+            </div>
+            {history.length === 0 ? (
+              <div className="p-6 text-center text-ink-400 text-sm">No history yet</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-ink-100 dark:border-ink-800">
+                      {['Date','24K','22K','18K','Source'].map(h=>(
+                        <th key={h} className="px-5 py-3 text-left font-semibold text-ink-400 uppercase tracking-wide text-[10px]">{h}</th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((r,i) => (
+                      <tr key={i} className="border-b border-ink-50 dark:border-ink-800/50 hover:bg-ink-50/50 dark:hover:bg-ink-800/30">
+                        <td className="px-5 py-3 text-ink-500">{new Date(r.recorded_at||r.created_at).toLocaleString('en-AE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+                        <td className="px-5 py-3 font-semibold text-ink-700 dark:text-ink-200">{r.rate_24k ? `AED ${parseFloat(r.rate_24k).toFixed(2)}` : '—'}</td>
+                        <td className="px-5 py-3 text-ink-500">{r.rate_22k ? `AED ${parseFloat(r.rate_22k).toFixed(2)}` : '—'}</td>
+                        <td className="px-5 py-3 text-ink-500">{r.rate_18k ? `AED ${parseFloat(r.rate_18k).toFixed(2)}` : '—'}</td>
+                        <td className="px-5 py-3">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${r.source==='manual'?'bg-amber-100 text-amber-700':'bg-green-100 text-green-700'}`}>
+                            {r.source || 'auto'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
         )}
-
-        {/* ── ROLE PERMISSIONS TAB ───────────────────────────── */}
-        {tab === 'roles' && (
-          <div className="max-w-4xl space-y-3">
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-5">
-              <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                <strong>Dynamic permissions:</strong> These role capabilities are stored in the database. 
-                Changes apply immediately to all users with that role — no code changes needed. 
-                Staff with custom policies on top of their role will have those policies applied additionally.
-              </p>
-            </div>
-
-            {roles.map(role=>{
-              const color = ROLE_COLORS[role.role] || 'gray';
-              const grantedCount = Object.values(role.capabilities||{}).filter(Boolean).length;
-              return (
-                <div key={role.id} className="card p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl bg-${color}-100 dark:bg-${color}-900/30 flex items-center justify-center`}>
-                        <Shield size={16} className={`text-${color}-600 dark:text-${color}-400`}/>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-ink-700 dark:text-ink-200">{role.label}</p>
-                          {role.is_system && <span className="text-[9px] bg-ink-100 dark:bg-ink-800 text-ink-400 px-1.5 py-0.5 rounded-full font-semibold">System</span>}
-                        </div>
-                        <p className="text-xs text-ink-400">{role.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-ink-400">{grantedCount} permissions</span>
-                      <button onClick={()=>setEditRole(role)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-ink-200 dark:border-ink-700 rounded-lg hover:border-gold-400 text-ink-500 hover:text-gold-600 transition-colors">
-                        <Edit2 size={11}/> Edit
-                      </button>
-                    </div>
-                  </div>
-                  {/* Permission preview */}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {Object.entries(role.capabilities||{}).filter(([,v])=>v).slice(0,8).map(([cap])=>(
-                      <span key={cap} className="text-[9px] px-2 py-0.5 rounded-full bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 font-medium">{cap}</span>
-                    ))}
-                    {Object.values(role.capabilities||{}).filter(Boolean).length > 8 && (
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 font-medium">
-                        +{Object.values(role.capabilities||{}).filter(Boolean).length - 8} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
-
-      {editRole && <RoleEditor role={editRole} onClose={()=>setEditRole(null)} onSaved={loadRoles}/>}
     </>
   );
 }
