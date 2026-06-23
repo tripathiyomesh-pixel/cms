@@ -5,8 +5,13 @@ const success = (res, data = {}, message = 'Success', statusCode = 200) =>
 const created = (res, data = {}, message = 'Created successfully') =>
   success(res, data, message, 201);
 
-const error = (res, message = 'Something went wrong', statusCode = 500, errors = null) =>
-  res.status(statusCode).json({ success: false, message, ...(errors && { errors }) });
+const error = (res, message = 'Something went wrong', statusCode = 500, errors = null) => {
+  // Never expose internal error details to clients in production
+  const safeMsg = (statusCode >= 500 && process.env.NODE_ENV === 'production')
+    ? 'An internal error occurred. Please try again or contact support.'
+    : message;
+  return res.status(statusCode).json({ success: false, message: safeMsg, ...(errors && { errors }) });
+};
 
 const paginated = (res, rows, count, page, limit) =>
   res.status(200).json({
@@ -37,3 +42,15 @@ module.exports = {
   ok:   success,
   fail: error,
 };
+
+// Global Express error handler — attach as app.use(globalErrorHandler) last in server.js
+const globalErrorHandler = (err, req, res, next) => {
+  const statusCode = err.status || err.statusCode || 500;
+  const message    = (statusCode >= 500 && process.env.NODE_ENV === 'production')
+    ? 'An internal error occurred.'
+    : (err.message || 'Unknown error');
+  if (statusCode >= 500) console.error('[unhandled error]', err);
+  res.status(statusCode).json({ success: false, message });
+};
+
+module.exports.globalErrorHandler = globalErrorHandler;
