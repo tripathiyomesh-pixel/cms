@@ -280,7 +280,7 @@ export default function PageBuilderPage() {
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.get(`${API}/pages/${slug}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: 'Bearer ' + token },
       });
       if (data.success) {
         const pg = data.data;
@@ -317,7 +317,7 @@ export default function PageBuilderPage() {
     setMsg('');
     try {
       const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: 'Bearer ' + token };
 
       // Always save content first
       await axios.put(`${API}/pages/${active.slug}`, {
@@ -350,7 +350,7 @@ export default function PageBuilderPage() {
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.post(`${API}/pages`, newPg, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: 'Bearer ' + token },
       });
       if (data.success) {
         const pg = { slug: data.data.slug, label: data.data.title, icon: '📄' };
