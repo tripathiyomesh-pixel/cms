@@ -5,7 +5,7 @@ const { success, error } = require('../../common/response');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const { cache } = require('../../config/redis');
 
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
     const { group } = req.query;
     const q = group
@@ -121,11 +121,14 @@ router.post('/page/:pageId', authenticate, authorize(['super_admin','admin']), a
   } catch (e) { error(res, e.message); }
 });
 
-router.get('/:key', authenticate, async (req, res) => {
+router.get('/:key', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
-    const { rows } = await pool.query(`SELECT * FROM settings WHERE key=$1 LIMIT 1`, [req.params.key]);
+    const { rows } = await pool.query('SELECT * FROM settings WHERE key=$1 LIMIT 1', [req.params.key]);
     if (!rows.length) return error(res, 'Setting not found', 404);
-    success(res, rows[0]);
+    const SECRET_KEYS = ['smtp_pass','tap_secret_key','geidea_password','tabby_secret_key','tamara_token','stripe_secret_key','razorpay_key_secret','erp_api_key'];
+    const row = { ...rows[0] };
+    if (SECRET_KEYS.includes(row.key) && req.user.role !== 'super_admin') row.value = '••••••••';
+    success(res, row);
   } catch (e) { error(res, e.message); }
 });
 
