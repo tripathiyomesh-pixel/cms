@@ -194,9 +194,11 @@ async function initiateGeidea(cfg, { amount, currency, order_number, customer_na
   const data = await resp.json();
   if (data.responseCode !== '000') throw new Error(data.detailedResponseMessage || 'Geidea session error');
 
+  const hppBase = isTest ? 'https://api-merchant.geidea.net/hpp' : 'https://api-merchant.geidea.net/hpp';
   return {
     gateway_order_id: data.session?.id || order_number,
     session_id:       data.session?.id,
+    redirect_url:     data.session?.id ? `${hppBase}?sessionId=${data.session.id}` : null,
     redirect_url:     `https://www.merchant.geidea.net/${isTest?'uat/':''}payment-intent/api/v2/hosted/${data.session?.id}`,
     status:          'initiated',
     metadata:        { geidea_session: data.session?.id },
