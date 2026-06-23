@@ -25,7 +25,9 @@ const ROLES = ['super_admin','admin','manager'];
 // ─── HELPERS ─────────────────────────────────────────────────
 
 // Verify HMAC-SHA256 signature from ERP webhook
-function verifyWebhookSignature(payload, signature, secret) {
+function verifyWebhookSignature(rawBodyStr, signature, secret) {
+  // rawBodyStr MUST be the raw request body string, not re-serialized JSON
+  // The calling route must use express.raw({ type: '*/*' }) middleware
   try {
     const expected = crypto
       .createHmac('sha256', secret)
@@ -57,13 +59,20 @@ const TYPE_MAP = {
 };
 
 // ─── WEBHOOK RECEIVER (ERP pushes to us) ─────────────────────
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', require('express').raw({ type: '*/*' }), async (req, res) => {
   const signature = req.headers['x-webhook-signature'] || '';
   const secret    = process.env.ERP_WEBHOOK_SECRET || '';
 
   // Verify signature
-  if (secret && signature) {
-    const valid = verifyWebhookSignature(req.body, signature, secret);
+  if (!secret) {
+    console.error('[erp-webhook] ERP_WEBHOOK_SECRET not set — refusing webhook');
+    return res.status(503).json({ success:false, message:'Webhook not configured on this server' });
+  }
+  if (!signature) {
+    return res.status(401).json({ success:false, message:'Missing X-Webhook-Signature header' });
+  }
+  {  // always verify
+    const valid = verifyWebhookSignature(rawBodyStr, signature, secret);
     if (!valid) {
       await logSync('webhook', 'inbound', 'failed', req.body, null, 'Invalid signature');
       return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
@@ -322,7 +331,7 @@ async function pushOrderToERP(order) {
 }
 
 // ─── SYNC STATUS (admin) ──────────────────────────────────────
-router.get('/status', authenticate, async (req, res) => {
+router.get('/status', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
     const erpUrl = process.env.ERP_API_URL;
     const apiKey = process.env.ERP_API_KEY;
@@ -365,7 +374,7 @@ router.get('/status', authenticate, async (req, res) => {
 });
 
 // ─── SYNC LOG (admin) ─────────────────────────────────────────
-router.get('/logs', authenticate, async (req, res) => {
+router.get('/logs', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
     const { page=1, limit=50, status, event_type } = req.query;
     const params=[]; let where='WHERE 1=1';
