@@ -9,12 +9,15 @@ const pool = new Pool({
   port:     parseInt(process.env.DB_PORT) || 5432,
   database: process.env.DB_NAME     || 'jewellery_cms',
   user:     process.env.DB_USER     || 'cmsuser',
-  password: process.env.DB_PASS     || 'CmsPass@2026',
+  password: (() => {
+    if (!process.env.DB_PASS) throw new Error('FATAL: DB_PASS env var is required');
+    return process.env.DB_PASS;
+  })(),
   max:      10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
   ssl: process.env.DB_SSL === 'true'
-    ? { require: true, rejectUnauthorized: false }
+    ? { require: true, rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
     : false,
 });
 
