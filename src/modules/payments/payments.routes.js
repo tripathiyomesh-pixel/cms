@@ -60,8 +60,9 @@ async function createTransaction(data) {
   return r[0]?.id || r.rows?.[0]?.id;
 }
 
+const TX_UPDATABLE = new Set(["status","gateway_payment_id","captured_at","refund_amount","refunded_at","webhook_payload","metadata"]);
 async function updateTransaction(id, updates) {
-  const fields = Object.keys(updates);
+  const fields = Object.keys(updates).filter(k => TX_UPDATABLE.has(k));
   const vals   = Object.values(updates);
   vals.push(id);
   await db.query(
@@ -98,7 +99,7 @@ const GW_LABELS = {
 };
 
 // ─── INITIATE PAYMENT ─────────────────────────────────────────
-router.post('/initiate', async (req, res) => {
+router.post('/initiate', authenticate, async (req, res) => {
   try {
     const { gateway, amount, currency='AED', order_number, order_id,
             customer_name, customer_email, customer_phone,
@@ -106,6 +107,19 @@ router.post('/initiate', async (req, res) => {
 
     if (!gateway || !amount || !order_number)
       return res.status(422).json({ success:false, message:'gateway, amount, order_number required' });
+
+    // Server-side amount validation — prevent client-side tampering
+    if (order_number) {
+      const [orderRows] = await db.query(
+        'SELECT total_amount FROM orders WHERE order_number=$1 LIMIT 1', [order_number]
+      );
+      if (orderRows.length) {
+        const expected = parseFloat(orderRows[0].total_amount);
+        const given    = parseFloat(amount);
+        if (Math.abs(expected - given) > 0.01)
+          return res.status(422).json({ success:false, message:'Payment amount does not match order total' });
+      }
+    }
 
     const cfg = await getGatewayConfig(gateway);
     if (cfg.enabled !== 'true')
@@ -377,7 +391,13 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
     switch(gateway) {
 
       case 'tap': {
-        // Tap sends charge object
+        // Verify Tap webhook HMAC-SHA256
+        const tapWHSecret = process.env.TAP_WEBHOOK_SECRET || '';
+        const tapSig = req.headers['hashstring'] || req.headers['x-tap-signature'] || '';
+        if (tapWHSecret && tapSig) {
+          const tapExp = crypto.createHmac('sha256', tapWHSecret).update(rawBody).digest('hex');
+          if (tapSig !== tapExp) { console.error('Tap webhook: invalid signature'); return; }
+        }
         const charge = parsed;
         const txId = charge.reference?.merchant;
         if (charge.status === 'CAPTURED') {
@@ -396,6 +416,15 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
       }
 
       case 'geidea': {
+        // Verify Geidea webhook signature
+        const geidWHSig = req.headers['x-geidea-signature'] || '';
+        const geidCfgW  = await getGatewayConfig('geidea');
+        if (geidCfgW.password && geidWHSig) {
+          const geidExp = crypto.createHash('sha256')
+            .update((geidCfgW.merchant_key||'') + (parsed.amount||'') + (parsed.currencyCode||'') + (parsed.merchantReferenceId||'') + (parsed.postDateTime||'') + geidCfgW.password)
+            .digest('hex');
+          if (geidWHSig !== geidExp) { console.error('Geidea webhook: invalid signature'); return; }
+        }
         const ref = parsed.merchantReferenceId || parsed.order?.merchantReferenceId;
         const status = parsed.detailedResponseCode === '000' ? 'captured' : 'failed';
         await db.query(
@@ -407,6 +436,16 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
       }
 
       case 'tabby': {
+        // Verify Tabby HMAC-SHA256
+        const tabbyCfgW = await getGatewayConfig('tabby');
+        const tabbySigH = req.headers['x-tabby-hmac-sha256'] || '';
+        if (tabbyCfgW.secret_key && tabbySigH) {
+          const tabbyExp = crypto.createHmac('sha256', tabbyCfgW.secret_key).update(rawBody).digest('hex');
+          try {
+            if (!crypto.timingSafeEqual(Buffer.from(tabbySigH,'hex'), Buffer.from(tabbyExp,'hex')))
+              { console.error('Tabby webhook: invalid signature'); return; }
+          } catch { console.error('Tabby webhook: malformed sig header'); return; }
+        }
         const payment = parsed.payment || parsed;
         if (payment.status === 'AUTHORIZED' || payment.status === 'CLOSED') {
           const ref = payment.order?.reference_id || payment.meta?.order_id;
@@ -420,6 +459,13 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
       }
 
       case 'tamara': {
+        // Verify Tamara HMAC-SHA256
+        const tamaraCfgW = await getGatewayConfig('tamara');
+        const tamaraSigH = req.headers['x-tamara-signature'] || '';
+        if (tamaraCfgW.token && tamaraSigH) {
+          const tamaraExp = crypto.createHmac('sha256', tamaraCfgW.token).update(rawBody).digest('hex');
+          if (tamaraSigH !== tamaraExp) { console.error('Tamara webhook: invalid signature'); return; }
+        }
         if (parsed.event_type === 'order_approved' || parsed.status === 'approved') {
           const ref = parsed.order_reference_id;
           await db.query(
@@ -451,7 +497,16 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
       case 'stripe': {
         const cfg = await getGatewayConfig('stripe');
         const sig = req.headers['stripe-signature']||'';
-        // Verify stripe signature (simplified — full impl needs stripe npm)
+        // Stripe webhook HMAC-SHA256 verification
+        const stripeWHSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+        if (stripeWHSecret && stripeSig) {
+          const parts = Object.fromEntries(stripeSig.split(',').map(p => { const [k,...v]=p.split('='); return [k,v.join('=')]; }));
+          const sigAge = Math.floor(Date.now()/1000) - parseInt(parts.t||0);
+          if (sigAge > 300) { console.error('Stripe: stale webhook'); return; }
+          const sigExp = crypto.createHmac('sha256',stripeWHSecret).update((parts.t||'')+'.'+rawBody).digest('hex');
+          if (!parts.v1 || parts.v1 !== sigExp) { console.error('Stripe: invalid sig'); return; }
+        }
+        // original logic below
         if (parsed.type === 'checkout.session.completed') {
           const ref = parsed.data?.object?.metadata?.order_number;
           await db.query(
@@ -467,7 +522,7 @@ router.post('/webhook/:gateway', express.raw({ type:'*/*' }), async (req, res) =
 });
 
 // ─── VERIFY PAYMENT (after redirect back to site) ─────────────
-router.post('/verify', async (req, res) => {
+router.post('/verify', authenticate, async (req, res) => {
   try {
     const { gateway, tap_id, session_id, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
