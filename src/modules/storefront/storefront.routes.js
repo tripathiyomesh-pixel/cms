@@ -1,7 +1,6 @@
 const express = require('express');
 const router  = express.Router();
 const sequelize = require('../../config/database');
-const { Op }    = require('../../database/models');
 const { cache } = require('../../config/redis');
 const { success, error } = require('../../common/response');
 
@@ -47,7 +46,8 @@ router.get('/products', async (req, res) => {
       sort = 'recommended', q,
     } = req.query;
 
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(safeLimit||24, 100);
+    const offset = (parseInt(page) - 1) * safeLimit;
 
     // Build dynamic WHERE
     const conditions = [`p.is_active = true`];
@@ -112,15 +112,15 @@ router.get('/products', async (req, res) => {
       WHERE ${whereClause}
       ORDER BY ${orderBy}
       LIMIT $${pi} OFFSET $${pi + 1}
-    `, { bind: [...params, parseInt(limit), offset], type: sequelize.QueryTypes.SELECT });
+    `, { bind: [...params, safeLimit, offset], type: sequelize.QueryTypes.SELECT });
 
     success(res, {
       products,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
+        limit: safeLimit,
         total: parseInt(countResult[0]?.total || 0),
-        pages: Math.ceil((countResult[0]?.total || 0) / parseInt(limit)),
+        pages: Math.ceil((countResult[0]?.total || 0) / safeLimit),
       },
     });
   } catch (e) { error(res, e.message); }
