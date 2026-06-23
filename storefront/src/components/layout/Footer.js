@@ -1,152 +1,270 @@
-'use client';
-import { useState } from 'react';
 import Link from 'next/link';
 
-export default function Footer({ template, config }) {
-  const [email, setEmail]   = useState('');
-  const [status, setStatus] = useState('idle'); // idle | loading | done | error
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP || '971501234567';
-  const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+const FOOTER_LINKS = {
+  jewellery: [
+    { label:'Diamond Necklaces', href:'/jewellery?category=necklaces' },
+    { label:'Diamond Earrings',  href:'/jewellery?category=earrings' },
+    { label:'Diamond Bracelets', href:'/jewellery?category=bracelets' },
+    { label:'Diamond Rings',     href:'/jewellery?category=rings' },
+    { label:'Pearls',            href:'/pearls' },
+    { label:'Collections',       href:'/jewellery' },
+  ],
+  services: [
+    { label:'Bespoke Design',    href:'/custom' },
+    { label:'Pick a Diamond',    href:'/diamonds' },
+    { label:'Book Appointment',  href:'/appointment' },
+    { label:'Gold Rate Today',   href:'/gold-rate' },
+    { label:'Certification',     href:'/certification' },
+    { label:'Lab-Grown Diamonds',href:'/lab-grown' },
+  ],
+  about: [
+    { label:'Our Heritage',  href:'/about' },
+    { label:'Boutiques',     href:'/boutiques' },
+    { label:'Blog',          href:'/blog' },
+    { label:'Exhibitions',   href:'/exhibitions' },
+    { label:'Contact Us',    href:'/contact' },
+    { label:'Sitemap',       href:'/sitemap' },
+  ],
+};
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) return;
-    setStatus('loading');
-    try {
-      const r = await fetch(`${base}/marketing/newsletter`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'footer' }),
-      });
-      const data = await r.json();
-      if (data.success) { setStatus('done'); setEmail(''); }
-      else setStatus('error');
-    } catch { setStatus('error'); }
-  };
+const SOCIAL = [
+  { label:'Instagram', href:'https://instagram.com', icon:'📸' },
+  { label:'WhatsApp',  href:'https://wa.me',         icon:'💬' },
+  { label:'Facebook',  href:'https://facebook.com',  icon:'📘' },
+  { label:'YouTube',   href:'https://youtube.com',   icon:'▶️' },
+];
+
+function NewsletterForm() {
+  return (
+    <form onSubmit={e => e.preventDefault()} style={{ display:'flex', maxWidth:400, marginTop:12 }}>
+      <input type="email" placeholder="Your email address" required
+        style={{ flex:1, padding:'10px 16px', fontSize:12, border:'1px solid rgba(255,255,255,0.15)', borderRight:'none', background:'rgba(255,255,255,0.08)', color:'#f5f0e8', outline:'none' }}/>
+      <button type="submit" style={{ padding:'10px 20px', background:'var(--color-accent,#c9a84c)', color:'#0a0a0a', fontSize:11, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', border:'none', cursor:'pointer', whiteSpace:'nowrap' }}>
+        Subscribe
+      </button>
+    </form>
+  );
+}
+
+// ── FULL FOOTER (4 columns, default) ──────────────────────────
+function FooterFull({ config }) {
+  const showNewsletter = config?.theme_footer_newsletter === 'true';
+  const showSocial     = config?.theme_footer_social     !== 'false';
+  const cols           = parseInt(config?.theme_footer_columns || '4', 10);
 
   return (
-    <footer style={{ fontFamily:"'Inter', system-ui, sans-serif" }}>
+    <footer style={{ background:'#0e0e0e', color:'#f5f0e8', fontFamily:"var(--font-body,'Inter',system-ui,sans-serif)" }}>
+      {showNewsletter && (
+        <div style={{ background:'var(--color-accent,#c9a84c)', padding:'28px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
+          <div>
+            <p style={{ fontFamily:"var(--font-heading,'Playfair Display',serif)", fontSize:20, fontWeight:'var(--font-heading-weight,400)', color:'#0a0a0a', marginBottom:4 }}>Stay in the World of Tejori</p>
+            <p style={{ fontSize:11, color:'rgba(0,0,0,0.65)', letterSpacing:'0.05em' }}>New collections, exclusive previews and gold rate alerts</p>
+          </div>
+          <NewsletterForm/>
+        </div>
+      )}
 
-      {/* Newsletter strip */}
-      <div style={{ background:'#f5ede2', padding:'48px 32px', textAlign:'center' }}>
-        <div style={{ maxWidth:500, margin:'0 auto' }}>
-          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
-            Stay in the world of Tejori
-          </p>
-          <p style={{ fontSize:12, color:'#6b6b6b', marginBottom:24, letterSpacing:'0.05em' }}>
-            Subscribe for 10% off your first purchase, new arrivals and exclusive offers.
-          </p>
-          {status === 'done' ? (
-            <p style={{ fontSize:13, color:'#16a34a', fontWeight:500 }}>
-              ✓ Thank you! Watch your inbox for something special.
-            </p>
-          ) : (
-            <>
-              <form onSubmit={handleSubscribe} style={{ display:'flex', gap:0, maxWidth:420, margin:'0 auto' }}>
-                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-                  placeholder="Your email address"
-                  style={{ flex:1, padding:'13px 18px', border:'1px solid #d4b896', borderRight:'none', fontSize:12, outline:'none', background:'#fff' }}/>
-                <button type="submit" disabled={status==='loading'}
-                  style={{ padding:'13px 24px', background: status==='loading' ? '#888' : '#1a1a1a', color:'#fff', border:'none', cursor: status==='loading' ? 'not-allowed' : 'pointer', fontSize:10, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap', transition:'background 0.2s' }}>
-                  {status === 'loading' ? '…' : 'Subscribe'}
-                </button>
-              </form>
-              {status === 'error' && (
-                <p style={{ fontSize:11, color:'#dc2626', marginTop:8 }}>Something went wrong. Please try again.</p>
-              )}
-            </>
+      <div style={{ maxWidth:'var(--max-width,1320px)', margin:'0 auto', padding:'56px 32px 40px', display:'grid', gridTemplateColumns:`repeat(${Math.min(cols,4)},1fr)`, gap:40 }}>
+        <div>
+          <Link href="/" style={{ fontFamily:"var(--font-heading,'Playfair Display',serif)", fontSize:26, fontWeight:'var(--font-heading-weight,400)', letterSpacing:'0.18em', textTransform:'uppercase', color:'#f5f0e8', textDecoration:'none', display:'block', marginBottom:16 }}>TEJORI</Link>
+          <p style={{ fontSize:12, color:'#8a8078', lineHeight:1.7, maxWidth:240, marginBottom:20 }}>Exceptional fine jewellery crafted for the discerning. GIA & IGI certified natural and lab-grown diamonds.</p>
+          {showSocial && (
+            <div style={{ display:'flex', gap:10 }}>
+              {SOCIAL.map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
+                  style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.08)', borderRadius:4, fontSize:14, textDecoration:'none', transition:'background .2s' }}
+                  onMouseEnter={e=>e.currentTarget.style.background='var(--color-accent,#c9a84c)'}
+                  onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.08)'}>
+                  {s.icon}
+                </a>
+              ))}
+            </div>
           )}
         </div>
+
+        {cols >= 2 && (
+          <div>
+            <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:20 }}>Jewellery</p>
+            {FOOTER_LINKS.jewellery.map(l=>(
+              <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'#8a8078', textDecoration:'none', padding:'5px 0', transition:'color .2s' }}
+                onMouseEnter={e=>e.currentTarget.style.color='#f5f0e8'}
+                onMouseLeave={e=>e.currentTarget.style.color='#8a8078'}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {cols >= 3 && (
+          <div>
+            <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:20 }}>Services</p>
+            {FOOTER_LINKS.services.map(l=>(
+              <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'#8a8078', textDecoration:'none', padding:'5px 0', transition:'color .2s' }}
+                onMouseEnter={e=>e.currentTarget.style.color='#f5f0e8'}
+                onMouseLeave={e=>e.currentTarget.style.color='#8a8078'}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {cols >= 4 && (
+          <div>
+            <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:20 }}>About</p>
+            {FOOTER_LINKS.about.map(l=>(
+              <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'#8a8078', textDecoration:'none', padding:'5px 0', transition:'color .2s' }}
+                onMouseEnter={e=>e.currentTarget.style.color='#f5f0e8'}
+                onMouseLeave={e=>e.currentTarget.style.color='#8a8078'}>
+                {l.label}
+              </Link>
+            ))}
+            <div style={{ marginTop:24, padding:'16px', background:'rgba(255,255,255,0.04)', borderRadius:4 }}>
+              <p style={{ fontSize:9, color:'var(--color-accent,#c9a84c)', fontWeight:600, letterSpacing:'0.15em', marginBottom:6 }}>CERTIFIED BY</p>
+              <p style={{ fontSize:11, color:'#8a8078' }}>GIA · IGI · SGL</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Main footer */}
-      <div style={{ background:'#1a1a1a', color:'#a0998e', padding:'60px 32px 32px' }}>
-        <div style={{ maxWidth:'var(--max-width, 1320px)', margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px,1fr))', gap:48, marginBottom:56 }}>
-
-            {/* Brand */}
-            <div>
-              <div style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:300, color:'#fff', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>
-                TEJORI
-              </div>
-              <p style={{ fontSize:11, lineHeight:1.9, color:'#6b6661', maxWidth:200 }}>
-                A legacy of 60 years in fine jewellery. GIA & IGI certified diamonds, ethically sourced gemstones.
-              </p>
-            </div>
-
-            {/* Customer Care */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Customer Care</h4>
-              {[
-                ['Contact Us',                '/contact'],
-                ['FAQ',                       '/faq'],
-                ['Jewellery Care Guide',      '/blog?cat=care'],
-                ['Book a Service Appointment','/appointment'],
-              ].map(([l,h]) => (
-                <Link key={l} href={h}
-                  style={{ display:'block', fontSize:12, color:'#a0998e', marginBottom:11, textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#d4a843'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#a0998e'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
-
-            {/* Our Company */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Our Company</h4>
-              {[
-                ['About TEJORI',   '/about'],
-                ['Our Heritage',   '/about#heritage'],
-                ['Boutique Finder','/boutiques'],
-                ['Exhibitions',    '/exhibitions'],
-                ['Bespoke Jewellery','/custom'],
-              ].map(([l,h]) => (
-                <Link key={l} href={h}
-                  style={{ display:'block', fontSize:12, color:'#a0998e', marginBottom:11, textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#d4a843'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#a0998e'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
-
-            {/* Certifications + Contact */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Certified By</h4>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:24 }}>
-                {['GIA','IGI','HRD','AGS'].map(cert=>(
-                  <span key={cert} style={{ border:'1px solid rgba(255,255,255,0.12)', padding:'4px 10px', fontSize:10, fontWeight:500, letterSpacing:'0.1em', color:'rgba(255,255,255,0.4)' }}>
-                    {cert}
-                  </span>
-                ))}
-              </div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:12 }}>Contact</h4>
-              <a href={`https://wa.me/${wapp}`} target="_blank" rel="noreferrer"
-                style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#1a7a35', color:'#fff', padding:'8px 14px', fontSize:11, textDecoration:'none', letterSpacing:'0.05em' }}>
-                💬 WhatsApp
-              </a>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-            <p style={{ fontSize:11, color:'#4a453f' }}>
-              © {new Date().getFullYear()} TEJORI Jewellery LLC. All rights reserved.
-            </p>
-            <div style={{ display:'flex', gap:20 }}>
-              {[['Privacy Policy','/privacy'],['Terms of Service','/terms']].map(([l,h])=>(
-                <Link key={l} href={h}
-                  style={{ fontSize:11, color:'#4a453f', textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#a0998e'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#4a453f'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
-          </div>
+      <div style={{ borderTop:'1px solid #1e1e1e', padding:'20px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+        <p style={{ fontSize:11, color:'#5a5450' }}>© {new Date().getFullYear()} Tejori. All rights reserved. Prices in AED.</p>
+        <div style={{ display:'flex', gap:16 }}>
+          {[['Privacy Policy','/privacy'],['Terms','/terms'],['Returns','/returns']].map(([l,h])=>(
+            <Link key={l} href={h} style={{ fontSize:11, color:'#5a5450', textDecoration:'none', transition:'color .2s' }}
+              onMouseEnter={e=>e.currentTarget.style.color='#8a8078'}
+              onMouseLeave={e=>e.currentTarget.style.color='#5a5450'}>
+              {l}
+            </Link>
+          ))}
         </div>
       </div>
     </footer>
   );
+}
+
+// ── COMPACT FOOTER (3 cols, no newsletter) ────────────────────
+function FooterCompact({ config }) {
+  const showSocial = config?.theme_footer_social !== 'false';
+  return (
+    <footer style={{ background:'#111', color:'#f5f0e8', fontFamily:"var(--font-body,'Inter',system-ui,sans-serif)" }}>
+      <div style={{ maxWidth:'var(--max-width,1320px)', margin:'0 auto', padding:'40px 32px 28px', display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr', gap:32 }}>
+        <div>
+          <Link href="/" style={{ fontFamily:"var(--font-heading,'Playfair Display',serif)", fontSize:22, fontWeight:'var(--font-heading-weight,400)', letterSpacing:'0.18em', textTransform:'uppercase', color:'#f5f0e8', textDecoration:'none', display:'block', marginBottom:12 }}>TEJORI</Link>
+          <p style={{ fontSize:11, color:'#6a6460', lineHeight:1.7, maxWidth:220, marginBottom:16 }}>GIA & IGI certified fine jewellery.</p>
+          {showSocial && (
+            <div style={{ display:'flex', gap:8 }}>
+              {SOCIAL.map(s=>(
+                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
+                  style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.07)', borderRadius:3, fontSize:12, textDecoration:'none' }}>
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:16 }}>Jewellery</p>
+          {FOOTER_LINKS.jewellery.slice(0,5).map(l=>(
+            <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'#6a6460', textDecoration:'none', padding:'4px 0' }}>{l.label}</Link>
+          ))}
+        </div>
+        <div>
+          <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:16 }}>Services</p>
+          {FOOTER_LINKS.services.slice(0,5).map(l=>(
+            <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'#6a6460', textDecoration:'none', padding:'4px 0' }}>{l.label}</Link>
+          ))}
+        </div>
+      </div>
+      <div style={{ borderTop:'1px solid #1e1e1e', padding:'16px 32px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+        <p style={{ fontSize:11, color:'#4a4440' }}>© {new Date().getFullYear()} Tejori</p>
+        <div style={{ display:'flex', gap:12 }}>
+          {[['Privacy','/privacy'],['Terms','/terms']].map(([l,h])=>(
+            <Link key={l} href={h} style={{ fontSize:11, color:'#4a4440', textDecoration:'none' }}>{l}</Link>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ── MINIMAL FOOTER (2 cols) ───────────────────────────────────
+function FooterMinimal({ config }) {
+  const showSocial = config?.theme_footer_social !== 'false';
+  return (
+    <footer style={{ background:'var(--color-bg-secondary,#fafaf8)', borderTop:'1px solid var(--color-border,#e5e5e5)', fontFamily:"var(--font-body,'Inter',system-ui,sans-serif)" }}>
+      <div style={{ maxWidth:'var(--max-width,1320px)', margin:'0 auto', padding:'40px 32px', display:'grid', gridTemplateColumns:'2fr 1fr', gap:40 }}>
+        <div>
+          <Link href="/" style={{ fontFamily:"var(--font-heading,'Playfair Display',serif)", fontSize:20, fontWeight:'var(--font-heading-weight,400)', letterSpacing:'0.18em', textTransform:'uppercase', color:'var(--color-text,#1a1a1a)', textDecoration:'none', display:'block', marginBottom:10 }}>TEJORI</Link>
+          <p style={{ fontSize:12, color:'var(--color-text-muted,#6b6b6b)', lineHeight:1.7, maxWidth:300 }}>Exceptional fine jewellery. GIA & IGI certified.</p>
+          {showSocial && (
+            <div style={{ display:'flex', gap:8, marginTop:14 }}>
+              {SOCIAL.map(s=>(
+                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
+                  style={{ width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--color-border,#e5e5e5)', borderRadius:3, fontSize:12, textDecoration:'none' }}>
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <p style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--color-accent,#c9a84c)', marginBottom:14 }}>Quick Links</p>
+          {[...FOOTER_LINKS.jewellery.slice(0,3), ...FOOTER_LINKS.about.slice(0,3)].map(l=>(
+            <Link key={l.label} href={l.href} style={{ display:'block', fontSize:12, color:'var(--color-text-muted,#6b6b6b)', textDecoration:'none', padding:'3px 0' }}>{l.label}</Link>
+          ))}
+        </div>
+      </div>
+      <div style={{ borderTop:'1px solid var(--color-border,#e5e5e5)', padding:'14px 32px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+        <p style={{ fontSize:11, color:'var(--color-text-muted,#6b6b6b)' }}>© {new Date().getFullYear()} Tejori. All rights reserved.</p>
+        <div style={{ display:'flex', gap:12 }}>
+          {[['Privacy','/privacy'],['Terms','/terms'],['Contact','/contact']].map(([l,h])=>(
+            <Link key={l} href={h} style={{ fontSize:11, color:'var(--color-text-muted,#6b6b6b)', textDecoration:'none' }}>{l}</Link>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ── SINGLE ROW FOOTER ─────────────────────────────────────────
+function FooterSingleRow({ config }) {
+  const showSocial = config?.theme_footer_social !== 'false';
+  return (
+    <footer style={{ background:'var(--color-bg,#fff)', borderTop:'1px solid var(--color-border,#e5e5e5)', padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12, fontFamily:"var(--font-body,'Inter',system-ui,sans-serif)" }}>
+      <Link href="/" style={{ fontFamily:"var(--font-heading,'Playfair Display',serif)", fontSize:16, fontWeight:'var(--font-heading-weight,400)', letterSpacing:'0.18em', textTransform:'uppercase', color:'var(--color-text,#1a1a1a)', textDecoration:'none', flexShrink:0 }}>
+        TEJORI
+      </Link>
+      <div style={{ display:'flex', gap:16, flexWrap:'wrap', flex:1, justifyContent:'center' }}>
+        {[
+          { label:'Jewellery', href:'/jewellery' },
+          { label:'Diamonds',  href:'/diamonds' },
+          { label:'Bespoke',   href:'/custom' },
+          { label:'About',     href:'/about' },
+          { label:'Contact',   href:'/contact' },
+        ].map(l=>(
+          <Link key={l.label} href={l.href} style={{ fontSize:11, color:'var(--color-text-muted,#6b6b6b)', textDecoration:'none', whiteSpace:'nowrap', fontWeight:400, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+            {l.label}
+          </Link>
+        ))}
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
+        <p style={{ fontSize:11, color:'var(--color-text-muted,#6b6b6b)' }}>© {new Date().getFullYear()} Tejori</p>
+        {showSocial && SOCIAL.slice(0,3).map(s=>(
+          <a key={s.label} href={s.href} target="_blank" rel="noreferrer" title={s.label}
+            style={{ fontSize:14, textDecoration:'none' }}>
+            {s.icon}
+          </a>
+        ))}
+      </div>
+    </footer>
+  );
+}
+
+// ── MAIN EXPORT ────────────────────────────────────────────────
+export default function Footer({ config }) {
+  const style = config?.theme_footer_style || 'full';
+  if (style === 'compact')    return <FooterCompact    config={config}/>;
+  if (style === 'minimal')    return <FooterMinimal    config={config}/>;
+  if (style === 'single_row') return <FooterSingleRow  config={config}/>;
+  return <FooterFull config={config}/>;
 }
