@@ -183,3 +183,6 @@ app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
 })();
 
 module.exports = app;
+
+// Global error handler — must be last middleware
+app.use(globalErrorHandler);
