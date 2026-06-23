@@ -64,7 +64,7 @@ const app = express();
 // ─── SECURITY MIDDLEWARE ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : false,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -79,7 +79,12 @@ const globalLimiter = rateLimit({
 });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
 app.use('/api/', globalLimiter);
-app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/login',           authLimiter);
+app.use('/api/auth/register',        authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password',  authLimiter);
+app.use('/api/customer/login',       authLimiter);
+app.use('/api/customer/register',    authLimiter);
 
 // ─── PARSERS ─────────────────────────────────────────────────────────────────
 app.use(compression());
