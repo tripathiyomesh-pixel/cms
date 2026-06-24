@@ -37,8 +37,9 @@ export default function ProductDetailPage({ params }) {
     ? product.media.map(m => m.file_url).filter(Boolean)
     : ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200&q=80'];
 
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
   const whatsappMsg = encodeURIComponent(
-    `Hi, I'm interested in: ${product.name}${product.sku ? ` (${product.sku})` : ''}.\n\nCould you please share the price and availability?\n\n${typeof window !== 'undefined' ? window.location.href : ''}`
+    `Hi Tejori, I am interested in ${product.name} (SKU: ${product.sku || 'N/A'}).\nPlease share pricing and availability.\nLink: ${pageUrl}`
   );
 
   const specs = [
@@ -193,6 +194,19 @@ export default function ProductDetailPage({ params }) {
                 </div>
               )}
 
+              {/* Price — show only if available, never AED 0 */}
+              <div className="mb-6">
+                {product.base_price && Number(product.base_price) > 0 ? (
+                  <p style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:28, fontWeight:300, color:'#1a1208', letterSpacing:'0.02em' }}>
+                    AED {Number(product.base_price).toLocaleString()}
+                  </p>
+                ) : (
+                  <p style={{ fontSize:13, color:'#b8860b', letterSpacing:'0.1em', textTransform:'uppercase', fontWeight:500 }}>
+                    Price on Request
+                  </p>
+                )}
+              </div>
+
               {/* REQUEST PRICE — WhatsApp CTA (client spec: no buy button) */}
               <div className="space-y-3">
                 <a href={`https://wa.me/${(wapp||'').replace(/\D/g,'')}?text=${whatsappMsg}`}
@@ -283,7 +297,7 @@ function SimilarPieces({ product }) {
         <h2 className="font-cormorant text-4xl font-light text-center mb-10" style={{ color:'#1a1a1a' }}>Similar Pieces</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {similar.map(p => {
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name} (SKU: ${p.sku || 'N/A'}). Please share pricing and availability.`);
             return (
               <div key={p.id} className="group bg-white border transition-colors" style={{ borderColor:'#e5e0d8' }}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}

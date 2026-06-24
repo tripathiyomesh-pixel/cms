@@ -192,10 +192,11 @@ function JewelleryContent() {
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-10">
               {list.map(p => {
-                const hasDiscount = p.compare_price && parseFloat(p.compare_price)>parseFloat(p.final_price||0);
-                const disc = hasDiscount?Math.round((1-parseFloat(p.final_price)/parseFloat(p.compare_price))*100):0;
+                const priceVal = p.base_price || p.final_price;
+                const hasDiscount = p.compare_price && priceVal && parseFloat(p.compare_price)>parseFloat(priceVal);
+                const disc = hasDiscount?Math.round((1-parseFloat(priceVal)/parseFloat(p.compare_price))*100):0;
                 const badge = p.badge||(hasDiscount?`-${disc}%`:p.is_new?'New':'');
-                const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}`);
+                const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name} (SKU: ${p.sku || 'N/A'}). Please share pricing and availability.`);
                 return (
                   <div key={p.id} className="group">
                     {/* Image */}
@@ -239,10 +240,10 @@ function JewelleryContent() {
                       </p>
                     )}
                     <div className="flex items-center gap-2">
-                      {p.final_price
-                        ? <span style={{ fontSize:13, color:'#6b6b6b' }}>{p.currency} {Number(p.final_price).toLocaleString()}</span>
-                        : <span style={{ fontSize:12, color:'#b8860b', letterSpacing:'0.05em' }}>Request Price</span>}
-                      {hasDiscount && <span style={{ fontSize:12, color:'#ccc', textDecoration:'line-through' }}>{p.currency} {Number(p.compare_price).toLocaleString()}</span>}
+                      {priceVal && Number(priceVal) > 0
+                        ? <span style={{ fontSize:13, color:'#6b6b6b' }}>{p.currency || 'AED'} {Number(priceVal).toLocaleString()}</span>
+                        : <span style={{ fontSize:12, color:'#b8860b', letterSpacing:'0.05em' }}>Price on Request</span>}
+                      {hasDiscount && <span style={{ fontSize:12, color:'#ccc', textDecoration:'line-through' }}>{p.currency || 'AED'} {Number(p.compare_price).toLocaleString()}</span>}
                     </div>
                   </div>
                 );
