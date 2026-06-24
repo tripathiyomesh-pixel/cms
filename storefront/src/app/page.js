@@ -148,16 +148,6 @@ function HeroSection({ waNumber }) {
         </div>
       </div>
 
-      <style>{`
-        @keyframes goldLine {
-          from { transform: translateX(-5%); opacity: 0.5; }
-          to   { transform: translateX(5%);  opacity: 1; }
-        }
-        @keyframes scrollPulse {
-          0%,100% { opacity: 0.4; transform: translateX(-50%) scaleY(0.8); }
-          50%      { opacity: 1;   transform: translateX(-50%) scaleY(1); }
-        }
-      `}</style>
     </section>
   );
 }
@@ -397,9 +387,9 @@ function ProductCard({ product, waNumber }) {
             {[product.metal_type, product.stone_type].filter(Boolean).join(' · ')}
           </p>
         )}
-        <p style={{ fontSize: 13, fontWeight: 600, color: product.price ? '#1a1208' : GOLD }}>
-          {product.price
-            ? `AED ${Number(product.price).toLocaleString()}`
+        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? '#1a1208' : GOLD }}>
+          {product.base_price && Number(product.base_price) > 0
+            ? `AED ${Number(product.base_price).toLocaleString()}`
             : 'Request Price'}
         </p>
       </Link>
@@ -478,9 +468,6 @@ function FeaturedProductsSection({ waNumber }) {
           </div>
         )}
       </div>
-      <style>{`
-        @keyframes shimmer { from { opacity: 0.5; } to { opacity: 1; } }
-      `}</style>
     </section>
   );
 }
@@ -697,15 +684,6 @@ export default function HomePage() {
       <BrandStripSection />
       <WhatsAppCTASection waNumber={waNumber} />
 
-      {/* Responsive grid adjustments */}
-      <style>{`
-        @media (max-width: 1024px) {
-          /* Collections: 2 col */
-        }
-        @media (max-width: 768px) {
-          section { padding: 64px 24px !important; }
-        }
-      `}</style>
     </main>
   );
 }

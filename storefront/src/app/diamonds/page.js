@@ -88,6 +88,7 @@ function DiamondsContent() {
   const [page,     setPage]     = useState(1);
   const [loading,  setLoading]  = useState(true);
   const [showFilters, setShowFilters] = useState(true);
+  const [source, setSource] = useState('own');
   const limit = 24;
 
   const [filters, setFilters] = useState({

@@ -153,3 +153,32 @@ a { text-decoration: none; }
     padding: 16px 24px !important;
   }
 }
+
+/* ── Homepage animations ──────────────────────────────────────── */
+@keyframes goldLine {
+  from { transform: translateX(-5%); opacity: 0.5; }
+  to   { transform: translateX(5%);  opacity: 1; }
+}
+@keyframes scrollPulse {
+  0%,100% { opacity: 0.4; transform: translateX(-50%) scaleY(0.8); }
+  50%      { opacity: 1;   transform: translateX(-50%) scaleY(1); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; opacity: 0.5; }
+  to   { background-position:  200% 0; opacity: 1; }
+}
+
+/* ── Jewellery listing responsive grid ───────────────────────── */
+@media (max-width: 900px) {
+  .filter-desktop { display: none !important; }
+}
+@media (max-width: 768px) {
+  div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 480px) {
+  div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr !important;
+  }
+}

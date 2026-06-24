@@ -264,8 +264,8 @@ function RelatedProducts({ product, waNumber }) {
                     )}
                   </div>
                   <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 500, color: '#1a1208', marginBottom: 4 }}>{p.name}</p>
-                  <p style={{ fontSize: 12, color: p.price ? '#1a1208' : GOLD, fontWeight: 600 }}>
-                    {p.price ? `AED ${Number(p.price).toLocaleString()}` : 'Request Price'}
+                  <p style={{ fontSize: 12, color: (p.base_price && Number(p.base_price) > 0) ? '#1a1208' : GOLD, fontWeight: 600 }}>
+                    {p.base_price && Number(p.base_price) > 0 ? `AED ${Number(p.base_price).toLocaleString()}` : 'Request Price'}
                   </p>
                 </Link>
               </div>
@@ -459,9 +459,9 @@ export default function ProductPage({ params }) {
 
               {/* Price */}
               <div style={{ marginBottom: 24 }}>
-                {product.price ? (
+                {product.base_price && Number(product.base_price) > 0 ? (
                   <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 500, color: '#1a1208' }}>
-                    AED {Number(product.price).toLocaleString()}
+                    AED {Number(product.base_price).toLocaleString()}
                   </p>
                 ) : (
                   <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: GOLD, fontStyle: 'italic' }}>

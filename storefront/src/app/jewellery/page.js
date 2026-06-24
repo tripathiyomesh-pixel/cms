@@ -155,9 +155,9 @@ function ProductCard({ product, waNumber }) {
             {[product.metal_type, product.stone_type].filter(Boolean).join(' · ')}
           </p>
         )}
-        <p style={{ fontSize: 13, fontWeight: 600, color: product.price ? '#1a1208' : GOLD }}>
-          {product.price
-            ? `AED ${Number(product.price).toLocaleString()}`
+        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? '#1a1208' : GOLD }}>
+          {product.base_price && Number(product.base_price) > 0
+            ? `AED ${Number(product.base_price).toLocaleString()}`
             : 'Request Price'}
         </p>
       </Link>
@@ -567,25 +567,6 @@ function JewelleryPageInner() {
         </>
       )}
 
-      <style>{`
-        @keyframes shimmer {
-          from { background-position: -200% 0; }
-          to   { background-position:  200% 0; }
-        }
-        @media (max-width: 900px) {
-          .filter-desktop { display: none !important; }
-        }
-        @media (max-width: 768px) {
-          div[style*="grid-template-columns: repeat(3"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-        }
-        @media (max-width: 480px) {
-          div[style*="grid-template-columns: repeat(3"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
