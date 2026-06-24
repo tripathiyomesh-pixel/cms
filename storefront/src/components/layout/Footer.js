@@ -316,26 +316,6 @@ export default function Footer() {
       </div>
 
       {/* Responsive */}
-      <style>{`
-        @media (max-width: 1024px) {
-          footer > div:nth-child(2) {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 640px) {
-          footer > div:nth-child(2) {
-            grid-template-columns: 1fr !important;
-            padding: 40px 24px !important;
-          }
-          footer > div:first-child {
-            padding: 24px !important;
-          }
-          footer > div:last-child {
-            flex-direction: column !important;
-            padding: 16px 24px !important;
-          }
-        }
-      `}</style>
     </footer>
   );
 }
