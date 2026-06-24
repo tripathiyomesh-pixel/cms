@@ -8,6 +8,7 @@ import {
   Settings, ChevronDown, ChevronUp, DollarSign, Zap,
   Paintbrush, Layout, LayoutList, Square, Globe, Briefcase,
   HelpCircle, Activity, Search, FileText, Target, BarChart2,
+  Grid2x2, Archive,
 } from 'lucide-react';
 
 // ── NAVIGATION DEFINITION ─────────────────────────────────────
@@ -40,6 +41,8 @@ const NAV_SECTIONS = [
     label: 'Catalogue',
     items: [
       { to:'/categories',      icon:FolderTree,      text:'Categories',       capability:'products.view' },
+      { to:'/collections',     icon:Grid2x2,         text:'Collections',      capability:'products.view' },
+      { to:'/inventory',       icon:Archive,         text:'Inventory',        capability:'inventory.manage' },
       { to:'/media',           icon:Image,           text:'Media',            capability:'media.view' },
       { to:'/import',          icon:Upload,          text:'Bulk import',      capability:'inventory.manage' },
       { to:'/marketing',       icon:Megaphone,       text:'Banners',          capability:'marketing.view' },
@@ -69,7 +72,8 @@ const NAV_SECTIONS = [
       { to:'/reports',         icon:BarChart2,       text:'Reports',          capability:'settings.manage' },
       { to:'/workforce',       icon:Briefcase,       text:'Workforce',        capability:'workforce.view' },
       { to:'/gold-rates',       icon:DollarSign,      text:'Gold rates',       capability:'gold_rates.view' },
-      { to:'/users',           icon:Users,           text:'Users',            capability:'users.view' },
+      { to:'/users',           icon:Users,           text:'Users & Roles',    capability:'users.view' },
+      { to:'/locations',       icon:MapPin,          text:'Store Locations',  capability:'settings.manage' },
       { to:'/payments',        icon:DollarSign,      text:'Payments',         capability:'settings.manage' },
       { to:'/erp-integration', icon:Zap,             text:'ERP sync',         capability:'erp.view' },
       { to:'/settings',        icon:Settings,        text:'Settings',         capability:'settings.view' },
