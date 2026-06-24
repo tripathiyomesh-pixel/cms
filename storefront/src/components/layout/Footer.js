@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer({ template, config }) {
   const [email, setEmail]   = useState('');
@@ -66,8 +67,14 @@ export default function Footer({ template, config }) {
 
             {/* Brand */}
             <div>
-              <div style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:300, color:'#fff', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>
-                TEJORI
+              <div style={{ marginBottom:16 }}>
+                <Image
+                  src="/tejori-logo.png"
+                  alt="Tejori — Since 1964"
+                  width={180}
+                  height={76}
+                  style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+                />
               </div>
               <p style={{ fontSize:11, lineHeight:1.9, color:'#6b6661', maxWidth:200 }}>
                 A legacy of 60 years in fine jewellery. GIA & IGI certified diamonds, ethically sourced gemstones.

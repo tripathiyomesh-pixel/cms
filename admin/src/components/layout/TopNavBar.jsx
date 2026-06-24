@@ -344,14 +344,11 @@ export default function TopNavBar({ navMode, onToggleNavMode, sidebarCollapsed, 
 
         {/* Logo */}
         <NavLink to="/" className="flex items-center gap-2 flex-shrink-0 mr-2 no-underline">
-          <div className="w-7 h-7 bg-gold-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="#fff" strokeWidth="1.5"/>
-            </svg>
-          </div>
-          <span className="text-sm font-semibold text-ink-800 dark:text-ink-100 hidden sm:block" style={{fontFamily:"'Playfair Display',serif"}}>
-            JewelCMS
-          </span>
+          <img
+            src="/tejori-logo.png"
+            alt="Tejori"
+            style={{ height: 40, width: 'auto', objectFit: 'contain', display: 'block' }}
+          />
         </NavLink>
 
         {/* MEGA MENU (topbar mode only, desktop only) */}

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
 import { useCurrency } from '@/components/ui/CurrencySwitcher';
@@ -327,13 +328,14 @@ export default function Header({ template, config }) {
 
             {/* Logo — left */}
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginRight: 48 }}>
-              <span style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: 26, fontWeight: 300, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: '#1a1a1a',
-              }}>
-                TEJORI
-              </span>
+              <Image
+                src="/tejori-logo-header.png"
+                alt="Tejori — Since 1964"
+                width={200}
+                height={85}
+                priority={true}
+                style={{ height: 44, width: 'auto', objectFit: 'contain' }}
+              />
             </Link>
 
             {/* Desktop mega nav — center */}
@@ -419,7 +421,7 @@ export default function Header({ template, config }) {
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={() => setMobileOpen(false)}/>
           <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '85vw', maxWidth: 360, background: '#fff', overflowY: 'auto', animation: 'slideIn .3s ease' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e0d8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, letterSpacing: '0.15em' }}>TEJORI</span>
+              <Image src="/tejori-logo-header.png" alt="Tejori" width={140} height={60} style={{ height: 36, width: 'auto' }} />
               <button onClick={() => setMobileOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
             </div>
             {MEGA_NAV.map(item => (

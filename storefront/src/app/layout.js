@@ -10,11 +10,16 @@ const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Luxury Jewellery';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3011'),
-  title: { default: storeName, template: `%s | ${storeName}` },
-  description: `Certified diamonds, coloured gemstones, pearls and fine jewellery. GIA & IGI certified. ${storeName}.`,
-  openGraph: { type:'website', locale:'en_AE', siteName: storeName },
+  title: { default: 'Tejori — Luxury Jewellery Dubai', template: `%s | Tejori` },
+  description: 'Tejori — Six decades of master craftsmanship in Dubai. GIA & IGI certified diamonds, coloured gemstones, and fine jewellery. Since 1964.',
+  openGraph: { type:'website', locale:'en_AE', siteName: 'Tejori' },
   robots: { index:true, follow:true },
-  keywords: ['diamonds','GIA certified','fine jewellery','engagement rings','loose diamonds','coloured gemstones','Dubai jewellery'],
+  keywords: ['Tejori','luxury jewellery Dubai','GIA certified diamonds','fine jewellery','engagement rings','diamond jewellery Dubai'],
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }) {
