@@ -9,9 +9,7 @@
 const jwt  = require('jsonwebtoken');
 const { pool } = require('../../config/database');
 
-// Share the same resolved JWT_SECRET as auth.routes.js to avoid the split-brain bug.
-// This is the single source of truth for the secret.
-const { JWT_SECRET } = require('../../modules/auth/auth.routes');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const ROLE_HIERARCHY = { super_admin: 100, admin: 80, manager: 60, editor: 40, viewer: 20 };
 
