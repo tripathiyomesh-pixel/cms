@@ -7,6 +7,7 @@ const compression = require('compression');
 const rateLimit   = require('express-rate-limit');
 const logger      = require('./config/logger');
 const sequelize   = require('./config/database');
+const { globalErrorHandler } = require('./common/response');
 
 // ─── ROUTES ─────────────────────────────────────────────────────────────────
 const authRoutes        = require('./modules/auth/auth.routes');
