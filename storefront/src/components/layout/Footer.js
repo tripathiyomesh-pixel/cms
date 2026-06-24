@@ -1,159 +1,341 @@
 'use client';
-import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
-export default function Footer({ template, config }) {
-  const [email, setEmail]   = useState('');
-  const [status, setStatus] = useState('idle'); // idle | loading | done | error
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP || '971501234567';
-  const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+const GOLD  = '#b8860b';
+const CREAM = '#fdf8f3';
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) return;
-    setStatus('loading');
-    try {
-      const r = await fetch(`${base}/marketing/newsletter`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'footer' }),
-      });
-      const data = await r.json();
-      if (data.success) { setStatus('done'); setEmail(''); }
-      else setStatus('error');
-    } catch { setStatus('error'); }
-  };
+const COL1 = {
+  heading: 'Jewellery',
+  links: [
+    { label: 'Rings',              href: '/jewellery?category=rings' },
+    { label: 'Necklaces',          href: '/jewellery?category=necklaces' },
+    { label: 'Bracelets',          href: '/jewellery?category=bracelets' },
+    { label: 'Earrings',           href: '/jewellery?category=earrings' },
+    { label: 'Pendants & Bangles', href: '/jewellery?category=pendants' },
+    { label: 'Bridal Sets',        href: '/jewellery?collection=bridal' },
+  ],
+};
+
+const COL2 = {
+  heading: 'Diamonds',
+  links: [
+    { label: 'Natural Diamonds',   href: '/diamonds' },
+    { label: 'Lab-Grown Diamonds', href: '/lab-grown' },
+    { label: 'By Shape',           href: '/diamonds?view=shapes' },
+    { label: 'GIA Certified',      href: '/diamonds?cert=gia' },
+    { label: 'Pick a Diamond',     href: '/appointment?purpose=diamond' },
+    { label: 'Verify Certificate', href: '/verify' },
+  ],
+};
+
+const COL3 = {
+  heading: 'Explore',
+  links: [
+    { label: 'Aurora Collection',  href: '/jewellery?collection=aurora' },
+    { label: 'Bridal Edit',        href: '/jewellery?collection=bridal' },
+    { label: 'New Arrivals',       href: '/jewellery?collection=new' },
+    { label: 'Heritage Line',      href: '/jewellery?collection=heritage' },
+    { label: 'Bespoke Design',     href: '/custom' },
+    { label: 'Gold Rate Today',    href: '/gold-rate' },
+  ],
+};
+
+const COL4 = {
+  heading: 'About Tejori',
+  links: [
+    { label: 'Our Heritage',      href: '/about' },
+    { label: 'Our Boutiques',     href: '/boutiques' },
+    { label: 'Exhibitions',       href: '/exhibitions' },
+    { label: 'Journal',           href: '/blog' },
+    { label: 'Contact Us',        href: '/contact' },
+    { label: 'Sitemap',           href: '/sitemap' },
+  ],
+};
+
+function InstagramIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <circle cx="12" cy="12" r="4"/>
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function YoutubeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  );
+}
+
+function FooterColumn({ col }) {
+  return (
+    <div>
+      <p style={{
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: '0.25em',
+        textTransform: 'uppercase',
+        color: GOLD,
+        marginBottom: 20,
+        paddingBottom: 10,
+        borderBottom: `1px solid rgba(184,134,11,0.25)`,
+      }}>
+        {col.heading}
+      </p>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {col.links.map((l) => (
+          <li key={l.label} style={{ marginBottom: 10 }}>
+            <Link
+              href={l.href}
+              style={{
+                fontSize: 12,
+                color: '#c8bfb0',
+                textDecoration: 'none',
+                letterSpacing: '0.04em',
+                transition: 'color 150ms ease',
+              }}
+              onMouseOver={e => e.target.style.color = '#e8d5a3'}
+              onMouseOut={e => e.target.style.color = '#c8bfb0'}
+            >
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function Footer() {
+  const [waNumber, setWaNumber] = useState('');
+
+  useEffect(() => {
+    const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    fetch(`${api}/settings/public`)
+      .then(r => r.json())
+      .then(d => {
+        const data = d.data || d || {};
+        const num = (data.store_whatsapp || data.whatsapp_number || '').replace(/^"|"$/g,'').replace(/\D/g,'');
+        if (num) setWaNumber(num);
+      })
+      .catch(() => {});
+  }, []);
+
+  const waLink = waNumber
+    ? `https://wa.me/${waNumber}?text=${encodeURIComponent('Hi Tejori, I have an enquiry about your jewellery collection.')}`
+    : 'https://wa.me';
 
   return (
-    <footer style={{ fontFamily:"'Inter', system-ui, sans-serif" }}>
+    <footer style={{ background: '#0e0c09', color: '#c8bfb0', fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* Newsletter strip */}
-      <div style={{ background:'#f5ede2', padding:'48px 32px', textAlign:'center' }}>
-        <div style={{ maxWidth:500, margin:'0 auto' }}>
-          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
-            Stay in the world of Tejori
+      {/* WhatsApp CTA strip */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1a1208 0%, #241a0c 100%)',
+        borderTop: `1px solid rgba(184,134,11,0.3)`,
+        borderBottom: `1px solid rgba(184,134,11,0.15)`,
+        padding: '32px 48px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 20,
+      }}>
+        <div>
+          <p style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 22,
+            fontWeight: 400,
+            color: '#f5ebe0',
+            marginBottom: 4,
+          }}>
+            Have a Question? Chat with Our Expert
           </p>
-          <p style={{ fontSize:12, color:'#6b6b6b', marginBottom:24, letterSpacing:'0.05em' }}>
-            Subscribe for 10% off your first purchase, new arrivals and exclusive offers.
+          <p style={{ fontSize: 12, color: '#8b7355' }}>
+            Available 7 days · 9am–9pm · Dubai
           </p>
-          {status === 'done' ? (
-            <p style={{ fontSize:13, color:'#16a34a', fontWeight:500 }}>
-              ✓ Thank you! Watch your inbox for something special.
-            </p>
-          ) : (
-            <>
-              <form onSubmit={handleSubscribe} style={{ display:'flex', gap:0, maxWidth:420, margin:'0 auto' }}>
-                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-                  placeholder="Your email address"
-                  style={{ flex:1, padding:'13px 18px', border:'1px solid #d4b896', borderRight:'none', fontSize:12, outline:'none', background:'#fff' }}/>
-                <button type="submit" disabled={status==='loading'}
-                  style={{ padding:'13px 24px', background: status==='loading' ? '#888' : '#1a1a1a', color:'#fff', border:'none', cursor: status==='loading' ? 'not-allowed' : 'pointer', fontSize:10, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap', transition:'background 0.2s' }}>
-                  {status === 'loading' ? '…' : 'Subscribe'}
-                </button>
-              </form>
-              {status === 'error' && (
-                <p style={{ fontSize:11, color:'#dc2626', marginTop:8 }}>Something went wrong. Please try again.</p>
-              )}
-            </>
-          )}
         </div>
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '13px 28px',
+            background: '#25D366',
+            color: '#fff',
+            textDecoration: 'none',
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            transition: 'background 150ms ease',
+          }}
+          onMouseOver={e => e.currentTarget.style.background = '#1dba59'}
+          onMouseOut={e => e.currentTarget.style.background = '#25D366'}
+        >
+          <WhatsAppIcon />
+          Chat on WhatsApp
+        </a>
       </div>
 
-      {/* Main footer */}
-      <div style={{ background:'#1a1a1a', color:'#a0998e', padding:'60px 32px 32px' }}>
-        <div style={{ maxWidth:'var(--max-width, 1320px)', margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px,1fr))', gap:48, marginBottom:56 }}>
+      {/* Main footer grid */}
+      <div style={{
+        maxWidth: 1280,
+        margin: '0 auto',
+        padding: '64px 48px 40px',
+        display: 'grid',
+        gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+        gap: 40,
+      }}>
+        {/* Brand column */}
+        <div style={{ paddingRight: 32 }}>
+          <p style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 32,
+            fontWeight: 400,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: '#f5ebe0',
+            marginBottom: 12,
+          }}>
+            Tejori
+          </p>
+          <p style={{
+            fontSize: 10,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: GOLD,
+            marginBottom: 20,
+          }}>
+            Since 1985 · Dubai · Crafted with Passion
+          </p>
+          <p style={{ fontSize: 12, lineHeight: 1.8, color: '#8b7355', marginBottom: 28, maxWidth: 280 }}>
+            Luxury Indian &amp; GCC jewellery. GIA and IGI certified diamonds. Bespoke design services. Boutiques across Dubai.
+          </p>
 
-            {/* Brand */}
-            <div>
-              <div style={{ marginBottom:16 }}>
-                <Image
-                  src="/tejori-logo.png"
-                  alt="Tejori — Since 1964"
-                  width={180}
-                  height={76}
-                  style={{ height: 48, width: 'auto', objectFit: 'contain' }}
-                />
-              </div>
-              <p style={{ fontSize:11, lineHeight:1.9, color:'#6b6661', maxWidth:200 }}>
-                A legacy of 60 years in fine jewellery. GIA & IGI certified diamonds, ethically sourced gemstones.
-              </p>
-            </div>
-
-            {/* Customer Care */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Customer Care</h4>
-              {[
-                ['Contact Us',                '/contact'],
-                ['FAQ',                       '/faq'],
-                ['Jewellery Care Guide',      '/blog?cat=care'],
-                ['Book a Service Appointment','/appointment'],
-              ].map(([l,h]) => (
-                <Link key={l} href={h}
-                  style={{ display:'block', fontSize:12, color:'#a0998e', marginBottom:11, textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#d4a843'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#a0998e'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
-
-            {/* Our Company */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Our Company</h4>
-              {[
-                ['About TEJORI',   '/about'],
-                ['Our Heritage',   '/about#heritage'],
-                ['Boutique Finder','/boutiques'],
-                ['Exhibitions',    '/exhibitions'],
-                ['Bespoke Jewellery','/custom'],
-              ].map(([l,h]) => (
-                <Link key={l} href={h}
-                  style={{ display:'block', fontSize:12, color:'#a0998e', marginBottom:11, textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#d4a843'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#a0998e'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
-
-            {/* Certifications + Contact */}
-            <div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:20 }}>Certified By</h4>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:24 }}>
-                {['GIA','IGI','HRD','AGS'].map(cert=>(
-                  <span key={cert} style={{ border:'1px solid rgba(255,255,255,0.12)', padding:'4px 10px', fontSize:10, fontWeight:500, letterSpacing:'0.1em', color:'rgba(255,255,255,0.4)' }}>
-                    {cert}
-                  </span>
-                ))}
-              </div>
-              <h4 style={{ fontSize:9, fontWeight:600, letterSpacing:'0.2em', textTransform:'uppercase', color:'#fff', marginBottom:12 }}>Contact</h4>
-              <a href={`https://wa.me/${wapp}`} target="_blank" rel="noreferrer"
-                style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#1a7a35', color:'#fff', padding:'8px 14px', fontSize:11, textDecoration:'none', letterSpacing:'0.05em' }}>
-                💬 WhatsApp
+          {/* Social links */}
+          <div style={{ display: 'flex', gap: 12 }}>
+            {[
+              { label: 'Instagram', href: 'https://instagram.com', Icon: InstagramIcon },
+              { label: 'WhatsApp',  href: waLink,                   Icon: WhatsAppIcon },
+              { label: 'Facebook',  href: 'https://facebook.com',  Icon: FacebookIcon },
+              { label: 'YouTube',   href: 'https://youtube.com',   Icon: YoutubeIcon },
+            ].map(({ label, href, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                aria-label={label}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 38,
+                  height: 38,
+                  border: '1px solid rgba(184,134,11,0.3)',
+                  color: '#8b7355',
+                  textDecoration: 'none',
+                  transition: 'color 150ms ease, border-color 150ms ease',
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.color = GOLD;
+                  e.currentTarget.style.borderColor = GOLD;
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.color = '#8b7355';
+                  e.currentTarget.style.borderColor = 'rgba(184,134,11,0.3)';
+                }}
+              >
+                <Icon />
               </a>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-            <p style={{ fontSize:11, color:'#4a453f' }}>
-              © {new Date().getFullYear()} TEJORI Jewellery LLC. All rights reserved.
-            </p>
-            <div style={{ display:'flex', gap:20 }}>
-              {[['Privacy Policy','/privacy'],['Terms of Service','/terms']].map(([l,h])=>(
-                <Link key={l} href={h}
-                  style={{ fontSize:11, color:'#4a453f', textDecoration:'none', transition:'color .15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color='#a0998e'}
-                  onMouseLeave={e=>e.currentTarget.style.color='#4a453f'}>
-                  {l}
-                </Link>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
+
+        <FooterColumn col={COL1} />
+        <FooterColumn col={COL2} />
+        <FooterColumn col={COL3} />
+        <FooterColumn col={COL4} />
       </div>
+
+      {/* Bottom bar */}
+      <div style={{
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        padding: '20px 48px',
+        maxWidth: 1280,
+        margin: '0 auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <p style={{ fontSize: 11, color: '#5a5040' }}>
+          © 2026 Tejori Jewellery LLC. All rights reserved. Dubai, UAE.
+        </p>
+        <div style={{ display: 'flex', gap: 24 }}>
+          {[
+            { label: 'Privacy Policy', href: '/privacy' },
+            { label: 'Terms of Service', href: '/terms' },
+            { label: 'Cookie Policy', href: '/cookies' },
+          ].map(l => (
+            <Link
+              key={l.label}
+              href={l.href}
+              style={{ fontSize: 11, color: '#5a5040', textDecoration: 'none', transition: 'color 150ms ease' }}
+              onMouseOver={e => e.target.style.color = GOLD}
+              onMouseOut={e => e.target.style.color = '#5a5040'}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Responsive */}
+      <style>{`
+        @media (max-width: 1024px) {
+          footer > div:nth-child(2) {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          footer > div:nth-child(2) {
+            grid-template-columns: 1fr !important;
+            padding: 40px 24px !important;
+          }
+          footer > div:first-child {
+            padding: 24px !important;
+          }
+          footer > div:last-child {
+            flex-direction: column !important;
+            padding: 16px 24px !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 }

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db     = require('../../config/db.pool');
-const { authenticate } = require('../../common/guards/auth.guard');
+const { pool } = require('../../config/database');
+const { authenticate, authorize } = require('../../common/guards/auth.guard');
 
 // ── HELPERS (used by other modules to create notifications) ──
 async function createNotification({ user_id, type, title, body, icon='bell', color='blue', link, resource, resource_id }) {
@@ -92,6 +93,53 @@ router.put('/prefs', authenticate, async (req, res) => {
     );
     res.json({ success:true });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+// ── TEST SMTP / EMAIL CONNECTION ─────────────────────────────
+router.post('/test-email', authenticate, authorize(['super_admin','admin']), async (req, res) => {
+  try {
+    // Load SMTP settings from DB if not provided in body
+    const { rows: settingsRows } = await pool.query(
+      `SELECT key, value FROM settings WHERE key IN ('smtp_host','smtp_port','smtp_secure','smtp_user','smtp_pass','smtp_from_name','smtp_from_email')`
+    );
+    const s = {};
+    settingsRows.forEach(r => { s[r.key] = typeof r.value === 'string' ? r.value.replace(/^"|"$/g,'') : r.value; });
+
+    // Body overrides DB
+    const host     = req.body.smtp_host     || s.smtp_host;
+    const port     = parseInt(req.body.smtp_port || s.smtp_port || '587');
+    const secure   = (req.body.smtp_secure  || s.smtp_secure) === 'true';
+    const user     = req.body.smtp_user     || s.smtp_user;
+    const pass     = req.body.smtp_pass     || s.smtp_pass;
+    const fromName = req.body.smtp_from_name  || s.smtp_from_name || 'JCOS CMS';
+    const fromEmail= req.body.smtp_from_email || s.smtp_from_email || user;
+
+    if (!host || !user || !pass) {
+      return res.status(422).json({ success:false, message:'SMTP host, user, and password are required' });
+    }
+
+    // Lazy-load nodemailer to avoid crash if not installed
+    let nodemailer;
+    try { nodemailer = require('nodemailer'); }
+    catch { return res.status(500).json({ success:false, message:'nodemailer package not installed — run: npm install nodemailer' }); }
+
+    const transporter = nodemailer.createTransport({ host, port, secure, auth:{ user, pass }, connectionTimeout:8000 });
+    await transporter.verify();
+
+    // Send a test message to the logged-in admin
+    const toEmail = req.user?.email || user;
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to:   toEmail,
+      subject: 'JCOS — SMTP test successful ✓',
+      text:  `SMTP is working. Sent at ${new Date().toISOString()} from JCOS CMS.`,
+      html:  `<p style="font-family:sans-serif">SMTP is working correctly.<br><small>Sent at ${new Date().toISOString()} from JCOS CMS.</small></p>`,
+    });
+
+    res.json({ success:true, message:`Test email sent to ${toEmail}` });
+  } catch(e) {
+    res.status(502).json({ success:false, message: e.message || 'SMTP connection failed' });
+  }
 });
 
 module.exports.router = router;

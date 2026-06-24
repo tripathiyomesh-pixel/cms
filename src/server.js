@@ -20,7 +20,8 @@ const pluginRoutes      = require('./modules/plugins/plugins.routes');
 const menuRoutes        = require('./modules/menus/menus.routes');
 const settingsRoutes    = require('./modules/settings/settings.routes');
 const webhookRoutes     = require('./modules/webhooks/webhooks.routes');
-const ordersRoutes = require('./modules/orders/orders.routes');
+const ordersRoutes    = require('./modules/orders/orders.routes');
+const enquiriesRoutes = require('./modules/orders/enquiries.routes');
 const maintenanceMw = require('./middleware/maintenance');
 const workforceRoutes  = require('./modules/workforce/workforce.routes');
 const goldRatesRoutes      = require('./modules/gold_rates/gold_rates.routes');
@@ -63,7 +64,7 @@ const app = express();
 // ─── SECURITY MIDDLEWARE ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : false,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -78,7 +79,12 @@ const globalLimiter = rateLimit({
 });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
 app.use('/api/', globalLimiter);
-app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/login',           authLimiter);
+app.use('/api/auth/register',        authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password',  authLimiter);
+app.use('/api/customer/login',       authLimiter);
+app.use('/api/customer/register',    authLimiter);
 
 // ─── PARSERS ─────────────────────────────────────────────────────────────────
 app.use(compression());
@@ -109,6 +115,7 @@ app.use('/api/menus',       menuRoutes);
 app.use('/api/settings',    settingsRoutes);
 app.use('/api/webhooks',    webhookRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/enquiries', enquiriesRoutes);
 app.use(maintenanceMw);
 app.use('/api/workforce', workforceRoutes);
 app.use('/api/gold-rates', goldRatesRoutes);
@@ -176,3 +183,6 @@ app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
 })();
 
 module.exports = app;
+
+// Global error handler — must be last middleware
+app.use(globalErrorHandler);

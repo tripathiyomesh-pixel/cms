@@ -59,10 +59,13 @@ router.put('/:id/password', authenticate, async (req, res) => {
     if (req.params.id !== req.user.id && req.user.role !== 'super_admin')
       return error(res, 'Cannot change another user\'s password', 403);
     const { current_password, new_password } = req.body;
+    const isSelf = req.params.id === req.user.id;
+    if (isSelf && !current_password)
+      return error(res, 'current_password is required when changing your own password', 422);
     if (!new_password || new_password.length < 8) return error(res, 'Password must be at least 8 characters', 422);
     const { rows: [user] } = await pool.query(`SELECT password FROM users WHERE id=$1`, [req.params.id]);
     if (!user) return error(res, 'User not found', 404);
-    if (current_password) {
+    if (current_password || isSelf) {
       const valid = await bcrypt.compare(current_password, user.password);
       if (!valid) return error(res, 'Current password is incorrect', 401);
     }

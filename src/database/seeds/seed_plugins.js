@@ -62,6 +62,26 @@ const PLUGINS = [
   }, },
     product_fields: ['bedrooms','bathrooms','area','floor','amenities','floor_plan_url'],
   },
+,
+  {
+    id: 'doubletick', name: 'Doubletick WhatsApp Business API',
+    description: 'Send transactional WhatsApp messages via Doubletick — order confirmations, appointment reminders, enquiry auto-replies. Paid plugin, billed per client installation.',
+    icon: 'MessageSquare', color: 'green', version: '1.0.0', category: 'messaging',
+    author: 'KenTech Global', is_premium: true,
+    price: 99, price_currency: 'USD', billing: 'monthly',
+    docs_url: 'https://docs.doubletick.io/docs/getting-started',
+    config_schema: {
+      api_key:      { type: 'text',    label: 'Doubletick API key',     required: true },
+      instance_id:  { type: 'text',    label: 'Instance ID',            required: true },
+      from_number:  { type: 'text',    label: 'WhatsApp sender number', placeholder: '+971XXXXXXXXX' },
+      auto_reply_enquiry:     { type: 'boolean', label: 'Auto-reply to new enquiries',   default: true  },
+      auto_reply_appointment: { type: 'boolean', label: 'Auto-reply to appointments',    default: true  },
+      order_notification:     { type: 'boolean', label: 'Send order status updates',     default: false },
+      template_enquiry:  { type: 'textarea', label: 'Enquiry auto-reply template',     placeholder: 'Hi {{customer_name}}, thank you for your interest in {{product_name}}.' },
+      template_appointment: { type: 'textarea', label: 'Appointment confirmation template', placeholder: 'Hi {{customer_name}}, your appointment on {{date}} at {{time}} is confirmed.' },
+    },
+    product_fields: [],
+  }
 ];
 
 async function seed() {

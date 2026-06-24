@@ -28,7 +28,11 @@ if (!process.env.JWT_SECRET) {
     'Using an insecure development default. Set JWT_SECRET in your .env before deploying.'
   );
 }
-const JWT_SECRET = process.env.JWT_SECRET || 'INSECURE_DEV_ONLY_DO_NOT_USE_IN_PRODUCTION';
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set. Refusing to start.');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const signToken = (user) => jwt.sign(
   { id: user.id, email: user.email, role: user.role },
@@ -77,6 +81,9 @@ router.post('/login', async (req, res) => {
 
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
+  if (process.env.ALLOW_SELF_REGISTER !== 'true') {
+    return res.status(403).json({ success:false, message:'Self-registration is disabled. Contact your administrator.' });
+  }
   try {
     const { name, email, password, role = 'editor' } = req.body;
     if (!name || !email || !password) return fail(res, 'Name, email and password required', 422);
@@ -263,4 +270,3 @@ router.post('/logout', authenticate, (req, res) => {
 
 module.exports = router;
 // Export JWT_SECRET for use in auth.guard.js — eliminates the divergence bug
-module.exports.JWT_SECRET = JWT_SECRET;

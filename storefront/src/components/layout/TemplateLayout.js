@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, createContext, useContext } from 'react';
-import { THEMES, getThemeById } from '@/lib/themes';
+import { THEMES, getThemeById, applyThemeVars } from '@/lib/themes';
 import Header from './Header';
 import Footer from './Footer';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
@@ -13,14 +13,26 @@ const TemplateContext = createContext(null);
 export const useTemplateContext = () => useContext(TemplateContext);
 
 export default function TemplateLayout({ children }) {
-  const [template,  setTemplate]  = useState(getThemeById('cartier-noir'));
-  const [config,    setConfig]    = useState({});
-  const [hydrated,  setHydrated]  = useState(false);
+  const [template,    setTemplate]    = useState(getThemeById('cartier-noir'));
+  const [config,      setConfig]      = useState({});
+  const [hydrated,    setHydrated]    = useState(false);
   const [maintenance, setMaintenance] = useState(null);
 
   useEffect(() => {
     setHydrated(true);
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+    // Try session cache first to avoid FOUC
+    try {
+      const cached = sessionStorage.getItem('jcos_theme_config');
+      if (cached) {
+        const { themeId, map } = JSON.parse(cached);
+        const cachedTheme = getThemeById(themeId);
+        applyThemeVars(cachedTheme, map);
+        setTemplate(cachedTheme);
+        setConfig(map);
+      }
+    } catch {}
 
     fetch(`${apiBase}/storefront/frontend-config`)
       .then(r => r.json())
@@ -28,17 +40,21 @@ export default function TemplateLayout({ children }) {
         const cfg = res.data || {};
         setConfig(cfg);
 
-        // Apply theme
         const themeId = cfg.storefront_theme || cfg.storefront_template || localStorage.getItem('cms_template') || 'cartier-noir';
         const theme = getThemeById(themeId);
         setTemplate(theme);
         localStorage.setItem('cms_template', themeId);
 
-        // Inject Google Analytics
+        // Apply all CSS vars (including new ones: body font, bg-card, button-text, etc.)
+        applyThemeVars(theme, cfg);
+
+        // Cache for next page load (avoids FOUC)
+        try { sessionStorage.setItem('jcos_theme_config', JSON.stringify({ themeId, map: cfg })); } catch {}
+
+        // Google Analytics
         if (cfg.google_analytics_id && !document.getElementById('ga-script')) {
           const s = document.createElement('script');
-          s.id = 'ga-script';
-          s.async = true;
+          s.id = 'ga-script'; s.async = true;
           s.src = `https://www.googletagmanager.com/gtag/js?id=${cfg.google_analytics_id}`;
           document.head.appendChild(s);
           window.dataLayer = window.dataLayer || [];
@@ -47,28 +63,13 @@ export default function TemplateLayout({ children }) {
           window.gtag('config', cfg.google_analytics_id);
         }
 
-        // Inject custom head code
-        if (cfg.custom_head_code) {
+        if (cfg.custom_head_code && !document.getElementById('custom-head-code')) {
           const div = document.createElement('div');
           div.id = 'custom-head-code';
           div.innerHTML = cfg.custom_head_code;
           document.head.appendChild(div);
         }
 
-        // Apply CSS variables from theme
-        const root = document.documentElement;
-        const t = theme;
-        root.style.setProperty('--color-accent',       cfg.theme_accent_color    || t.colors.accent);
-        root.style.setProperty('--color-bg',           cfg.theme_bg_color        || t.colors.bg);
-        root.style.setProperty('--color-text',         t.colors.text);
-        root.style.setProperty('--color-text-muted',   t.colors.textMuted);
-        root.style.setProperty('--color-border',       t.colors.border);
-        root.style.setProperty('--color-nav-bg',       t.colors.navBg);
-        root.style.setProperty('--btn-radius',         cfg.theme_button_radius   || t.buttons?.radius || '8px');
-        root.style.setProperty('--font-heading',       cfg.theme_heading_font    || t.fonts.heading);
-        root.style.setProperty('--font-body',          cfg.theme_body_font       || t.fonts.body);
-
-        // Maintenance mode — set via state (never touch document.body directly)
         if (cfg.maintenance_enabled === 'true') {
           setMaintenance(cfg.maintenance_message || 'We are updating our collection. Back soon.');
         }
@@ -80,20 +81,20 @@ export default function TemplateLayout({ children }) {
     const t = getThemeById(id);
     setTemplate(t);
     localStorage.setItem('cms_template', id);
+    applyThemeVars(t, config);
   };
 
   return (
     <TemplateContext.Provider value={{ template, switchTemplate, config }}>
       <CurrencyProvider>
-        {/* Preloader */}
         {hydrated && config.preloader_enabled === 'true' && (
           <Preloader color={config.preloader_color || '#c9a84c'} style={config.preloader_style || 'diamond'}/>
         )}
 
         <div style={{
-          background: template.colors.bg,
-          color: template.colors.text,
-          fontFamily: template.fonts.body,
+          background: 'var(--color-bg, ' + template.colors.bg + ')',
+          color:      'var(--color-text, ' + template.colors.text + ')',
+          fontFamily: 'var(--font-body, ' + template.fonts.body + ')',
           minHeight: '100vh',
         }}>
           <Header template={template} config={config}/>
@@ -102,19 +103,12 @@ export default function TemplateLayout({ children }) {
         </div>
 
         <WhatsAppButton/>
-
-        {/* Cookie consent */}
         {hydrated && <CookieConsent settings={config}/>}
-
-        {/* Popup */}
         {hydrated && <PopupBuilder settings={config}/>}
-
-        {/* Custom body code — only inject if it's a script tag or safe HTML */}
         {hydrated && config.custom_body_code && (
           <div id="custom-body-code" dangerouslySetInnerHTML={{ __html: config.custom_body_code }}/>
         )}
 
-        {/* Maintenance overlay */}
         {maintenance && (
           <div style={{ position:'fixed',inset:0,zIndex:99999,background:'#0a0a0a',display:'flex',alignItems:'center',justifyContent:'center',padding:40,textAlign:'center',fontFamily:'Georgia,serif' }}>
             <div>
@@ -125,7 +119,6 @@ export default function TemplateLayout({ children }) {
           </div>
         )}
 
-        {/* Dev template switcher */}
         {hydrated && process.env.NEXT_PUBLIC_SHOW_TEMPLATE_SWITCHER === 'true' && (
           <TemplateSwitcherBar current={template} onSwitch={switchTemplate}/>
         )}

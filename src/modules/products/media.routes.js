@@ -11,7 +11,21 @@
 const express = require('express');
 const router  = express.Router();
 const { pool } = require('../../config/database');
-const { upload } = require('../../config/cloudinary');
+const { upload: rawUpload } = require('../../config/cloudinary');
+const multer = require('multer');
+
+const ALLOWED_MIMES = new Set(['image/jpeg','image/png','image/webp','image/gif','image/avif','video/mp4','application/pdf']);
+const upload = {
+  array: (field, max) => [
+    rawUpload.array(field, max),
+    (req, res, next) => {
+      if (!req.files) return next();
+      const bad = req.files.find(f => !ALLOWED_MIMES.has(f.mimetype));
+      if (bad) return res.status(422).json({ success:false, message:`File type not allowed: ${bad.mimetype}` });
+      next();
+    }
+  ]
+};
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 
 const EDITORS = ['super_admin', 'admin', 'manager', 'editor'];
@@ -165,7 +179,7 @@ router.delete('/:id', authenticate, authorize(EDITORS), async (req, res) => {
 router.post('/upload/:productId',
   authenticate,
   authorize(EDITORS),
-  upload.array('files', 20),
+  ...upload.array('files', 20),
   async (req, res) => {
     try {
       const { productId } = req.params;
@@ -189,7 +203,13 @@ router.post('/upload/:productId',
             file.path,
             file.path.replace('/upload/', '/upload/w_400,q_auto/'),
             file.filename,
-            req.body.file_type || 'image',
+            (() => {
+              const mime = file.mimetype || '';
+              if (mime.startsWith('image/')) return 'image';
+              if (mime.startsWith('video/')) return 'video';
+              if (mime === 'application/pdf') return 'pdf';
+              return 'image'; // safe default
+            })(),
             file.size,
             req.body.alt_text || product.name,
             (req.body.set_primary === 'true' && i === 0 && parseInt(count) === 0),

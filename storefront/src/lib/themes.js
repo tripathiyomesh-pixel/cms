@@ -1,4 +1,6 @@
-// Theme definitions matching admin/src/data/themes.js
+// Storefront theme system — reads settings from API, injects CSS vars at runtime
+// No rebuild needed when admin changes theme
+
 export const THEMES = [
   { id:'cartier-noir',    name:'Cartier Noir',    thumbnail:'⬛', category:'Luxury',    colors:{ bg:'#0a0a0a',bgSecondary:'#141414',bgCard:'#1a1a1a',border:'#2a2a2a',text:'#f5f0e8',textMuted:'#8a8078',accent:'#c9a84c',accentHover:'#dbb95f',navBg:'rgba(10,10,10,0.95)',buttonBg:'#c9a84c',buttonText:'#0a0a0a' }, fonts:{ heading:"'Playfair Display', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#c9a84c',topBarText:'#0a0a0a' }, buttons:{ radius:'2px' }, preview:{ bg:'#0a0a0a',accent:'#c9a84c',text:'#f5f0e8' } },
   { id:'graff-gold',      name:'Graff Gold',      thumbnail:'🟡', category:'Luxury',    colors:{ bg:'#1a1208',bgSecondary:'#241a0a',bgCard:'#2a1e0c',border:'#4a3010',text:'#f5e8c8',textMuted:'#a08050',accent:'#d4a843',accentHover:'#e8c060',navBg:'rgba(26,18,8,0.97)',buttonBg:'#d4a843',buttonText:'#1a1208' }, fonts:{ heading:"'Cormorant Garamond', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:300 }, nav:{ topBar:true,topBarBg:'#d4a843',topBarText:'#1a1208' }, buttons:{ radius:'4px' }, preview:{ bg:'#1a1208',accent:'#d4a843',text:'#f5e8c8' } },
@@ -11,4 +13,117 @@ export const THEMES = [
   { id:'tiffany-blue',    name:'Tiffany Blue',     thumbnail:'🩵', category:'Editorial', colors:{ bg:'#f0fafa',bgSecondary:'#e0f5f5',bgCard:'#ffffff',border:'#b2e0e0',text:'#0d3333',textMuted:'#4a8888',accent:'#0ababa',accentHover:'#089898',navBg:'#0d3333',buttonBg:'#0ababa',buttonText:'#ffffff' }, fonts:{ heading:"'Playfair Display', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#0d3333',topBarText:'#b2e0e0' }, buttons:{ radius:'50px' }, preview:{ bg:'#f0fafa',accent:'#0ababa',text:'#0d3333' } },
   { id:'midnight-emerald',name:'Midnight Emerald', thumbnail:'💚', category:'Editorial', colors:{ bg:'#0a1a0f',bgSecondary:'#0f2218',bgCard:'#142a1c',border:'#1e4028',text:'#e8f5ec',textMuted:'#6a9878',accent:'#4caf70',accentHover:'#3d9060',navBg:'rgba(10,26,15,0.97)',buttonBg:'#4caf70',buttonText:'#0a1a0f' }, fonts:{ heading:"'Playfair Display', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#4caf70',topBarText:'#0a1a0f' }, buttons:{ radius:'6px' }, preview:{ bg:'#0a1a0f',accent:'#4caf70',text:'#e8f5ec' } },
 ];
+
 export const getThemeById = (id) => THEMES.find(t => t.id === id) || THEMES[0];
+
+/**
+ * Inject theme as CSS variables on <html>.
+ * Called client-side on every page load after fetching settings.
+ * No rebuild needed — settings change → CSS vars change → storefront updates.
+ */
+export function applyThemeVars(theme, config = {}) {
+  if (typeof document === 'undefined') return;
+
+  const accent      = config.theme_accent_color  || theme.colors.accent;
+  const bg          = config.theme_bg_color       || theme.colors.bg;
+  const headingFont = config.theme_heading_font   || theme.fonts.heading;
+  const bodyFont    = config.theme_body_font      || theme.fonts.body;
+  const btnRadius   = config.theme_button_radius  || theme.buttons.radius;
+  const darkMode    = config.theme_dark_mode      === 'true';
+
+  const root = document.documentElement;
+
+  // Core color tokens
+  root.style.setProperty('--color-accent',        accent);
+  root.style.setProperty('--color-accent-hover',  config.theme_accent_hover || theme.colors.accentHover || accent);
+  root.style.setProperty('--color-bg',            bg);
+  root.style.setProperty('--color-bg-secondary',  theme.colors.bgSecondary);
+  root.style.setProperty('--color-bg-card',       theme.colors.bgCard       || theme.colors.bgSecondary);
+  root.style.setProperty('--color-border',        theme.colors.border);
+  root.style.setProperty('--color-text',          theme.colors.text);
+  root.style.setProperty('--color-text-muted',    theme.colors.textMuted);
+  root.style.setProperty('--color-nav-bg',        theme.colors.navBg);
+  root.style.setProperty('--color-button-bg',     accent);
+  root.style.setProperty('--color-button-text',   theme.colors.buttonText   || '#ffffff');
+
+  // Typography
+  root.style.setProperty('--font-heading',        headingFont);
+  root.style.setProperty('--font-body',           bodyFont);
+  root.style.setProperty('--font-heading-weight', String(theme.fonts.headingWeight || 400));
+
+  // Buttons
+  root.style.setProperty('--btn-radius',          btnRadius);
+
+  // Layout
+  root.style.setProperty('--max-width',           '1320px');
+  root.style.setProperty('--nav-height',          '72px');
+
+  // Dark mode — adds/removes 'dark' class on <html>
+  if (darkMode) {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
+}
+
+/**
+ * Fetch settings from API and apply theme vars.
+ * Call this in _app.js or layout.js useEffect on client side.
+ */
+export async function initTheme() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    const res  = await fetch(`${base}/settings`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('settings fetch failed');
+
+    const data = await res.json();
+    const map  = {};
+    (data.data || []).forEach(s => {
+      map[s.key] = typeof s.value === 'string' ? s.value.replace(/^"|"$/g, '') : String(s.value || '');
+    });
+
+    const themeId = map.storefront_theme || map.storefront_template || 'cartier-noir';
+    const theme   = getThemeById(themeId);
+
+    applyThemeVars(theme, map);
+
+    // Cache for instant apply on next page load (avoids FOUC)
+    try { sessionStorage.setItem('jcos_theme_config', JSON.stringify({ themeId, map })); } catch {}
+
+    return { theme, config: map };
+  } catch {
+    // Fallback: apply from session cache or default theme
+    try {
+      const cached = sessionStorage.getItem('jcos_theme_config');
+      if (cached) {
+        const { themeId, map } = JSON.parse(cached);
+        applyThemeVars(getThemeById(themeId), map);
+        return;
+      }
+    } catch {}
+    applyThemeVars(getThemeById('cartier-noir'), {});
+  }
+}
+
+/**
+ * Server-side: get theme config for SSR.
+ * Pass the result as props to Header and Footer.
+ */
+export async function fetchThemeConfig() {
+  try {
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    const res  = await fetch(`${base}/settings`, { next: { revalidate: 60 } });
+    if (!res.ok) throw new Error('settings fetch failed');
+    const data = await res.json();
+    const map  = {};
+    (data.data || []).forEach(s => {
+      map[s.key] = typeof s.value === 'string' ? s.value.replace(/^"|"$/g, '') : String(s.value || '');
+    });
+    const themeId = map.storefront_theme || map.storefront_template || 'cartier-noir';
+    return { theme: getThemeById(themeId), config: map };
+  } catch {
+    return { theme: getThemeById('cartier-noir'), config: {} };
+  }
+}

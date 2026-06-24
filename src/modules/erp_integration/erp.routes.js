@@ -25,7 +25,9 @@ const ROLES = ['super_admin','admin','manager'];
 // ─── HELPERS ─────────────────────────────────────────────────
 
 // Verify HMAC-SHA256 signature from ERP webhook
-function verifyWebhookSignature(payload, signature, secret) {
+function verifyWebhookSignature(rawBodyStr, signature, secret) {
+  // rawBodyStr MUST be the raw request body string, not re-serialized JSON
+  // The calling route must use express.raw({ type: '*/*' }) middleware
   try {
     const expected = crypto
       .createHmac('sha256', secret)
@@ -57,17 +59,35 @@ const TYPE_MAP = {
 };
 
 // ─── WEBHOOK RECEIVER (ERP pushes to us) ─────────────────────
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', require('express').raw({ type: '*/*' }), async (req, res) => {
   const signature = req.headers['x-webhook-signature'] || '';
   const secret    = process.env.ERP_WEBHOOK_SECRET || '';
 
   // Verify signature
-  if (secret && signature) {
-    const valid = verifyWebhookSignature(req.body, signature, secret);
+  if (!secret) {
+    console.error('[erp-webhook] ERP_WEBHOOK_SECRET not set — refusing webhook');
+    return res.status(503).json({ success:false, message:'Webhook not configured on this server' });
+  }
+  if (!signature) {
+    return res.status(401).json({ success:false, message:'Missing X-Webhook-Signature header' });
+  }
+  {  // always verify
+    const valid = verifyWebhookSignature(rawBodyStr, signature, secret);
     if (!valid) {
       await logSync('webhook', 'inbound', 'failed', req.body, null, 'Invalid signature');
       return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
     }
+
+  // Replay protection — deduplicate event IDs within 5 minutes
+  const eventId = req.headers['x-event-id'] || req.headers['x-webhook-id'] || '';
+  if (eventId) {
+    const [dup] = await db.query(
+      "SELECT id FROM erp_sync_log WHERE event_id=$1 AND created_at > NOW()-INTERVAL '5 minutes' LIMIT 1",
+      [eventId]
+    ).catch(() => [[]]);
+    if (dup.length) return res.status(200).json({ success:true, message:'Duplicate event ignored' });
+  }
+
   }
 
   const { event, data } = req.body;
@@ -322,7 +342,7 @@ async function pushOrderToERP(order) {
 }
 
 // ─── SYNC STATUS (admin) ──────────────────────────────────────
-router.get('/status', authenticate, async (req, res) => {
+router.get('/status', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
     const erpUrl = process.env.ERP_API_URL;
     const apiKey = process.env.ERP_API_KEY;
@@ -365,7 +385,7 @@ router.get('/status', authenticate, async (req, res) => {
 });
 
 // ─── SYNC LOG (admin) ─────────────────────────────────────────
-router.get('/logs', authenticate, async (req, res) => {
+router.get('/logs', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
   try {
     const { page=1, limit=50, status, event_type } = req.query;
     const params=[]; let where='WHERE 1=1';
@@ -413,6 +433,85 @@ router.post('/sync/full', authenticate, authorize(['super_admin','admin']), asyn
       await logSync('full_sync','inbound','error',{},null,e.message);
     }
   }, 100);
+});
+
+
+// ─── PUSH PURCHASE ORDER TO ERP (admin manual / auto) ─────────
+router.post('/push/purchase/:id', authenticate, authorize(['super_admin','admin','manager']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query('SELECT * FROM purchase_orders WHERE id=$1', [id]);
+    if (!rows.length) return res.status(404).json({ success:false, message:'Purchase order not found' });
+    const po = rows[0];
+
+    // Get line items
+    const [items] = await db.query('SELECT * FROM purchase_order_items WHERE purchase_order_id=$1', [id]);
+
+    const erpUrl = process.env.ERP_API_URL;
+    const apiKey = process.env.ERP_API_KEY;
+    if (!erpUrl || !apiKey) return res.status(503).json({ success:false, message:'ERP not configured' });
+
+    const payload = {
+      source: 'cms',
+      cms_id: po.id,
+      supplier_id: po.supplier_erp_id || po.supplier_id,
+      reference: po.reference || po.po_number,
+      date: po.created_at,
+      items: items.map(i => ({
+        product_erp_id: i.erp_id || i.product_erp_id,
+        sku: i.sku,
+        qty: i.quantity,
+        unit_cost: i.unit_cost || i.price,
+      })),
+      notes: po.notes,
+    };
+
+    const resp = await fetch(`${erpUrl}/api/v1/purchases`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'X-API-Key':apiKey },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      await logSync('push_purchase', 'outbound', 'failed', payload, data, data.message || 'ERP rejected');
+      return res.status(502).json({ success:false, message: data.message || 'ERP rejected purchase push' });
+    }
+
+    // Save ERP reference back
+    if (data.id) await db.query('UPDATE purchase_orders SET erp_id=$1 WHERE id=$2', [data.id, po.id]);
+    await logSync('push_purchase', 'outbound', 'success', payload, data);
+    res.json({ success:true, message:'Purchase order pushed to ERP', erp_id: data.id });
+  } catch(e) {
+    await logSync('push_purchase', 'outbound', 'error', { id }, null, e.message);
+    res.status(500).json({ success:false, message:e.message });
+  }
+});
+
+// ─── PUSH SALE / ORDER TO ERP ─────────────────────────────────
+router.post('/push/sale/:id', authenticate, authorize(['super_admin','admin','manager','sales_staff']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query('SELECT * FROM orders WHERE id=$1 UNION ALL SELECT * FROM custom_orders WHERE id=$1 LIMIT 1', [id]);
+    if (!rows.length) return res.status(404).json({ success:false, message:'Order not found' });
+    const order = rows[0];
+
+    const erpUrl = process.env.ERP_API_URL;
+    const apiKey = process.env.ERP_API_KEY;
+    if (!erpUrl || !apiKey) return res.status(503).json({ success:false, message:'ERP not configured' });
+
+    const result = await pushOrderToERP(order);
+    if (!result.success) {
+      await logSync('push_sale', 'outbound', 'failed', { id }, result, result.message);
+      return res.status(502).json({ success:false, message: result.message || 'ERP rejected sale push' });
+    }
+
+    await logSync('push_sale', 'outbound', 'success', { id }, result);
+    res.json({ success:true, message:'Sale pushed to ERP', erp_id: result.erp_id });
+  } catch(e) {
+    await logSync('push_sale', 'outbound', 'error', { id }, null, e.message);
+    res.status(500).json({ success:false, message:e.message });
+  }
 });
 
 module.exports = { router, pushOrderToERP, upsertProductFromERP };

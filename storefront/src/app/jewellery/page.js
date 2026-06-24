@@ -1,288 +1,605 @@
 'use client';
-
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronDown, X, SlidersHorizontal, Heart } from 'lucide-react';
+import { SlidersHorizontal, X, Heart, ChevronDown } from 'lucide-react';
 
-const COLLECTIONS = ['Aurora','Frost','Vivid','Ice Deco','Mallika','Classics','Circle of Life','Nectar','Bloom','Malachite and Coral','Pearls'];
-const CATEGORIES  = ['Bracelets','Earrings','Necklaces','Pendants','Rings','Engagement Rings'];
-const SORTS       = [['recommended','Recommended'],['price_asc','Price: Low to High'],['price_desc','Price: High to Low'],['newest','Newest']];
+const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const GOLD = '#b8860b';
 
-function FilterSidebar({ filters, set, onClose }) {
+const CATEGORIES  = ['Rings','Necklaces','Bracelets','Earrings','Pendants','Sets','Bangles','Engagement Rings'];
+const COLLECTIONS = ['Aurora Collection','Bridal Edit','Frost Collection','Vivid Collection','Heritage Line','New Arrivals','Classics'];
+const METALS      = ['Gold 22K','Gold 18K','White Gold','Rose Gold','Platinum'];
+const SORTS       = [
+  ['recommended', 'Recommended'],
+  ['newest',      'Newest First'],
+  ['price_asc',   'Price: Low to High'],
+  ['price_desc',  'Price: High to Low'],
+  ['featured',    'Featured'],
+];
+
+// ── SKELETON CARD ─────────────────────────────────────────────
+function SkeletonCard() {
   return (
-    <div className="h-full overflow-y-auto pb-10" style={{ fontFamily:"'Inter', system-ui" }}>
-      <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor:'#e5e0d8' }}>
-        <p style={{ fontSize:11, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a' }}>Filter</p>
-        {onClose && <button onClick={onClose}><X size={16}/></button>}
-      </div>
-
-      {/* Availability */}
-      <div className="px-6 py-5 border-b" style={{ borderColor:'#f0ede8' }}>
-        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', marginBottom:14 }}>Availability</p>
-        {[['','Available Online'],['new','New'],['featured','Must Have']].map(([v,l])=>(
-          <label key={l} className="flex items-center gap-3 mb-3 cursor-pointer">
-            <input type="radio" name="avail" checked={filters.avail===v} onChange={()=>set('avail',v)}
-              style={{ accentColor:'#b8860b', width:14, height:14 }}/>
-            <span style={{ fontSize:12, color:'#4a4a4a' }}>{l}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Category */}
-      <div className="px-6 py-5 border-b" style={{ borderColor:'#f0ede8' }}>
-        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', marginBottom:14 }}>Category</p>
-        {CATEGORIES.map(c=>(
-          <label key={c} className="flex items-center gap-3 mb-3 cursor-pointer">
-            <input type="checkbox"
-              checked={filters.categories?.includes(c)||false}
-              onChange={()=>{
-                const cur = filters.categories||[];
-                set('categories', cur.includes(c) ? cur.filter(x=>x!==c) : [...cur,c]);
-              }}
-              style={{ accentColor:'#b8860b', width:14, height:14 }}/>
-            <span style={{ fontSize:12, color:'#4a4a4a' }}>{c}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Collections */}
-      <div className="px-6 py-5">
-        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', marginBottom:14 }}>Collections</p>
-        {COLLECTIONS.map(c=>(
-          <label key={c} className="flex items-center gap-3 mb-3 cursor-pointer">
-            <input type="checkbox"
-              checked={filters.collections?.includes(c)||false}
-              onChange={()=>{
-                const cur = filters.collections||[];
-                set('collections', cur.includes(c) ? cur.filter(x=>x!==c) : [...cur,c]);
-              }}
-              style={{ accentColor:'#b8860b', width:14, height:14 }}/>
-            <span style={{ fontSize:12, color:'#4a4a4a' }}>{c}</span>
-          </label>
-        ))}
+    <div>
+      <div style={{
+        aspectRatio: '1',
+        background: 'linear-gradient(90deg, #f0ebe3 25%, #e8e0d4 50%, #f0ebe3 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.4s ease-in-out infinite',
+      }} />
+      <div style={{ paddingTop: 14 }}>
+        <div style={{ height: 14, background: '#f0ebe3', width: '72%', marginBottom: 8, animation: 'shimmer 1.4s ease-in-out infinite' }} />
+        <div style={{ height: 11, background: '#f0ebe3', width: '45%', marginBottom: 8, animation: 'shimmer 1.4s ease-in-out infinite' }} />
+        <div style={{ height: 13, background: '#f0ebe3', width: '30%', animation: 'shimmer 1.4s ease-in-out infinite' }} />
       </div>
     </div>
   );
 }
 
-function JewelleryContent() {
-  const sp     = useSearchParams();
-  const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [total,    setTotal]    = useState(0);
-  const [loading,  setLoading]  = useState(true);
-  const [page,     setPage]     = useState(1);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
+// ── PRODUCT CARD ──────────────────────────────────────────────
+function ProductCard({ product, waNumber }) {
+  const [hovered, setHovered] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
 
-  const [filters, setFilters] = useState({
-    sort:        sp.get('sort')       || 'recommended',
-    avail:       sp.get('avail')      || '',
-    categories:  sp.get('category')   ? [sp.get('category')] : [],
-    collections: sp.get('collection') ? [sp.get('collection')] : [],
-  });
+  const images = Array.isArray(product.images)
+    ? product.images
+    : product.image_url ? [product.image_url] : [];
+  const img1 = images[0] || null;
+  const img2 = images[1] || img1;
 
-  const setFilter = (k,v) => { setFilters(f=>({...f,[k]:v})); setPage(1); };
-  const activeCount = (filters.categories?.length||0) + (filters.collections?.length||0) + (filters.avail?1:0);
-
-  useEffect(()=>{
-    setLoading(true);
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
-    const params = new URLSearchParams({ status:'active', limit:24, page, inventory_type:'JEWELLERY' });
-    if (filters.sort && filters.sort!=='recommended') params.set('sort',filters.sort);
-    if (filters.avail==='new')      params.set('is_new','true');
-    if (filters.avail==='featured') params.set('is_featured','true');
-    if (filters.categories?.length) params.set('category',filters.categories[0]);
-    if (filters.collections?.length) params.set('collection',filters.collections[0]);
-
-    fetch(`${apiBase}/storefront/products?${params}`)
-      .then(r=>r.json())
-      .then(r=>{ setProducts(r.data?.data||[]); setTotal(r.data?.pagination?.total||r.data?.total||0); })
-      .catch(()=>setProducts([]))
-      .finally(()=>setLoading(false));
-  },[filters, page]);
-
-  // Placeholder products for demo
-  const placeholders = Array(12).fill(0).map((_,i)=>({
-    id:`p${i}`, name:['Croissant Dome Hoops','Diamond Celestial Studs','Medium Flat Hoops','Organic Pearl Hoops','Large Charlotte Hoops','Diamond Solitaire Ring','Frost Collection Ring','Aurora Pendant','Vivid Earrings','Ice Deco Bracelet','Mallika Necklace','Classic Tennis Bracelet'][i],
-    thumb_url:`https://images.unsplash.com/photo-${['1611652022419-a9419f74343d','1573408301185-9519f94ae069','1535632787350-4e68ef0ac584','1599643478518-a784e5dc4c8f','1605100804763-247f67b3557e','1515562141207-7a88fb7ce338','1602173574767-37ac01994b2a','1544376798-89aa6b0de868','1611652022419-a9419f74343d','1573408301185-9519f94ae069','1599643478518-a784e5dc4c8f','1605100804763-247f67b3557e'][i]}?w=600&q=80`,
-    currency:'AED', base_price: 2500+(i*1200), slug:`product-${i}`,
-    is_new: i<3, badge: i===1?'-17%':i===0?'-10%':'',
-  }));
-
-  const list = products.length ? products : placeholders;
+  const waMsg = encodeURIComponent(
+    `Hi Tejori, I'm interested in ${product.name}${product.sku ? ` (SKU: ${product.sku})` : ''}. Please share price and availability.`
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMsg}` : null;
+  const slug = product.slug || product.id;
 
   return (
-    <div style={{ fontFamily:"'Inter', system-ui, sans-serif" }}>
-      {/* Page header */}
-      <div className="border-b" style={{ borderColor:'#e5e0d8', background:'#fff' }}>
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-12 py-10">
-          <nav className="flex items-center gap-2 mb-4" style={{ fontSize:11, color:'#6b6b6b' }}>
-            <Link href="/" className="hover:text-yellow-700 transition-colors">Home</Link>
-            <ChevronDown size={11} className="-rotate-90"/>
-            <span style={{ color:'#1a1a1a' }}>Jewellery</span>
-          </nav>
-          <h1 className="font-cormorant font-light" style={{ fontSize:48, color:'#1a1a1a', letterSpacing:'0.02em' }}>
-            {filters.collections?.length ? filters.collections[0] : filters.categories?.length ? filters.categories[0] : 'Jewellery'}
-          </h1>
-          <p style={{ fontSize:12, color:'#6b6b6b', marginTop:8 }}>{total || list.length} pieces</p>
-        </div>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative' }}
+    >
+      {/* Image */}
+      <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: '#f5f0e8' }}>
+        {img1 ? (
+          <img
+            src={hovered && img2 ? img2 : img1}
+            alt={product.name}
+            loading="lazy"
+            style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 400ms ease',
+              transform: hovered ? 'scale(1.04)' : 'scale(1)',
+            }}
+          />
+        ) : (
+          <div style={{
+            width: '100%', height: '100%',
+            background: 'linear-gradient(135deg, #e8ddd0, #d4c4a8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: 28, opacity: 0.25 }}>✦</span>
+          </div>
+        )}
+
+        {/* Wishlist button */}
+        <button
+          onClick={(e) => { e.preventDefault(); setWishlisted(w => !w); }}
+          aria-label="Save to wishlist"
+          style={{
+            position: 'absolute', top: 10, right: 10,
+            background: 'rgba(255,255,255,0.92)',
+            border: 'none',
+            borderRadius: '50%',
+            width: 34, height: 34,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            opacity: hovered || wishlisted ? 1 : 0,
+            transition: 'opacity 200ms ease',
+            color: wishlisted ? '#e03333' : '#5a4a3a',
+          }}
+        >
+          {wishlisted ? '♥' : '♡'}
+        </button>
+
+        {/* WhatsApp hover CTA */}
+        {waHref && (
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            padding: '0 10px 10px',
+            opacity: hovered ? 1 : 0,
+            transform: hovered ? 'translateY(0)' : 'translateY(6px)',
+            transition: 'opacity 200ms ease, transform 200ms ease',
+          }}>
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              style={{
+                display: 'block',
+                textAlign: 'center',
+                padding: '9px',
+                background: 'rgba(10,10,10,0.82)',
+                color: '#f5ebe0',
+                textDecoration: 'none',
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              Enquire on WhatsApp
+            </a>
+          </div>
+        )}
       </div>
 
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-12 py-8 flex gap-10">
+      {/* Info */}
+      <Link href={`/jewellery/${slug}`} style={{ textDecoration: 'none', display: 'block', padding: '12px 0' }}>
+        <p style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 15,
+          fontWeight: 500,
+          color: '#1a1208',
+          marginBottom: 4,
+          lineHeight: 1.3,
+        }}>
+          {product.name}
+        </p>
+        {(product.metal_type || product.stone_type) && (
+          <p style={{ fontSize: 11, color: '#8b7355', marginBottom: 6, letterSpacing: '0.02em' }}>
+            {[product.metal_type, product.stone_type].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        <p style={{ fontSize: 13, fontWeight: 600, color: product.price ? '#1a1208' : GOLD }}>
+          {product.price
+            ? `AED ${Number(product.price).toLocaleString()}`
+            : 'Request Price'}
+        </p>
+      </Link>
+    </div>
+  );
+}
 
-        {/* Sidebar filter — desktop */}
-        <div className="hidden lg:block flex-shrink-0" style={{ width:220 }}>
-          <FilterSidebar filters={filters} set={setFilter}/>
+// ── FILTER SIDEBAR ────────────────────────────────────────────
+function FilterSection({ heading, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: '1px solid #f0ebe3', paddingBottom: 20, marginBottom: 20 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', background: 'none', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer', marginBottom: open ? 14 : 0, padding: 0,
+        }}
+      >
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1a1208' }}>
+          {heading}
+        </span>
+        <ChevronDown size={12} color="#8b7355" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 200ms ease' }} />
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
+function FilterSidebar({ filters, set, onClose, waNumber }) {
+  return (
+    <div style={{ fontFamily: "'Inter', system-ui" }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 24,
+        paddingBottom: 16, borderBottom: '1px solid #e8ddd0',
+      }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1a1208' }}>
+          Filter
+        </span>
+        {onClose && (
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+            <X size={16} color="#5a4a3a" />
+          </button>
+        )}
+      </div>
+
+      {/* Category */}
+      <FilterSection heading="Category">
+        {CATEGORIES.map(c => (
+          <label key={c} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={filters.categories?.includes(c) || false}
+              onChange={() => {
+                const cur = filters.categories || [];
+                set('categories', cur.includes(c) ? cur.filter(x => x !== c) : [...cur, c]);
+              }}
+              style={{ accentColor: GOLD, width: 14, height: 14 }}
+            />
+            <span style={{ fontSize: 12, color: '#4a3a2a' }}>{c}</span>
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Collections */}
+      <FilterSection heading="Collections">
+        {COLLECTIONS.map(c => (
+          <label key={c} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={filters.collections?.includes(c) || false}
+              onChange={() => {
+                const cur = filters.collections || [];
+                set('collections', cur.includes(c) ? cur.filter(x => x !== c) : [...cur, c]);
+              }}
+              style={{ accentColor: GOLD, width: 14, height: 14 }}
+            />
+            <span style={{ fontSize: 12, color: '#4a3a2a' }}>{c}</span>
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Metal Type */}
+      <FilterSection heading="Metal Type">
+        {METALS.map(m => (
+          <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={filters.metals?.includes(m) || false}
+              onChange={() => {
+                const cur = filters.metals || [];
+                set('metals', cur.includes(m) ? cur.filter(x => x !== m) : [...cur, m]);
+              }}
+              style={{ accentColor: GOLD, width: 14, height: 14 }}
+            />
+            <span style={{ fontSize: 12, color: '#4a3a2a' }}>{m}</span>
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Price Range */}
+      <FilterSection heading="Price Range (AED)">
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <input
+            type="number"
+            placeholder="Min"
+            value={filters.priceMin || ''}
+            onChange={e => set('priceMin', e.target.value)}
+            style={{
+              flex: 1, padding: '7px 10px', fontSize: 12,
+              border: '1px solid #e0d4c0', background: '#faf6f0',
+              color: '#1a1208', outline: 'none',
+            }}
+          />
+          <input
+            type="number"
+            placeholder="Max"
+            value={filters.priceMax || ''}
+            onChange={e => set('priceMax', e.target.value)}
+            style={{
+              flex: 1, padding: '7px 10px', fontSize: 12,
+              border: '1px solid #e0d4c0', background: '#faf6f0',
+              color: '#1a1208', outline: 'none',
+            }}
+          />
         </div>
-
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-            {/* Mobile filter */}
-            <button onClick={()=>setFilterOpen(true)}
-              className="lg:hidden flex items-center gap-2 py-2.5 px-4 border border-ink-200"
-              style={{ fontSize:11, fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase' }}>
-              <SlidersHorizontal size={13}/>
-              Filter{activeCount>0?` (${activeCount})`:''}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {[
+            ['0', '5000', 'Under 5K'],
+            ['5000', '15000', '5K–15K'],
+            ['15000', '50000', '15K–50K'],
+            ['50000', '', '50K+'],
+          ].map(([min, max, label]) => (
+            <button
+              key={label}
+              onClick={() => { set('priceMin', min); set('priceMax', max); }}
+              style={{
+                padding: '5px 10px', fontSize: 10, cursor: 'pointer',
+                border: `1px solid ${filters.priceMin === min && filters.priceMax === max ? GOLD : '#e0d4c0'}`,
+                background: filters.priceMin === min && filters.priceMax === max ? GOLD : 'transparent',
+                color: filters.priceMin === min && filters.priceMax === max ? '#fff' : '#4a3a2a',
+                letterSpacing: '0.06em',
+              }}
+            >
+              {label}
             </button>
+          ))}
+        </div>
+      </FilterSection>
 
-            {/* Active filter tags */}
-            <div className="flex flex-wrap gap-2">
-              {filters.categories?.map(c=>(
-                <span key={c} className="flex items-center gap-1.5 px-3 py-1 text-xs"
-                  style={{ background:'#1a1a1a', color:'#fff', letterSpacing:'0.05em' }}>
-                  {c}
-                  <button onClick={()=>setFilter('categories',filters.categories.filter(x=>x!==c))}><X size={10}/></button>
-                </span>
-              ))}
-              {filters.collections?.map(c=>(
-                <span key={c} className="flex items-center gap-1.5 px-3 py-1 text-xs"
-                  style={{ background:'#f5ede2', color:'#b8860b', letterSpacing:'0.05em' }}>
-                  {c}
-                  <button onClick={()=>setFilter('collections',filters.collections.filter(x=>x!==c))}><X size={10}/></button>
-                </span>
-              ))}
-            </div>
+      {/* Clear */}
+      <button
+        onClick={() => set('__reset__', null)}
+        style={{
+          width: '100%', padding: '10px', background: 'none',
+          border: `1px solid #e0d4c0`, fontSize: 11, cursor: 'pointer',
+          letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8b7355',
+          marginTop: 4,
+        }}
+      >
+        Clear All Filters
+      </button>
+    </div>
+  );
+}
 
-            {/* Sort */}
-            <div className="flex items-center gap-3 ml-auto">
-              <span style={{ fontSize:11, color:'#6b6b6b', letterSpacing:'0.05em' }}>Sort by:</span>
-              <select value={filters.sort} onChange={e=>setFilter('sort',e.target.value)}
-                className="border-b bg-transparent outline-none cursor-pointer"
-                style={{ fontSize:11, color:'#1a1a1a', borderColor:'#e5e0d8', paddingBottom:2, letterSpacing:'0.03em' }}>
-                {SORTS.map(([v,l])=><option key={v} value={v}>{l}</option>)}
+// ── MAIN PAGE ─────────────────────────────────────────────────
+function JewelleryPageInner() {
+  const router = useRouter();
+  const params = useSearchParams();
+
+  const [products, setProducts]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [hasMore, setHasMore]     = useState(false);
+  const [page, setPage]           = useState(1);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [waNumber, setWaNumber]   = useState('');
+
+  const [filters, setFiltersRaw] = useState({
+    categories:  params.get('category') ? [params.get('category')] : [],
+    collections: params.get('collection') ? [params.get('collection')] : [],
+    metals:      [],
+    priceMin:    '',
+    priceMax:    '',
+    sort:        params.get('sort') || 'recommended',
+  });
+
+  const setFilter = useCallback((key, value) => {
+    if (key === '__reset__') {
+      setFiltersRaw({ categories: [], collections: [], metals: [], priceMin: '', priceMax: '', sort: 'recommended' });
+      setPage(1);
+    } else {
+      setFiltersRaw(prev => ({ ...prev, [key]: value }));
+      setPage(1);
+    }
+  }, []);
+
+  // Fetch WhatsApp number once
+  useEffect(() => {
+    fetch(`${API}/settings/public`)
+      .then(r => r.json())
+      .then(d => {
+        const data = d.data || d || {};
+        const num = (data.store_whatsapp || data.whatsapp_number || '').replace(/^"|"$/g, '').replace(/\D/g, '');
+        if (num) setWaNumber(num);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch products
+  useEffect(() => {
+    setLoading(true);
+    const qp = new URLSearchParams();
+    qp.set('page', page);
+    qp.set('limit', '24');
+    if (filters.categories.length)  qp.set('category',   filters.categories.join(','));
+    if (filters.collections.length) qp.set('collection', filters.collections.join(','));
+    if (filters.metals.length)      qp.set('metal_type', filters.metals.join(','));
+    if (filters.priceMin)           qp.set('price_min',  filters.priceMin);
+    if (filters.priceMax)           qp.set('price_max',  filters.priceMax);
+    if (filters.sort !== 'recommended') qp.set('sort', filters.sort);
+
+    fetch(`${API}/storefront/products?${qp.toString()}`)
+      .then(r => r.json())
+      .then(d => {
+        const items = d.data || d.products || [];
+        setProducts(prev => page === 1 ? items : [...prev, ...items]);
+        setHasMore(items.length === 24);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [filters, page]);
+
+  const activeFilterCount = [
+    filters.categories.length,
+    filters.collections.length,
+    filters.metals.length,
+    filters.priceMin || filters.priceMax ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  return (
+    <div style={{ background: '#fdf8f3', minHeight: '100vh', fontFamily: "'Inter', system-ui" }}>
+
+      {/* Page header */}
+      <div style={{
+        background: '#1a1208',
+        padding: '48px 48px 40px',
+        textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: GOLD, marginBottom: 10 }}>
+          The Tejori Atelier
+        </p>
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 'clamp(32px, 5vw, 56px)',
+          fontWeight: 300,
+          color: '#f5ebe0',
+          letterSpacing: '-0.01em',
+        }}>
+          {filters.collections[0] || filters.categories[0] || 'All Jewellery'}
+        </h1>
+      </div>
+
+      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 24px' }}>
+        {/* Sort + filter bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 0',
+          borderBottom: '1px solid #e8ddd0',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'none', border: `1px solid #e0d4c0`,
+              padding: '8px 16px', cursor: 'pointer',
+              fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
+              color: '#1a1208',
+            }}
+          >
+            <SlidersHorizontal size={14} />
+            Filter
+            {activeFilterCount > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 18, height: 18, background: GOLD, color: '#fff',
+                borderRadius: '50%', fontSize: 9, fontWeight: 700,
+              }}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {!loading && (
+              <span style={{ fontSize: 11, color: '#8b7355' }}>
+                {products.length} {products.length === 1 ? 'piece' : 'pieces'}
+              </span>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, color: '#8b7355' }}>Sort:</span>
+              <select
+                value={filters.sort}
+                onChange={e => setFilter('sort', e.target.value)}
+                style={{
+                  padding: '7px 10px', fontSize: 11, border: '1px solid #e0d4c0',
+                  background: '#fdf8f3', color: '#1a1208', cursor: 'pointer', outline: 'none',
+                }}
+              >
+                {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
           </div>
+        </div>
 
-          {/* Product grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array(6).fill(0).map((_,i)=>(
-                <div key={i} className="animate-pulse">
-                  <div style={{ aspectRatio:'1', background:'#f0ede8' }}/>
-                  <div style={{ height:14, background:'#f0ede8', marginTop:12, width:'70%' }}/>
-                  <div style={{ height:10, background:'#f0ede8', marginTop:8, width:'40%' }}/>
+        <div style={{ display: 'flex', gap: 40, paddingTop: 32, paddingBottom: 64 }}>
+
+          {/* Desktop sidebar */}
+          <div style={{ width: 240, flexShrink: 0 }} className="filter-desktop">
+            <FilterSidebar filters={filters} set={setFilter} />
+          </div>
+
+          {/* Products */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {loading && page === 1 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+                {[...Array(9)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : products.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                <p style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontSize: 28, fontWeight: 300, color: '#1a1208', marginBottom: 12,
+                }}>
+                  No pieces found
+                </p>
+                <p style={{ fontSize: 13, color: '#8b7355', marginBottom: 24 }}>
+                  Try adjusting your filters or explore our full collection.
+                </p>
+                <button
+                  onClick={() => setFilter('__reset__', null)}
+                  style={{
+                    padding: '10px 28px', background: GOLD, color: '#fff',
+                    border: 'none', fontSize: 11, fontWeight: 600,
+                    letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer',
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+                  {products.map(p => (
+                    <ProductCard key={p.id} product={p} waNumber={waNumber} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-10">
-              {list.map(p => {
-                const priceVal = p.base_price || p.final_price;
-                const hasDiscount = p.compare_price && priceVal && parseFloat(p.compare_price)>parseFloat(priceVal);
-                const disc = hasDiscount?Math.round((1-parseFloat(priceVal)/parseFloat(p.compare_price))*100):0;
-                const badge = p.badge||(hasDiscount?`-${disc}%`:p.is_new?'New':'');
-                const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name} (SKU: ${p.sku || 'N/A'}). Please share pricing and availability.`);
-                return (
-                  <div key={p.id} className="group">
-                    {/* Image */}
-                    <Link href={`/jewellery/${p.slug||p.id}`}
-                      className="block relative overflow-hidden mb-4"
-                      style={{ aspectRatio:'1', background:'#f5f0e8' }}>
-                      {p.thumb_url
-                        ? <img src={p.thumb_url} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
-                        : <div className="w-full h-full flex items-center justify-center text-5xl">💍</div>}
-                      {badge && (
-                        <span className="absolute top-3 left-3 text-white"
-                          style={{ fontSize:9, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', background:'#1a1a1a', padding:'4px 8px' }}>
-                          {badge}
-                        </span>
-                      )}
-                      {/* Quick hover — WhatsApp + Wishlist */}
-                      <div className="absolute bottom-0 left-0 right-0 flex opacity-0 group-hover:opacity-100 transition-all duration-200">
-                        {wapp && (
-                          <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`}
-                            target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}
-                            className="flex-1 py-3 text-white text-center transition-colors"
-                            style={{ background:'rgba(26,26,26,0.92)', fontSize:10, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
-                            Inquiry Now
-                          </a>
-                        )}
-                        <button onClick={e=>{e.preventDefault();}}
-                          className="w-12 flex items-center justify-center"
-                          style={{ background:'rgba(26,26,26,0.92)' }}>
-                          <Heart size={14} color="white"/>
-                        </button>
-                      </div>
-                    </Link>
 
-                    {/* Info */}
-                    <h3 className="font-cormorant font-light mb-1.5" style={{ fontSize:18, color:'#1a1a1a', lineHeight:1.2 }}>
-                      <Link href={`/jewellery/${p.slug||p.id}`} className="hover:text-yellow-700 transition-colors">{p.name}</Link>
-                    </h3>
-                    {p.metal_type && (
-                      <p style={{ fontSize:10, color:'#aaa', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:6 }}>
-                        {p.metal_type.replace('_',' ')} {p.purity||''}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2">
-                      {priceVal && Number(priceVal) > 0
-                        ? <span style={{ fontSize:13, color:'#6b6b6b' }}>{p.currency || 'AED'} {Number(priceVal).toLocaleString()}</span>
-                        : <span style={{ fontSize:12, color:'#b8860b', letterSpacing:'0.05em' }}>Price on Request</span>}
-                      {hasDiscount && <span style={{ fontSize:12, color:'#ccc', textDecoration:'line-through' }}>{p.currency || 'AED'} {Number(p.compare_price).toLocaleString()}</span>}
-                    </div>
+                {/* Load more */}
+                {hasMore && (
+                  <div style={{ textAlign: 'center', marginTop: 48 }}>
+                    <button
+                      onClick={() => setPage(p => p + 1)}
+                      disabled={loading}
+                      style={{
+                        padding: '13px 48px',
+                        border: `1px solid ${GOLD}`,
+                        background: 'transparent',
+                        color: GOLD,
+                        fontSize: 11, fontWeight: 600,
+                        letterSpacing: '0.18em', textTransform: 'uppercase',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                    >
+                      {loading ? 'Loading…' : 'Load More Pieces'}
+                    </button>
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {total > 24 && (
-            <div className="flex justify-center items-center gap-6 mt-16">
-              <button onClick={()=>setPage(p=>p-1)} disabled={page===1}
-                className="disabled:opacity-30 transition-opacity"
-                style={{ fontSize:10, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', borderBottom:'1px solid #1a1a1a', paddingBottom:1 }}>
-                ← Previous
-              </button>
-              <span style={{ fontSize:12, color:'#6b6b6b' }}>Page {page} of {Math.ceil(total/24)}</span>
-              <button onClick={()=>setPage(p=>p+1)} disabled={page>=Math.ceil(total/24)}
-                className="disabled:opacity-30 transition-opacity"
-                style={{ fontSize:10, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', borderBottom:'1px solid #1a1a1a', paddingBottom:1 }}>
-                Next →
-              </button>
-            </div>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Mobile filter drawer */}
-      {filterOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={()=>setFilterOpen(false)}/>
-          <div className="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl overflow-hidden">
-            <FilterSidebar filters={filters} set={setFilter} onClose={()=>setFilterOpen(false)}/>
+      {sidebarOpen && (
+        <>
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200 }}
+          />
+          <div style={{
+            position: 'fixed', top: 0, left: 0,
+            width: 'min(300px, 90vw)', height: '100%',
+            background: '#fdf8f3', zIndex: 201,
+            overflowY: 'auto', padding: '28px 24px',
+          }}>
+            <FilterSidebar filters={filters} set={setFilter} onClose={() => setSidebarOpen(false)} />
           </div>
-        </div>
+        </>
       )}
+
+      <style>{`
+        @keyframes shimmer {
+          from { background-position: -200% 0; }
+          to   { background-position:  200% 0; }
+        }
+        @media (max-width: 900px) {
+          .filter-desktop { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          div[style*="grid-template-columns: repeat(3"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (max-width: 480px) {
+          div[style*="grid-template-columns: repeat(3"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
 export default function JewelleryPage() {
-  return <Suspense fallback={<div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center'}}><p style={{color:'#6b6b6b',fontSize:13,letterSpacing:'0.1em',textTransform:'uppercase'}}>Loading…</p></div>}><JewelleryContent/></Suspense>;
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf8f3' }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: '#8b7355' }}>
+          Loading collection…
+        </p>
+      </div>
+    }>
+      <JewelleryPageInner />
+    </Suspense>
+  );
 }

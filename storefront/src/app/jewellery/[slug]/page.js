@@ -1,336 +1,273 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Heart, ZoomIn, ChevronLeft } from 'lucide-react';
+import { Heart, ChevronLeft, ChevronRight, ZoomIn, X, ExternalLink, ChevronDown } from 'lucide-react';
 
-export default function ProductDetailPage({ params }) {
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeImg, setActiveImg] = useState(0);
+const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const GOLD = '#b8860b';
+const CREAM = '#fdf8f3';
+
+// ── RECENTLY VIEWED (localStorage) ───────────────────────────
+function addRecentlyViewed(product) {
+  try {
+    const key = 'tejori_recent';
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const filtered = existing.filter(p => p.id !== product.id);
+    const updated  = [{ id: product.id, slug: product.slug, name: product.name, image: (product.images||[])[0] || product.image_url }, ...filtered].slice(0, 4);
+    localStorage.setItem(key, JSON.stringify(updated));
+  } catch {}
+}
+
+function getRecentlyViewed(excludeId) {
+  try {
+    const key = 'tejori_recent';
+    return JSON.parse(localStorage.getItem(key) || '[]').filter(p => p.id !== excludeId);
+  } catch { return []; }
+}
+
+// ── IMAGE GALLERY ─────────────────────────────────────────────
+function ImageGallery({ images }) {
+  const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
 
-  useEffect(() => {
-    const api = process.env.NEXT_PUBLIC_API_URL || '/api';
-    fetch(`${api}/storefront/products/${params.slug}`)
-      .then(r => r.json())
-      .then(r => { setProduct(r.data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [params.slug]);
-
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div style={{ width:32,height:32,border:'2px solid #b8860b',borderTopColor:'transparent',borderRadius:'50%',animation:'spin .8s linear infinite' }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
-  if (!product) return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      <p className="font-cormorant text-3xl" style={{ color:'#1a1a1a' }}>Product not found</p>
-      <Link href="/jewellery" className="btn-tejori">Back to Jewellery</Link>
-    </div>
-  );
-
-  const images = product.media?.length
-    ? product.media.map(m => m.file_url).filter(Boolean)
-    : ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200&q=80'];
-
-  const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const whatsappMsg = encodeURIComponent(
-    `Hi Tejori, I am interested in ${product.name} (SKU: ${product.sku || 'N/A'}).\nPlease share pricing and availability.\nLink: ${pageUrl}`
-  );
-
-  const specs = [
-    product.metal_type   && ['Metal',         product.metal_type.replace('_',' ')],
-    product.purity       && ['Purity',         product.purity],
-    product.gross_weight && ['Gross weight',   `${product.gross_weight}g`],
-    product.net_weight   && ['Net weight',     `${product.net_weight}g`],
-    product.gender       && ['Gender',         product.gender],
-    product.occasion     && ['Occasion',       product.occasion],
-    product.style        && ['Style',          product.style],
-    product.sku          && ['SKU',            product.sku],
-  ].filter(Boolean);
-
-  const isLabGrown = product.inventory_type === 'LAB_GROWN_DIAMOND';
+  const prev = () => setActive(i => Math.max(0, i - 1));
+  const next = () => setActive(i => Math.min(images.length - 1, i + 1));
 
   return (
-    <div style={{ fontFamily:"'Inter', system-ui, sans-serif", background:'#fff' }}>
-      {/* Breadcrumb */}
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-12 py-4">
-        <nav className="flex items-center gap-2" style={{ fontSize:11, color:'#6b6b6b', letterSpacing:'0.05em' }}>
-          <Link href="/" className="hover:text-yellow-700 transition-colors">Home</Link>
-          <ChevronRight size={11}/>
-          {isLabGrown
-            ? <Link href="/lab-grown" className="hover:text-yellow-700 transition-colors">Lab-Diamond</Link>
-            : <Link href="/jewellery" className="hover:text-yellow-700 transition-colors">Jewellery</Link>}
-          <ChevronRight size={11}/>
-          <span style={{ color:'#1a1a1a' }}>{product.name}</span>
-        </nav>
-      </div>
+    <>
+      <div>
+        {/* Main image */}
+        <div
+          style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: '#f5f0e8', cursor: 'zoom-in' }}
+          onClick={() => setZoomed(true)}
+        >
+          <img
+            src={images[active]}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+            onMouseEnter={e => e.target.style.transform = 'scale(1.04)'}
+            onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+          />
 
-      {/* Main product layout */}
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-12 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <button
+            style={{ position: 'absolute', bottom: 14, right: 14, background: 'rgba(255,255,255,0.88)', border: 'none', padding: '7px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+            onClick={e => { e.stopPropagation(); setZoomed(true); }}
+          >
+            <ZoomIn size={13} />
+            <span style={{ fontSize: 10, letterSpacing: '0.1em' }}>Zoom</span>
+          </button>
 
-          {/* LEFT — Image grid (70% width = 8 cols, Cartier-style 2-col grid) */}
-          <div className="lg:col-span-8">
-            {/* Main image */}
-            <div className="relative overflow-hidden mb-3 cursor-zoom-in group"
-              style={{ background:'#f5f0e8', aspectRatio:'1' }}
-              onClick={() => setZoomed(true)}>
-              <img src={images[activeImg]} alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
-              <button className="absolute top-4 right-4 w-8 h-8 bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <ZoomIn size={14}/>
+          {images.length > 1 && (
+            <>
+              <button onClick={e => { e.stopPropagation(); prev(); }} disabled={active === 0}
+                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.88)', border: 'none', borderRadius: '50%', width: 38, height: 38, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: active === 0 ? 0.3 : 1 }}>
+                <ChevronLeft size={16} />
               </button>
-              {/* Nav arrows */}
-              {images.length > 1 && (
-                <>
-                  <button onClick={e => { e.stopPropagation(); setActiveImg(i => Math.max(0,i-1)); }}
-                    disabled={activeImg===0}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 flex items-center justify-center disabled:opacity-30 hover:bg-white transition-colors">
-                    <ChevronLeft size={16}/>
-                  </button>
-                  <button onClick={e => { e.stopPropagation(); setActiveImg(i => Math.min(images.length-1,i+1)); }}
-                    disabled={activeImg===images.length-1}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 flex items-center justify-center disabled:opacity-30 hover:bg-white transition-colors">
-                    <ChevronRight size={16}/>
-                  </button>
-                </>
-              )}
+              <button onClick={e => { e.stopPropagation(); next(); }} disabled={active === images.length - 1}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.88)', border: 'none', borderRadius: '50%', width: 38, height: 38, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: active === images.length - 1 ? 0.3 : 1 }}>
+                <ChevronRight size={16} />
+              </button>
+            </>
+          )}
+
+          {/* Image counter */}
+          {images.length > 1 && (
+            <div style={{ position: 'absolute', bottom: 14, left: 14, background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: 10, padding: '3px 8px', letterSpacing: '0.08em' }}>
+              {active + 1} / {images.length}
             </div>
-
-            {/* Thumbnail strip — 2 wide per client spec */}
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {images.map((img,i) => (
-                  <button key={i} onClick={() => setActiveImg(i)}
-                    className="overflow-hidden transition-all"
-                    style={{ border: i===activeImg ? '1px solid #b8860b' : '1px solid #e5e0d8', aspectRatio:'1', background:'#f5f0e8' }}>
-                    <img src={img} alt={`View ${i+1}`} className="w-full h-full object-cover"/>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Bottom educational links (client spec) */}
-            <div className="grid grid-cols-2 gap-4 mt-12">
-              <Link href="/blog?cat=care"
-                className="flex items-center gap-4 p-5 border border-ink-100 hover:border-yellow-600 transition-colors group">
-                <span className="text-2xl">🔍</span>
-                <div>
-                  <p className="font-medium mb-1" style={{ fontSize:12, color:'#1a1a1a', letterSpacing:'0.05em' }}>Jewellery Care Guide</p>
-                  <p style={{ fontSize:11, color:'#6b6b6b' }}>Simple steps to care for your TEJORI creation.</p>
-                </div>
-                <ChevronRight size={14} className="ml-auto text-ink-300 group-hover:text-yellow-600 transition-colors"/>
-              </Link>
-              <Link href={isLabGrown ? '/lab-grown' : '/blog?cat=diamonds'}
-                className="flex items-center gap-4 p-5 border border-ink-100 hover:border-yellow-600 transition-colors group">
-                <span className="text-2xl">💎</span>
-                <div>
-                  <p className="font-medium mb-1" style={{ fontSize:12, color:'#1a1a1a', letterSpacing:'0.05em' }}>
-                    {isLabGrown ? 'What are Lab Grown Diamonds?' : 'How to buy diamonds & jewellery'}
-                  </p>
-                  <p style={{ fontSize:11, color:'#6b6b6b' }}>
-                    {isLabGrown ? 'Learn about lab-grown diamond technology.' : 'A guide to choosing your perfect piece.'}
-                  </p>
-                </div>
-                <ChevronRight size={14} className="ml-auto text-ink-300 group-hover:text-yellow-600 transition-colors"/>
-              </Link>
-            </div>
-          </div>
-
-          {/* RIGHT — Product info (4 cols, sticky) */}
-          <div className="lg:col-span-4">
-            <div className="lg:sticky lg:top-24">
-              {/* Badges */}
-              <div className="flex gap-2 mb-4 flex-wrap">
-                {product.is_new && (
-                  <span style={{ fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', background:'#1a1a1a', color:'#fff', padding:'4px 10px' }}>New</span>
-                )}
-                {isLabGrown && (
-                  <span style={{ fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', background:'#0f2a5e', color:'#fff', padding:'4px 10px' }}>Lab-Diamond</span>
-                )}
-                {product.has_certificate && (
-                  <span style={{ fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', background:'#f5ede2', color:'#b8860b', padding:'4px 10px' }}>
-                    {product.cert_lab || 'Certified'}
-                  </span>
-                )}
-              </div>
-
-              {/* Name */}
-              <h1 className="font-cormorant font-light mb-3" style={{ fontSize:36, color:'#1a1a1a', lineHeight:1.1, letterSpacing:'0.01em' }}>
-                {product.name}
-              </h1>
-
-              {/* SKU */}
-              {product.sku && (
-                <p style={{ fontSize:10, color:'#aaa', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:20 }}>
-                  Ref. {product.sku}
-                </p>
-              )}
-
-              {/* Divider */}
-              <div style={{ width:40, height:1, background:'#b8860b', marginBottom:24 }}/>
-
-              {/* Description */}
-              {product.description && (
-                <p style={{ fontSize:13, color:'#6b6b6b', lineHeight:1.9, marginBottom:28 }}>
-                  {product.description}
-                </p>
-              )}
-
-              {/* Specs */}
-              {specs.length > 0 && (
-                <div className="mb-8">
-                  {specs.map(([k,v]) => (
-                    <div key={k} className="flex justify-between py-2.5 border-b" style={{ borderColor:'#f0ede8', fontSize:12 }}>
-                      <span style={{ color:'#6b6b6b' }}>{k}</span>
-                      <span style={{ color:'#1a1a1a', fontWeight:500, textTransform:'capitalize' }}>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Price — show only if available, never AED 0 */}
-              <div className="mb-6">
-                {product.base_price && Number(product.base_price) > 0 ? (
-                  <p style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:28, fontWeight:300, color:'#1a1208', letterSpacing:'0.02em' }}>
-                    AED {Number(product.base_price).toLocaleString()}
-                  </p>
-                ) : (
-                  <p style={{ fontSize:13, color:'#b8860b', letterSpacing:'0.1em', textTransform:'uppercase', fontWeight:500 }}>
-                    Price on Request
-                  </p>
-                )}
-              </div>
-
-              {/* REQUEST PRICE — WhatsApp CTA (client spec: no buy button) */}
-              <div className="space-y-3">
-                <a href={`https://wa.me/${(wapp||'').replace(/\D/g,'')}?text=${whatsappMsg}`}
-                  target="_blank" rel="noreferrer"
-                  className="btn-whatsapp">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.523 5.847L.057 23.885l6.197-1.625A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.817 9.817 0 01-5.003-1.367l-.358-.214-3.724.977.994-3.634-.234-.373A9.818 9.818 0 1112 21.818z"/>
-                  </svg>
-                  Request Price
-                </a>
-
-                <button onClick={() => setWishlist(!wishlist)}
-                  className="w-full flex items-center justify-center gap-2 py-3 border transition-colors"
-                  style={{ borderColor: wishlist ? '#b8860b' : '#e5e0d8', color: wishlist ? '#b8860b' : '#6b6b6b', fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
-                  <Heart size={15} fill={wishlist ? '#b8860b' : 'none'}/>
-                  {wishlist ? 'Saved to Wishlist' : 'Add to Wishlist'}
-                </button>
-
-                <Link href="/appointment"
-                  className="w-full flex items-center justify-center py-3 border border-ink-900 transition-colors hover:bg-ink-900 hover:text-white"
-                  style={{ fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase', color:'#1a1a1a' }}>
-                  Book a Consultation
-                </Link>
-              </div>
-
-              {/* Trust badges */}
-              <div className="mt-8 pt-6 border-t space-y-3" style={{ borderColor:'#f0ede8' }}>
-                {[
-                  ['🛡️', 'Authenticity Guaranteed', 'Every piece is certified and inspected'],
-                  ['📦', 'Insured Delivery',         'Complimentary shipping on all orders'],
-                  ['↩️', 'Easy Returns',              '14-day return policy'],
-                ].map(([icon,title,desc]) => (
-                  <div key={title} className="flex items-center gap-3">
-                    <span className="text-lg">{icon}</span>
-                    <div>
-                      <p style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.05em' }}>{title}</p>
-                      <p style={{ fontSize:10, color:'#6b6b6b' }}>{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
+
+        {/* Thumbnails */}
+        {images.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, overflowX: 'auto', paddingBottom: 4 }}>
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  flexShrink: 0, width: 72, height: 72,
+                  border: `2px solid ${active === i ? GOLD : 'transparent'}`,
+                  padding: 2, background: '#f5f0e8', cursor: 'pointer',
+                  transition: 'border-color 150ms ease',
+                }}
+              >
+                <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Similar pieces section (client spec) */}
-      <SimilarPieces product={product}/>
-
-      {/* Newsletter at base of every product page (client spec) */}
-      <NewsletterSection/>
-
-      {/* Zoom modal */}
+      {/* Zoom lightbox */}
       {zoomed && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setZoomed(false)}>
-          <img src={images[activeImg]} alt={product.name}
-            className="max-w-full max-h-full object-contain"
-            style={{ maxHeight:'90vh' }}/>
-          <button className="absolute top-6 right-6 text-white text-3xl font-light" onClick={() => setZoomed(false)}>✕</button>
+        <div
+          onClick={() => setZoomed(false)}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.92)',
+            zIndex: 999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <button
+            onClick={() => setZoomed(false)}
+            style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+          >
+            <X size={28} />
+          </button>
+          {images.length > 1 && (
+            <>
+              <button onClick={e => { e.stopPropagation(); prev(); }}
+                style={{ position: 'absolute', left: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <ChevronLeft size={20} />
+              </button>
+              <button onClick={e => { e.stopPropagation(); next(); }}
+                style={{ position: 'absolute', right: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
+          <img
+            src={images[active]}
+            alt=""
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── COLLAPSIBLE SECTION ───────────────────────────────────────
+function Collapsible({ heading, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderTop: '1px solid #e8ddd0' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer',
+        }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1a1208' }}>
+          {heading}
+        </span>
+        <ChevronDown size={14} color="#8b7355" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 200ms ease' }} />
+      </button>
+      {open && (
+        <div style={{ paddingBottom: 20, fontSize: 13, color: '#5a4a3a', lineHeight: 1.8 }}>
+          {children}
         </div>
       )}
     </div>
   );
 }
 
-function SimilarPieces({ product }) {
-  const [similar, setSimilar] = useState([]);
-  const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
+// ── SPECS TABLE ───────────────────────────────────────────────
+function SpecsTable({ product }) {
+  const rows = [
+    ['Metal Type',      product.metal_type?.replace(/_/g, ' ')],
+    ['Purity',          product.purity],
+    ['Gross Weight',    product.gross_weight ? `${product.gross_weight}g` : null],
+    ['Net Weight',      product.net_weight   ? `${product.net_weight}g`   : null],
+    ['Stone Type',      product.stone_type],
+    ['Stone Carat',     product.stone_carat  ? `${product.stone_carat} ct` : null],
+    ['Certification',   product.certificate_type],
+    ['Certificate No.', product.certificate_no ? (
+      <a href={`/verify/${product.certificate_no}`} target="_blank" rel="noopener noreferrer"
+        style={{ color: GOLD, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        {product.certificate_no} <ExternalLink size={10} />
+      </a>
+    ) : null],
+    ['Making Charge',   product.making_charge ? `${product.making_charge}%` : null],
+    ['SKU',             product.sku],
+  ].filter(([, v]) => v);
+
+  if (!rows.length) return null;
+
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <tbody>
+        {rows.map(([label, value]) => (
+          <tr key={label} style={{ borderBottom: '1px solid #f0ebe3' }}>
+            <td style={{ padding: '9px 0', color: '#8b7355', width: '45%', verticalAlign: 'top' }}>{label}</td>
+            <td style={{ padding: '9px 0', color: '#1a1208', fontWeight: 500 }}>{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// ── RELATED PRODUCTS STRIP ────────────────────────────────────
+function RelatedProducts({ product, waNumber }) {
+  const [related, setRelated] = useState([]);
 
   useEffect(() => {
     if (!product) return;
-    const api = process.env.NEXT_PUBLIC_API_URL || '/api';
-    const params = new URLSearchParams({ status:'active', limit:4, inventory_type: product.inventory_type || 'JEWELLERY' });
-    fetch(`${api}/storefront/products?${params}`)
-      .then(r=>r.json())
-      .then(r => setSimilar((r.data?.data||[]).filter(p=>p.id!==product.id).slice(0,4)))
-      .catch(()=>{});
+    // BUSINESS RULE: never mix natural and lab-grown suggestions
+    const isLabGrown = product.stone_type?.toLowerCase().includes('lab') ||
+                       product.collection?.toLowerCase().includes('lab') ||
+                       product.tags?.includes('lab-grown');
+    const params = new URLSearchParams({
+      limit: '4',
+      exclude: product.id,
+      ...(product.category_id && { category_id: product.category_id }),
+    });
+    // Add diamond-type filter to enforce separation
+    if (isLabGrown) params.set('diamond_type', 'lab_grown');
+    else if (product.stone_type?.toLowerCase().includes('diamond')) params.set('diamond_type', 'natural');
+
+    fetch(`${API}/storefront/products?${params.toString()}`)
+      .then(r => r.json())
+      .then(d => setRelated(d.data || d.products || []))
+      .catch(() => {});
   }, [product]);
 
-  if (!similar.length) return null;
+  if (!related.length) return null;
 
   return (
-    <section className="py-16 border-t" style={{ borderColor:'#e5e0d8', background:'#fdf8f3' }}>
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-12">
-        <p className="tejori-label text-center mb-3">You may also like</p>
-        <h2 className="font-cormorant text-4xl font-light text-center mb-10" style={{ color:'#1a1a1a' }}>Similar Pieces</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {similar.map(p => {
-            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name} (SKU: ${p.sku || 'N/A'}). Please share pricing and availability.`);
+    <section style={{ padding: '64px 48px', background: '#fdf8f3' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <h2 style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 'clamp(24px, 3vw, 36px)',
+          fontWeight: 300,
+          color: '#1a1208',
+          marginBottom: 36,
+          textAlign: 'center',
+        }}>
+          You May Also Like
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+          {related.map(p => {
+            const img = (p.images||[])[0] || p.image_url;
+            const waMsg = encodeURIComponent(`Hi Tejori, I'm interested in ${p.name}${p.sku ? ` (SKU: ${p.sku})` : ''}.`);
+            const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMsg}` : null;
             return (
-              <div key={p.id} className="group bg-white border transition-colors" style={{ borderColor:'#e5e0d8' }}
-                onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}
-                onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e0d8'}>
-                <div className="overflow-hidden" style={{ aspectRatio:'1', background:'#f5ede2' }}>
-                  {p.thumb_url
-                    ? <img src={p.thumb_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-                    : <div className="w-full h-full flex items-center justify-center text-4xl">💍</div>}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-cormorant font-light mb-3" style={{ fontSize:16, color:'#1a1a1a', lineHeight:1.3 }}>{p.name}</h3>
-                  <div className="flex gap-2">
-                    <Link href={`/jewellery/${p.slug||p.id}`}
-                      className="flex-1 text-center py-2.5 border transition-colors"
-                      style={{ fontSize:10, letterSpacing:'0.1em', textTransform:'uppercase', color:'#1a1a1a', borderColor:'#e5e0d8', fontWeight:500 }}
-                      onMouseEnter={e=>{e.currentTarget.style.background='#1a1a1a';e.currentTarget.style.color='#fff';}}
-                      onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#1a1a1a';}}>
-                      View
-                    </Link>
-                    {wapp && (
-                      <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`}
-                        target="_blank" rel="noreferrer"
-                        className="w-10 flex items-center justify-center border transition-colors"
-                        style={{ borderColor:'#e5e0d8' }}
-                        onMouseEnter={e=>e.currentTarget.style.background='#25d366'}
-                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#4a4a4a">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.523 5.847L.057 23.885l6.197-1.625A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.817 9.817 0 01-5.003-1.367l-.358-.214-3.724.977.994-3.634-.234-.373A9.818 9.818 0 1112 21.818z"/>
-                        </svg>
-                      </a>
+              <div key={p.id}>
+                <Link href={`/jewellery/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#f0ebe3', marginBottom: 12 }}>
+                    {img ? (
+                      <img src={img} alt={p.name} loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 400ms ease' }}
+                        onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8ddd0, #d4c4a8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ opacity: 0.25, fontSize: 24 }}>✦</span>
+                      </div>
                     )}
                   </div>
-                </div>
+                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 500, color: '#1a1208', marginBottom: 4 }}>{p.name}</p>
+                  <p style={{ fontSize: 12, color: p.price ? '#1a1208' : GOLD, fontWeight: 600 }}>
+                    {p.price ? `AED ${Number(p.price).toLocaleString()}` : 'Request Price'}
+                  </p>
+                </Link>
               </div>
             );
           })}
@@ -340,31 +277,333 @@ function SimilarPieces({ product }) {
   );
 }
 
-function NewsletterSection() {
-  const [email, setEmail] = useState('');
-  const [done, setDone]   = useState(false);
+// ── RECENTLY VIEWED STRIP ─────────────────────────────────────
+function RecentlyViewed({ excludeId }) {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    setItems(getRecentlyViewed(excludeId));
+  }, [excludeId]);
+
+  if (!items.length) return null;
+
   return (
-    <section className="py-14 text-center" style={{ background:'#1a1a1a' }}>
-      <div className="max-w-lg mx-auto px-6">
-        <p className="tejori-label mb-3">Stay Connected</p>
-        <h3 className="font-cormorant text-3xl font-light text-white mb-3">Stay in the world of Tejori</h3>
-        <p style={{ fontSize:12, color:'rgba(255,255,255,0.45)', marginBottom:24, letterSpacing:'0.05em' }}>
-          Subscribe for 10% off your first purchase.
+    <section style={{ padding: '0 48px 64px', background: '#fff' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: GOLD, marginBottom: 24 }}>
+          Recently Viewed
         </p>
-        {done ? (
-          <p style={{ color:'#4caf70', fontWeight:500, fontSize:13 }}>✓ Thank you! Check your inbox for your 10% discount.</p>
-        ) : (
-          <form onSubmit={e=>{e.preventDefault();setDone(true);}} className="flex gap-0 max-w-sm mx-auto">
-            <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-              placeholder="Your email address"
-              style={{ flex:1, padding:'13px 16px', border:'1px solid rgba(255,255,255,0.15)', borderRight:'none', background:'rgba(255,255,255,0.05)', color:'#fff', fontSize:12, outline:'none' }}/>
-            <button type="submit"
-              style={{ padding:'13px 20px', background:'#b8860b', color:'#fff', border:'none', cursor:'pointer', fontSize:10, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
-              Subscribe
-            </button>
-          </form>
-        )}
+        <div style={{ display: 'flex', gap: 20 }}>
+          {items.map(p => (
+            <Link key={p.id} href={`/jewellery/${p.slug || p.id}`} style={{ textDecoration: 'none', width: 120, flexShrink: 0 }}>
+              <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#f0ebe3', marginBottom: 8 }}>
+                {p.image ? (
+                  <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8ddd0, #d4c4a8)' }} />
+                )}
+              </div>
+              <p style={{ fontSize: 11, color: '#1a1208', lineHeight: 1.3 }}>{p.name}</p>
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+// ── MAIN PRODUCT PAGE ─────────────────────────────────────────
+export default function ProductPage({ params }) {
+  const { slug } = params;
+  const [product, setProduct]     = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [waNumber, setWaNumber]   = useState('');
+
+  useEffect(() => {
+    // Fetch WhatsApp number
+    fetch(`${API}/settings/public`)
+      .then(r => r.json())
+      .then(d => {
+        const data = d.data || d || {};
+        const num = (data.store_whatsapp || data.whatsapp_number || '').replace(/^"|"$/g, '').replace(/\D/g, '');
+        if (num) setWaNumber(num);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    fetch(`${API}/storefront/products/${slug}`)
+      .then(r => r.json())
+      .then(d => {
+        const p = d.data || d.product || d;
+        setProduct(p);
+        setLoading(false);
+        if (p?.id) addRecentlyViewed(p);
+      })
+      .catch(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 48px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64 }}>
+          <div style={{ aspectRatio: '1', background: '#f0ebe3', animation: 'shimmer 1.4s ease-in-out infinite' }} />
+          <div>
+            {[80, 160, 40, 40, 40].map((w, i) => (
+              <div key={i} style={{ height: i === 1 ? 48 : 14, background: '#f0ebe3', width: `${w}%`, marginBottom: 20, animation: 'shimmer 1.4s ease-in-out infinite' }} />
+            ))}
+          </div>
+        </div>
+        <style>{`@keyframes shimmer { from { opacity: 0.5; } to { opacity: 1; } }`}</style>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48, background: CREAM }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, color: '#1a1208', marginBottom: 16 }}>
+          This piece is no longer available
+        </p>
+        <Link href="/jewellery" style={{ color: GOLD, textDecoration: 'none', fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+          ← Browse Collection
+        </Link>
+      </div>
+    );
+  }
+
+  const images = Array.isArray(product.images) && product.images.length
+    ? product.images
+    : product.image_url ? [product.image_url] : [''];
+
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const waMsg = encodeURIComponent(
+    `Hi Tejori, I'm interested in ${product.name}${product.sku ? ` (SKU: ${product.sku})` : ''}. Please share the price and availability.\n\nPage: ${pageUrl}`
+  );
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMsg}` : null;
+
+  return (
+    <>
+      {/* Breadcrumb */}
+      <nav style={{ background: '#fdf8f3', borderBottom: '1px solid #f0ebe3', padding: '12px 48px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#8b7355' }}>
+          <Link href="/" style={{ color: '#8b7355', textDecoration: 'none' }}>Home</Link>
+          <span>/</span>
+          <Link href="/jewellery" style={{ color: '#8b7355', textDecoration: 'none' }}>Jewellery</Link>
+          {product.category && (
+            <>
+              <span>/</span>
+              <Link href={`/jewellery?category=${product.category}`} style={{ color: '#8b7355', textDecoration: 'none' }}>
+                {product.category}
+              </Link>
+            </>
+          )}
+          <span>/</span>
+          <span style={{ color: '#1a1208' }}>{product.name}</span>
+        </div>
+      </nav>
+
+      <div style={{ background: CREAM }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 48px 64px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '3fr 2fr',
+            gap: 64,
+            alignItems: 'start',
+          }}>
+            {/* LEFT: Gallery */}
+            <ImageGallery images={images.filter(Boolean)} />
+
+            {/* RIGHT: Product info */}
+            <div style={{ position: 'sticky', top: 100 }}>
+              {/* Brand */}
+              <p style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.4em',
+                textTransform: 'uppercase',
+                color: GOLD,
+                marginBottom: 10,
+              }}>
+                TEJORI
+              </p>
+
+              {/* Name */}
+              <h1 style={{
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontSize: 'clamp(24px, 3vw, 38px)',
+                fontWeight: 300,
+                color: '#1a1208',
+                lineHeight: 1.15,
+                marginBottom: 8,
+              }}>
+                {product.name}
+              </h1>
+
+              {/* SKU */}
+              {product.sku && (
+                <p style={{ fontSize: 11, color: '#8b7355', marginBottom: 12, letterSpacing: '0.06em' }}>
+                  SKU: #{product.sku}
+                </p>
+              )}
+
+              {/* Metal + Stone summary */}
+              {(product.metal_type || product.stone_type) && (
+                <p style={{ fontSize: 13, color: '#5a4a3a', marginBottom: 20, letterSpacing: '0.04em' }}>
+                  {[product.metal_type?.replace(/_/g,' '), product.stone_type].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
+              {/* Price */}
+              <div style={{ marginBottom: 24 }}>
+                {product.price ? (
+                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 500, color: '#1a1208' }}>
+                    AED {Number(product.price).toLocaleString()}
+                  </p>
+                ) : (
+                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: GOLD, fontStyle: 'italic' }}>
+                    Price on Request
+                  </p>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px solid #e8ddd0', paddingTop: 20, marginBottom: 20 }}>
+                <SpecsTable product={product} />
+              </div>
+
+              {/* PRIMARY CTA */}
+              {waHref && (
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    width: '100%',
+                    padding: '16px 24px',
+                    background: GOLD,
+                    color: '#fff',
+                    textDecoration: 'none',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    marginBottom: 10,
+                    transition: 'background 150ms ease',
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = '#9a7009'}
+                  onMouseOut={e => e.currentTarget.style.background = GOLD}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  Request Price on WhatsApp
+                </a>
+              )}
+
+              {/* SECONDARY CTA */}
+              <Link
+                href="/appointment"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '100%', padding: '14px 24px',
+                  border: `1px solid ${GOLD}`,
+                  color: GOLD,
+                  textDecoration: 'none',
+                  fontSize: 11, fontWeight: 700,
+                  letterSpacing: '0.16em', textTransform: 'uppercase',
+                  marginBottom: 10,
+                }}
+              >
+                Book a Viewing Appointment
+              </Link>
+
+              {/* WISHLIST */}
+              <button
+                onClick={() => setWishlisted(w => !w)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  width: '100%', padding: '12px 24px',
+                  background: 'none', border: '1px solid #e0d4c0',
+                  color: wishlisted ? '#e03333' : '#5a4a3a',
+                  fontSize: 11, fontWeight: 600,
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  cursor: 'pointer', marginBottom: 28,
+                }}
+              >
+                <Heart size={14} fill={wishlisted ? '#e03333' : 'none'} />
+                {wishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}
+              </button>
+
+              {/* Description */}
+              {product.description && (
+                <Collapsible heading="Description" defaultOpen={true}>
+                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                </Collapsible>
+              )}
+
+              {/* Care instructions */}
+              <Collapsible heading="Care Instructions">
+                <p>Store your jewellery in the provided Tejori pouch or box, away from direct sunlight and moisture. Avoid contact with perfumes, lotions, and chemicals. Clean gently with a soft dry cloth. For professional cleaning, visit any Tejori boutique.</p>
+              </Collapsible>
+
+              {/* Certificate */}
+              {(product.certificate_type || product.certificate_no) && (
+                <Collapsible heading={`${product.certificate_type || 'Diamond'} Certification`} defaultOpen={true}>
+                  <p style={{ marginBottom: 12 }}>
+                    This piece comes with an authentic <strong>{product.certificate_type || 'GIA'}</strong> certificate, verifying the quality and authenticity of your diamond.
+                  </p>
+                  {product.certificate_no && (
+                    <a
+                      href={`/verify/${product.certificate_no}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        padding: '8px 16px',
+                        border: `1px solid ${GOLD}`, color: GOLD,
+                        textDecoration: 'none', fontSize: 10,
+                        fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
+                      }}
+                    >
+                      <ExternalLink size={12} />
+                      Verify Certificate #{product.certificate_no}
+                    </a>
+                  )}
+                </Collapsible>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Related products */}
+      <RelatedProducts product={product} waNumber={waNumber} />
+
+      {/* Recently viewed */}
+      <RecentlyViewed excludeId={product.id} />
+
+      <style>{`
+        @keyframes shimmer { from { opacity: 0.5; } to { opacity: 1; } }
+        @media (max-width: 900px) {
+          div[style*="grid-template-columns: 3fr 2fr"] {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          div[style*="position: sticky"] {
+            position: static !important;
+          }
+        }
+        @media (max-width: 768px) {
+          nav, div[style*="padding: 48px 48px"] { padding: 20px 24px !important; }
+        }
+      `}</style>
+    </>
   );
 }
