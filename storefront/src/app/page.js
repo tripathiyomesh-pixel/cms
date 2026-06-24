@@ -52,7 +52,7 @@ function BrandStorySection({ label, heading, body, image, image_side='right', ct
   const imgCol = image && <div style={{ overflow:'hidden' }}><img src={image} alt={heading} style={{ width:'100%',aspectRatio:'4/5',objectFit:'cover' }}/></div>;
   return (
     <section style={{ padding:'80px 0', background:bg }}>
-      <div style={{ maxWidth:1280,margin:'0 auto',padding:'0 40px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center' }}>
+      <div className="tejori-2col" style={{ maxWidth:1280,margin:'0 auto',padding:'0 40px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center' }}>
         {image_side==='left' ? <>{imgCol}{textCol}</> : <>{textCol}{imgCol}</>}
       </div>
     </section>
@@ -62,7 +62,7 @@ function BrandStorySection({ label, heading, body, image, image_side='right', ct
 function AboutHeritageSection({ label, heading, body, image, legacy_number, legacy_label, cta_text, cta_link, bg='#ffffff' }) {
   return (
     <section style={{ padding:'80px 0', background:bg }}>
-      <div style={{ maxWidth:1280,margin:'0 auto',padding:'0 40px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center' }}>
+      <div className="tejori-2col" style={{ maxWidth:1280,margin:'0 auto',padding:'0 40px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center' }}>
         <div style={{ position:'relative' }}>
           {image && <img src={image} alt={heading} style={{ width:'100%',aspectRatio:'4/5',objectFit:'cover' }}/>}
           {legacy_number && (
@@ -95,7 +95,7 @@ function WhyChooseSection({ label, heading, bg='#fdf8f3', pillars }) {
       <div style={{ maxWidth:1000,margin:'0 auto',padding:'0 40px' }}>
         {label && <p style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'#b8860b',marginBottom:12 }}>{label}</p>}
         <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(32px,4vw,48px)',fontWeight:300,color:'#1a1a1a',marginBottom:56 }}>{heading}</h2>
-        <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:48 }}>
+        <div className="tejori-3col" style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:48 }}>
           {items.map((p,i)=>(
             <div key={i}>
               <div style={{ fontSize:40,marginBottom:20 }}>{p.icon}</div>
@@ -274,5 +274,19 @@ export default function HomePage() {
   }
 
   // Static fallback
-  return <StaticHomePage/>;
+  return (
+    <>
+      <style>{`
+        @media (max-width: 767px) {
+          .tejori-2col { grid-template-columns: 1fr !important; gap: 32px !important; padding: 0 16px !important; }
+          .tejori-3col { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .tejori-2col > div:nth-child(2) { display: none; }
+        }
+        @media (max-width: 767px) {
+          .grid.grid-cols-3 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <StaticHomePage/>
+    </>
+  );
 }

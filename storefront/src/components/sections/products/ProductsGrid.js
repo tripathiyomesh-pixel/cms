@@ -33,9 +33,9 @@ export default function ProductsGrid({ config = {}, cols = 4 }) {
         <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:44,fontWeight:300,color:'#1a1a1a',textAlign:'center',marginBottom:52 }}>{heading}</h2>
         <div style={{ display:'grid', gridTemplateColumns:`repeat(${cols},1fr)`, gap:24 }}>
           {list.map(p => {
-            const disc = p.compare_price ? Math.round((1-p.final_price/p.compare_price)*100) : 0;
+            const disc = p.compare_price ? Math.round((1-(p.base_price||p.final_price||0)/(p.compare_price))*100) : 0;
             const badge = p.badge || (disc>0?`-${disc}%`:'') || (p.is_new?'New':'');
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}`);
             return (
               <div key={p.id} className="group" style={{ background:'#fff', border:'1px solid transparent', transition:'border-color .2s' }}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#e5e0d8'}
@@ -49,7 +49,7 @@ export default function ProductsGrid({ config = {}, cols = 4 }) {
                 </Link>
                 <div style={{ padding:16 }}>
                   <h3 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:400,color:'#1a1a1a',marginBottom:12,lineHeight:1.3 }}>{p.name}</h3>
-                  {p.final_price ? <p style={{ fontSize:13,color:'#6b6b6b',marginBottom:12 }}>{p.currency} {Number(p.final_price).toLocaleString()}</p> : null}
+                  {(p.base_price||p.final_price) && Number(p.base_price||p.final_price)>0 ? <p style={{ fontSize:13,color:'#6b6b6b',marginBottom:12 }}>{p.currency||'AED'} {Number(p.base_price||p.final_price).toLocaleString()}</p> : <p style={{fontSize:12,color:'#b8860b',marginBottom:12}}>Price on Request</p>}
                   {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`} target="_blank" rel="noreferrer"
                     style={{ display:'block',width:'100%',padding:'12px',background:'#1a1a1a',color:'#fff',fontSize:10,fontWeight:500,letterSpacing:'0.15em',textTransform:'uppercase',textAlign:'center',textDecoration:'none',transition:'background .2s' }}
                     onMouseEnter={e=>e.currentTarget.style.background='#b8860b'}

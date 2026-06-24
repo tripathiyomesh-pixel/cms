@@ -47,7 +47,7 @@ export default function WishlistPage() {
               <div style={{ padding:16 }}>
                 <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'#1a1a1a', marginBottom:12 }}>{item.name}</p>
                 <div style={{ display:'flex', gap:8 }}>
-                  {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Hi, I'm interested in: ${item.name}`)}`} target="_blank" rel="noreferrer" style={{ flex:1, padding:'9px', background:'#1a1a1a', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', textDecoration:'none' }}>Enquire</a>}
+                  {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Hi Tejori, I am interested in ${item.name}`)}`} target="_blank" rel="noreferrer" style={{ flex:1, padding:'9px', background:'#1a1a1a', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', textDecoration:'none' }}>Enquire</a>}
                   <button onClick={()=>remove(item.id)} style={{ padding:'9px', border:'1px solid #e5e0d8', background:'#fff', cursor:'pointer', color:'#999' }}><Trash2 size={13}/></button>
                 </div>
               </div>

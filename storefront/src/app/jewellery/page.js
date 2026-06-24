@@ -107,7 +107,7 @@ function JewelleryContent() {
   const placeholders = Array(12).fill(0).map((_,i)=>({
     id:`p${i}`, name:['Croissant Dome Hoops','Diamond Celestial Studs','Medium Flat Hoops','Organic Pearl Hoops','Large Charlotte Hoops','Diamond Solitaire Ring','Frost Collection Ring','Aurora Pendant','Vivid Earrings','Ice Deco Bracelet','Mallika Necklace','Classic Tennis Bracelet'][i],
     thumb_url:`https://images.unsplash.com/photo-${['1611652022419-a9419f74343d','1573408301185-9519f94ae069','1535632787350-4e68ef0ac584','1599643478518-a784e5dc4c8f','1605100804763-247f67b3557e','1515562141207-7a88fb7ce338','1602173574767-37ac01994b2a','1544376798-89aa6b0de868','1611652022419-a9419f74343d','1573408301185-9519f94ae069','1599643478518-a784e5dc4c8f','1605100804763-247f67b3557e'][i]}?w=600&q=80`,
-    currency:'AED', final_price: 2500+(i*1200), slug:`product-${i}`,
+    currency:'AED', base_price: 2500+(i*1200), slug:`product-${i}`,
     is_new: i<3, badge: i===1?'-17%':i===0?'-10%':'',
   }));
 
@@ -180,7 +180,7 @@ function JewelleryContent() {
 
           {/* Product grid */}
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array(6).fill(0).map((_,i)=>(
                 <div key={i} className="animate-pulse">
                   <div style={{ aspectRatio:'1', background:'#f0ede8' }}/>

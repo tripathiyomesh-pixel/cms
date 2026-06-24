@@ -79,7 +79,7 @@ export default function WishlistPage() {
             const hasDiscount = p.compare_price && parseFloat(p.compare_price) > parseFloat(p.final_price);
             const discountPct = hasDiscount ? Math.round((1-parseFloat(p.final_price)/parseFloat(p.compare_price))*100) : 0;
             const href = p.inventory_type==='NATURAL_DIAMOND'||p.inventory_type==='LAB_GROWN_DIAMOND' ? `/diamonds/${p.id}` : p.inventory_type==='GEMSTONE' ? `/gemstones/${p.id}` : `/jewellery/${p.slug||p.id}`;
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name} — ${p.currency} ${Number(p.final_price||0).toLocaleString()}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}. Please share pricing and availability.`);
 
             return (
               <div key={p.id} className="card overflow-hidden hover:shadow-md transition-all group">

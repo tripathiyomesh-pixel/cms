@@ -32,7 +32,7 @@ export default function MountingsPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map(m=>{
-            const msg = encodeURIComponent(`Hi, I'm interested in the mounting: ${m.name} (${m.sku}). I'd like to discuss stone options.`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in the mounting: ${m.name} (${m.sku}). Please share pricing and availability.`);
             return (
               <div key={m.id} className="card overflow-hidden hover:shadow-md transition-all">
                 <div className="aspect-square bg-ink-50 flex items-center justify-center text-5xl">{m.thumb_url?<img src={m.thumb_url} alt={m.name} className="w-full h-full object-cover"/>:'⚙️'}</div>

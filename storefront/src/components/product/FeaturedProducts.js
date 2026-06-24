@@ -6,9 +6,9 @@ import { sfAPI } from '@/lib/api';
 import { Heart, MessageCircle, ChevronRight } from 'lucide-react';
 
 function ProductCard({ product }) {
-  const img = product.media?.[0]?.file_url || product.thumb_url;
+  const img = product.primary_image || product.media?.[0]?.file_url || product.thumb_url || null;
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP;
-  const msg = `Hi, I'm interested in: ${product.name} (${product.sku}) — ${product.currency} ${Number(product.final_price).toLocaleString()}`;
+  const msg = `Hi Tejori, I am interested in ${product.name} (${product.sku}). Please share pricing and availability.`;
 
   return (
     <div className="card group overflow-hidden hover:shadow-lg transition-all duration-300">
@@ -29,7 +29,9 @@ function ProductCard({ product }) {
         <h3 className="text-sm font-medium text-ink-700 mb-2 line-clamp-2 leading-tight">{product.name}</h3>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-base font-semibold text-ink-800">{product.currency} {Number(product.final_price).toLocaleString()}</div>
+            {product.base_price && Number(product.base_price) > 0
+              ? <div className="text-base font-semibold text-ink-800">{product.currency || 'AED'} {Number(product.base_price).toLocaleString()}</div>
+              : <div className="text-sm font-medium" style={{ color:'#b8860b' }}>Price on Request</div>}
           </div>
           <div className="flex gap-1.5">
             <Link href={`/jewellery/${product.slug||product.id}`}

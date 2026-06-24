@@ -135,7 +135,7 @@ function FeaturedProducts() {
             const disc = hasDiscount ? Math.round((1-parseFloat(p.final_price)/parseFloat(p.compare_price))*100) : 0;
             const badge = p.badge || (hasDiscount ? `-${disc}%` : p.is_new ? 'NEW' : '');
             const href  = `/jewellery/${p.slug||p.id}`;
-            const msg   = encodeURIComponent(`Hi, I'm interested in: ${p.name}`);
+            const msg   = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}`);
 
             return (
               <div key={p.id} className="group bg-white" style={{ border:'1px solid transparent', transition:'border-color .2s' }}

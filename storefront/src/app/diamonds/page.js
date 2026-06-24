@@ -17,7 +17,7 @@ const GRADE_COLOR = { Excellent:'text-green-600 font-semibold','Very Good':'text
 function DiamondCard({ d }) {
   const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
   const name = d.name || `${d.diamond_type==='LAB_GROWN'?'Lab':'Natural'} ${d.shape} ${d.carat}ct ${d.color} ${d.clarity}`;
-  const msg  = encodeURIComponent(`Hi, I'm interested in: ${name} | Cert: ${d.primary_cert_lab||''} ${d.primary_cert_no||''} | ${d.currency||'USD'} ${Number(d.final_price||0).toLocaleString()}`);
+  const msg  = encodeURIComponent(`Hi Tejori, I am interested in ${name} | Cert: ${d.primary_cert_lab||''} ${d.primary_cert_no||''} | ${d.currency||'USD'} ${Number(d.final_price||0).toLocaleString()}`);
 
   return (
     <div className="card p-4 hover:shadow-md transition-all hover:border-gold-200">

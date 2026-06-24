@@ -7,9 +7,9 @@ export default function QuickView({ product: p, onClose }) {
   const [imgIdx, setImgIdx] = useState(0);
   const imgs = Array.isArray(p?.media) ? p.media.filter(m=>m?.file_url) : [];
   const wapp = process.env.NEXT_PUBLIC_WHATSAPP;
-  const hasDiscount = p?.compare_price && parseFloat(p.compare_price) > parseFloat(p.final_price);
-  const discountPct = hasDiscount ? Math.round((1-parseFloat(p.final_price)/parseFloat(p.compare_price))*100) : 0;
-  const msg = encodeURIComponent(`Hi, I'm interested in: ${p?.name} (${p?.sku}) — ${p?.currency} ${Number(p?.final_price||0).toLocaleString()}`);
+  const hasDiscount = p?.compare_price && parseFloat(p.compare_price) > parseFloat(p.base_price||p.final_price||0);
+  const discountPct = hasDiscount ? Math.round((1-parseFloat(p.base_price||p.final_price||0)/parseFloat(p.compare_price))*100) : 0;
+  const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p?.name} (${p?.sku}). Please share pricing and availability.`);
 
   useEffect(()=>{
     document.body.style.overflow='hidden';
@@ -55,7 +55,7 @@ export default function QuickView({ product: p, onClose }) {
 
           {/* Price */}
           <div className="flex items-center gap-3 mb-5 pb-5 border-b border-ink-100">
-            <span className="text-2xl font-bold text-ink-800">{p.currency} {Number(p.final_price||0).toLocaleString()}</span>
+            <span className="text-2xl font-bold text-ink-800">{p.currency||'AED'} {p.base_price&&Number(p.base_price)>0?Number(p.base_price).toLocaleString():'Price on Request'}</span>
             {hasDiscount && (
               <div>
                 <span className="text-sm text-ink-400 line-through block">{p.currency} {Number(p.compare_price).toLocaleString()}</span>

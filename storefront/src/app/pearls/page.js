@@ -35,7 +35,7 @@ function PearlsContent() {
       : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map(p=>{
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name} | ${p.currency} ${Number(p.final_price||0).toLocaleString()}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name} | ${p.currency} ${Number(p.final_price||0).toLocaleString()}`);
             return (
               <div key={p.id} className="card overflow-hidden hover:shadow-md transition-all">
                 <div className="aspect-square bg-gradient-to-br from-pink-50 to-white flex items-center justify-center text-5xl">{p.thumb_url?<img src={p.thumb_url} alt={p.name} className="w-full h-full object-cover"/>:'🤍'}</div>

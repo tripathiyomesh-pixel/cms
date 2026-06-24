@@ -55,7 +55,7 @@ export default function ProductsCarousel({ config = {} }) {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:24 }}>
           {shown.map(p => {
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}`);
             return (
               <div key={p.id} className="group" style={{ background:'#fff', border:'1px solid #e5e0d8', transition:'border-color .2s' }}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}

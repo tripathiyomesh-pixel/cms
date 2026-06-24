@@ -45,7 +45,7 @@ function GemstonesContent() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map(g=>{
             const tc = TYPE_COLORS[g.gemstone_type] || TYPE_COLORS.default;
-            const msg = encodeURIComponent(`Hi, I'm interested in: ${g.name||g.gemstone_type} ${g.carat?Number(g.carat).toFixed(2)+'ct':''} | ${g.currency||'USD'} ${Number(g.final_price||0).toLocaleString()}`);
+            const msg = encodeURIComponent(`Hi Tejori, I am interested in ${g.name||g.gemstone_type} ${g.carat?Number(g.carat).toFixed(2)+'ct':''} | ${g.currency||'USD'} ${Number(g.final_price||0).toLocaleString()}`);
             return (
               <div key={g.id} className="card overflow-hidden hover:shadow-md transition-all group">
                 <div className="aspect-square bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center text-5xl">

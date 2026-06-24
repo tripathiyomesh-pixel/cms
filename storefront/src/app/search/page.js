@@ -159,7 +159,7 @@ function SearchInner() {
             <>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:24 }}>
                 {results.map(p => {
-                  const msg = encodeURIComponent(`Hi, I'm interested in: ${p.name}\nSKU: ${p.sku}\n${window?.location?.href || ''}`);
+                  const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}\nSKU: ${p.sku}\n${window?.location?.href || ''}`);
                   return (
                     <div key={p.id} className="group" style={{ border:'1px solid transparent', transition:'border-color .2s' }}
                       onMouseEnter={e=>e.currentTarget.style.borderColor='#e5e0d8'}
