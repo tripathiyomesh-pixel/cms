@@ -36,18 +36,18 @@ function Steps({ current }) {
               <div style={{
                 width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
                 fontSize:13, fontWeight:600, transition:'all 0.2s',
-                background: done ? '#1a1a1a' : active ? '#b8860b' : 'transparent',
+                background: done ? 'var(--color-text)' : active ? 'var(--color-accent)' : 'transparent',
                 border: done || active ? 'none' : '1.5px solid #ddd',
                 color: done || active ? '#fff' : '#aaa',
               }}>
                 {done ? <Check size={14}/> : i + 1}
               </div>
-              <span style={{ fontSize:10, letterSpacing:'0.05em', textTransform:'uppercase', fontWeight:500, color: active ? '#1a1a1a' : '#aaa', whiteSpace:'nowrap' }}>
+              <span style={{ fontSize:10, letterSpacing:'0.05em', textTransform:'uppercase', fontWeight:500, color: active ? 'var(--color-text)' : '#aaa', whiteSpace:'nowrap' }}>
                 {s}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div style={{ width:40, height:1, background: done ? '#1a1a1a' : '#e5e5e5', margin:'0 4px', marginBottom:22, flexShrink:0 }}/>
+              <div style={{ width:40, height:1, background: done ? 'var(--color-text)' : '#e5e5e5', margin:'0 4px', marginBottom:22, flexShrink:0 }}/>
             )}
           </div>
         );
@@ -60,8 +60,8 @@ function Steps({ current }) {
 function StepPurpose({ value, onChange, onNext }) {
   return (
     <div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', textAlign:'center', marginBottom:12 }}>Step 1</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', textAlign:'center', marginBottom:12 }}>Step 1</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'var(--color-text)', textAlign:'center', marginBottom:8 }}>
         What brings you in?
       </h2>
       <p style={{ fontSize:13, color:'#888', textAlign:'center', marginBottom:32 }}>Select the purpose of your visit</p>
@@ -69,19 +69,19 @@ function StepPurpose({ value, onChange, onNext }) {
         {PURPOSES.map(p => (
           <button key={p.id} onClick={() => { onChange(p.id); }}
             style={{
-              padding:'16px 14px', border:`2px solid ${value === p.id ? '#b8860b' : '#e5e0d8'}`,
+              padding:'16px 14px', border:`2px solid ${value === p.id ? 'var(--color-accent)' : '#e5e0d8'}`,
               background: value === p.id ? '#fdf8ee' : '#fff',
               cursor:'pointer', textAlign:'left', transition:'all 0.15s',
             }}>
             <div style={{ fontSize:22, marginBottom:8 }}>{p.icon}</div>
-            <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:3 }}>{p.label}</div>
+            <div style={{ fontSize:13, fontWeight:600, color:'var(--color-text)', marginBottom:3 }}>{p.label}</div>
             <div style={{ fontSize:11, color:'#888', lineHeight:1.5 }}>{p.desc}</div>
           </button>
         ))}
       </div>
       <div style={{ textAlign:'center' }}>
         <button onClick={onNext} disabled={!value}
-          style={{ background: value ? '#1a1a1a' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: value ? 'pointer' : 'not-allowed', display:'inline-flex', alignItems:'center', gap:8 }}>
+          style={{ background: value ? 'var(--color-text)' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: value ? 'pointer' : 'not-allowed', display:'inline-flex', alignItems:'center', gap:8 }}>
           Continue <ChevronRight size={14}/>
         </button>
       </div>
@@ -114,8 +114,8 @@ function StepLocation({ value, onChange, onNext, onBack }) {
 
   return (
     <div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', textAlign:'center', marginBottom:12 }}>Step 2</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', textAlign:'center', marginBottom:12 }}>Step 2</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'var(--color-text)', textAlign:'center', marginBottom:8 }}>
         Choose your boutique
       </h2>
       <p style={{ fontSize:13, color:'#888', textAlign:'center', marginBottom:32 }}>Select the location most convenient for you</p>
@@ -129,16 +129,16 @@ function StepLocation({ value, onChange, onNext, onBack }) {
           {display.map(loc => (
             <button key={loc.id || loc.name} onClick={() => onChange(loc.id || loc.name)}
               style={{
-                padding:'16px', border:`2px solid ${value === (loc.id || loc.name) ? '#b8860b' : '#e5e0d8'}`,
+                padding:'16px', border:`2px solid ${value === (loc.id || loc.name) ? 'var(--color-accent)' : '#e5e0d8'}`,
                 background: value === (loc.id || loc.name) ? '#fdf8ee' : '#fff',
                 cursor:'pointer', textAlign:'left', transition:'all 0.15s',
               }}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
-                <MapPin size={16} style={{ color:'#b8860b', flexShrink:0, marginTop:1 }}/>
+                <MapPin size={16} style={{ color:'var(--color-accent)', flexShrink:0, marginTop:1 }}/>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>{loc.name}</div>
+                  <div style={{ fontSize:13, fontWeight:600, color:'var(--color-text)', marginBottom:2 }}>{loc.name}</div>
                   <div style={{ fontSize:11, color:'#888' }}>{loc.area}</div>
-                  {loc.hours && <div style={{ fontSize:11, color:'#b8860b', marginTop:2 }}>{loc.hours}</div>}
+                  {loc.hours && <div style={{ fontSize:11, color:'var(--color-accent)', marginTop:2 }}>{loc.hours}</div>}
                 </div>
               </div>
             </button>
@@ -148,11 +148,11 @@ function StepLocation({ value, onChange, onNext, onBack }) {
 
       <div style={{ display:'flex', justifyContent:'center', gap:12 }}>
         <button onClick={onBack}
-          style={{ background:'#fff', color:'#1a1a1a', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
+          style={{ background:'#fff', color:'var(--color-text)', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
           <ChevronLeft size={14}/> Back
         </button>
         <button onClick={onNext} disabled={!value}
-          style={{ background: value ? '#1a1a1a' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: value ? 'pointer' : 'not-allowed', display:'inline-flex', alignItems:'center', gap:8 }}>
+          style={{ background: value ? 'var(--color-text)' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: value ? 'pointer' : 'not-allowed', display:'inline-flex', alignItems:'center', gap:8 }}>
           Continue <ChevronRight size={14}/>
         </button>
       </div>
@@ -191,8 +191,8 @@ function StepDateTime({ date, time, onDateChange, onTimeChange, onNext, onBack }
 
   return (
     <div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', textAlign:'center', marginBottom:12 }}>Step 3</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', textAlign:'center', marginBottom:12 }}>Step 3</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'var(--color-text)', textAlign:'center', marginBottom:8 }}>
         Select date & time
       </h2>
       <p style={{ fontSize:13, color:'#888', textAlign:'center', marginBottom:32 }}>Boutiques open Sat–Thu, 10am–6pm</p>
@@ -208,13 +208,13 @@ function StepDateTime({ date, time, onDateChange, onTimeChange, onNext, onBack }
               return (
                 <button key={iso} onClick={() => { onDateChange(iso); onTimeChange(''); }}
                   style={{
-                    flexShrink:0, padding:'10px 14px', border:`2px solid ${sel ? '#b8860b' : '#e5e0d8'}`,
+                    flexShrink:0, padding:'10px 14px', border:`2px solid ${sel ? 'var(--color-accent)' : '#e5e0d8'}`,
                     background: sel ? '#fdf8ee' : '#fff', cursor:'pointer', transition:'all 0.15s', textAlign:'center',
                   }}>
-                  <div style={{ fontSize:10, color: sel ? '#b8860b' : '#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>
+                  <div style={{ fontSize:10, color: sel ? 'var(--color-accent)' : '#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>
                     {d.toLocaleDateString('en-AE', { weekday:'short' })}
                   </div>
-                  <div style={{ fontSize:16, fontWeight:600, color:'#1a1a1a', lineHeight:1 }}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'var(--color-text)', lineHeight:1 }}>
                     {d.getDate()}
                   </div>
                   <div style={{ fontSize:10, color:'#888', marginTop:2 }}>
@@ -237,9 +237,9 @@ function StepDateTime({ date, time, onDateChange, onTimeChange, onNext, onBack }
                 {slots.map(t => (
                   <button key={t} onClick={() => onTimeChange(t)}
                     style={{
-                      padding:'10px 16px', border:`2px solid ${time === t ? '#b8860b' : '#e5e0d8'}`,
+                      padding:'10px 16px', border:`2px solid ${time === t ? 'var(--color-accent)' : '#e5e0d8'}`,
                       background: time === t ? '#fdf8ee' : '#fff', cursor:'pointer',
-                      fontSize:13, fontWeight:500, color: time === t ? '#b8860b' : '#555', transition:'all 0.15s',
+                      fontSize:13, fontWeight:500, color: time === t ? 'var(--color-accent)' : '#555', transition:'all 0.15s',
                     }}>
                     {t}
                   </button>
@@ -254,11 +254,11 @@ function StepDateTime({ date, time, onDateChange, onTimeChange, onNext, onBack }
 
         <div style={{ display:'flex', gap:12 }}>
           <button onClick={onBack}
-            style={{ background:'#fff', color:'#1a1a1a', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
+            style={{ background:'#fff', color:'var(--color-text)', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
             <ChevronLeft size={14}/> Back
           </button>
           <button onClick={onNext} disabled={!date || !time}
-            style={{ background: (date && time) ? '#1a1a1a' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor:(date && time) ? 'pointer' : 'not-allowed', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            style={{ background: (date && time) ? 'var(--color-text)' : '#ddd', color:'#fff', border:'none', padding:'14px 48px', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor:(date && time) ? 'pointer' : 'not-allowed', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
             Continue <ChevronRight size={14}/>
           </button>
         </div>
@@ -275,8 +275,8 @@ function StepDetails({ form, onChange, onNext, onBack }) {
 
   return (
     <div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', textAlign:'center', marginBottom:12 }}>Step 4</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', textAlign:'center', marginBottom:12 }}>Step 4</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'var(--color-text)', textAlign:'center', marginBottom:8 }}>
         Your details
       </h2>
       <p style={{ fontSize:13, color:'#888', textAlign:'center', marginBottom:32 }}>We'll confirm your appointment via WhatsApp</p>
@@ -328,11 +328,11 @@ function StepDetails({ form, onChange, onNext, onBack }) {
 
         <div style={{ display:'flex', gap:12 }}>
           <button onClick={onBack}
-            style={{ background:'#fff', color:'#1a1a1a', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
+            style={{ background:'#fff', color:'var(--color-text)', border:'1px solid #e5e0d8', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
             <ChevronLeft size={14}/> Back
           </button>
           <button onClick={onNext} disabled={!valid}
-            style={{ background: valid ? '#1a1a1a' : '#ddd', color:'#fff', border:'none', padding:'14px 0', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: valid ? 'pointer' : 'not-allowed', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            style={{ background: valid ? 'var(--color-text)' : '#ddd', color:'#fff', border:'none', padding:'14px 0', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: valid ? 'pointer' : 'not-allowed', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
             Review booking <ChevronRight size={14}/>
           </button>
         </div>
@@ -362,8 +362,8 @@ function StepConfirm({ form, purpose, location, onBack, onSubmit, submitting }) 
 
   return (
     <div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', textAlign:'center', marginBottom:12 }}>Step 5</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', textAlign:'center', marginBottom:12 }}>Step 5</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:300, color:'var(--color-text)', textAlign:'center', marginBottom:8 }}>
         Confirm your booking
       </h2>
       <p style={{ fontSize:13, color:'#888', textAlign:'center', marginBottom:32 }}>Please review your appointment details</p>
@@ -371,7 +371,7 @@ function StepConfirm({ form, purpose, location, onBack, onSubmit, submitting }) 
       <div style={{ maxWidth:480, margin:'0 auto' }}>
         {/* Summary card */}
         <div style={{ border:'1px solid #e5e0d8', marginBottom:24 }}>
-          <div style={{ background:'#1a1a1a', padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ background:'var(--color-text)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}>
             <span style={{ fontSize:24 }}>{purposeObj?.icon || '✨'}</span>
             <div>
               <p style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{purposeObj?.label || 'Appointment'}</p>
@@ -381,10 +381,10 @@ function StepConfirm({ form, purpose, location, onBack, onSubmit, submitting }) 
           <div style={{ padding:'4px 0' }}>
             {rows.map((row, i) => (
               <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'10px 20px', borderBottom: i < rows.length - 1 ? '1px solid #f5f0e8' : 'none' }}>
-                <span style={{ color:'#b8860b', flexShrink:0, marginTop:1 }}>{row.icon}</span>
+                <span style={{ color:'var(--color-accent)', flexShrink:0, marginTop:1 }}>{row.icon}</span>
                 <div style={{ display:'flex', justifyContent:'space-between', flex:1, gap:12 }}>
                   <span style={{ fontSize:12, color:'#888', flexShrink:0 }}>{row.label}</span>
-                  <span style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', textAlign:'right' }}>{row.value}</span>
+                  <span style={{ fontSize:12, fontWeight:500, color:'var(--color-text)', textAlign:'right' }}>{row.value}</span>
                 </div>
               </div>
             ))}
@@ -397,11 +397,11 @@ function StepConfirm({ form, purpose, location, onBack, onSubmit, submitting }) 
 
         <div style={{ display:'flex', gap:12 }}>
           <button onClick={onBack} disabled={submitting}
-            style={{ background:'#fff', color:'#1a1a1a', border:'1px solid #e5e0d8', padding:'14px 24px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
+            style={{ background:'#fff', color:'var(--color-text)', border:'1px solid #e5e0d8', padding:'14px 24px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8 }}>
             <ChevronLeft size={14}/> Edit
           </button>
           <button onClick={onSubmit} disabled={submitting}
-            style={{ background: submitting ? '#888' : '#b8860b', color:'#fff', border:'none', padding:'14px 0', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: submitting ? 'not-allowed' : 'pointer', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background 0.2s' }}>
+            style={{ background: submitting ? '#888' : 'var(--color-accent)', color:'#fff', border:'none', padding:'14px 0', fontSize:12, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', cursor: submitting ? 'not-allowed' : 'pointer', flex:1, display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background 0.2s' }}>
             {submitting ? 'Confirming…' : 'Confirm Appointment'}
             {!submitting && <Check size={15}/>}
           </button>
@@ -424,15 +424,15 @@ function Success({ form, purpose, location }) {
       <div style={{ width:72, height:72, borderRadius:'50%', background:'#EAF3DE', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px' }}>
         <Check size={32} style={{ color:'#3B6D11' }}/>
       </div>
-      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'#b8860b', marginBottom:12 }}>Booking confirmed</p>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(28px,4vw,44px)', fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>
+      <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color:'var(--color-accent)', marginBottom:12 }}>Booking confirmed</p>
+      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(28px,4vw,44px)', fontWeight:300, color:'var(--color-text)', marginBottom:12 }}>
         We'll see you soon
       </h2>
       <p style={{ fontSize:14, color:'#888', lineHeight:1.7, marginBottom:8 }}>
-        Your appointment at <strong style={{ color:'#1a1a1a' }}>{location}</strong> is confirmed for
+        Your appointment at <strong style={{ color:'var(--color-text)' }}>{location}</strong> is confirmed for
       </p>
-      <p style={{ fontSize:16, fontWeight:600, color:'#1a1a1a', marginBottom:6 }}>{fmtDate}</p>
-      <p style={{ fontSize:14, color:'#b8860b', fontWeight:500, marginBottom:32 }}>{form.preferred_time}</p>
+      <p style={{ fontSize:16, fontWeight:600, color:'var(--color-text)', marginBottom:6 }}>{fmtDate}</p>
+      <p style={{ fontSize:14, color:'var(--color-accent)', fontWeight:500, marginBottom:32 }}>{form.preferred_time}</p>
 
       <p style={{ fontSize:13, color:'#888', marginBottom:24 }}>
         Our team will confirm via WhatsApp shortly. If you need to cancel or reschedule, please message us at least 2 hours before your appointment.
@@ -444,7 +444,7 @@ function Success({ form, purpose, location }) {
           💬 Message us on WhatsApp
         </a>
         <Link href="/jewellery"
-          style={{ display:'inline-flex', alignItems:'center', gap:8, color:'#1a1a1a', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', textDecoration:'none', border:'1px solid #e5e0d8', width:'100%', maxWidth:320, justifyContent:'center' }}>
+          style={{ display:'inline-flex', alignItems:'center', gap:8, color:'var(--color-text)', padding:'14px 32px', fontSize:12, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', textDecoration:'none', border:'1px solid #e5e0d8', width:'100%', maxWidth:320, justifyContent:'center' }}>
           Browse our collection
         </Link>
       </div>
@@ -492,8 +492,8 @@ export default function AppointmentPage() {
   return (
     <div style={{ fontFamily:"'Inter',system-ui,sans-serif", paddingTop:80, minHeight:'90vh' }}>
       {/* Header */}
-      <div style={{ background:'#1a1a1a', padding:'48px 40px 40px', textAlign:'center' }}>
-        <p style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'#b8860b', marginBottom:12 }}>Private Consultation</p>
+      <div style={{ background:'var(--color-text)', padding:'48px 40px 40px', textAlign:'center' }}>
+        <p style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'var(--color-accent)', marginBottom:12 }}>Private Consultation</p>
         <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(32px,5vw,56px)', fontWeight:300, color:'#fff', lineHeight:1.1 }}>
           Book an Appointment
         </h1>
@@ -525,3 +525,4 @@ export default function AppointmentPage() {
     </div>
   );
 }
+

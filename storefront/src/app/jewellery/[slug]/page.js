@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { Heart, ChevronLeft, ChevronRight, ZoomIn, X, ExternalLink, ChevronDown } from 'lucide-react';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const GOLD = '#b8860b';
-const CREAM = '#fdf8f3';
+const GOLD = 'var(--color-accent)';
+const CREAM = 'var(--color-bg)';
 
 // ── RECENTLY VIEWED (localStorage) ───────────────────────────
 function addRecentlyViewed(product) {
@@ -152,7 +152,7 @@ function Collapsible({ heading, children, defaultOpen = false }) {
           padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer',
         }}
       >
-        <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1a1208' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-text)' }}>
           {heading}
         </span>
         <ChevronDown size={14} color="#8b7355" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 200ms ease' }} />
@@ -194,7 +194,7 @@ function SpecsTable({ product }) {
         {rows.map(([label, value]) => (
           <tr key={label} style={{ borderBottom: '1px solid #f0ebe3' }}>
             <td style={{ padding: '9px 0', color: '#8b7355', width: '45%', verticalAlign: 'top' }}>{label}</td>
-            <td style={{ padding: '9px 0', color: '#1a1208', fontWeight: 500 }}>{value}</td>
+            <td style={{ padding: '9px 0', color: 'var(--color-text)', fontWeight: 500 }}>{value}</td>
           </tr>
         ))}
       </tbody>
@@ -230,13 +230,13 @@ function RelatedProducts({ product, waNumber }) {
   if (!related.length) return null;
 
   return (
-    <section style={{ padding: '64px 48px', background: '#fdf8f3' }}>
+    <section style={{ padding: '64px 48px', background: 'var(--color-bg)' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <h2 style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontSize: 'clamp(24px, 3vw, 36px)',
           fontWeight: 300,
-          color: '#1a1208',
+          color: 'var(--color-text)',
           marginBottom: 36,
           textAlign: 'center',
         }}>
@@ -263,8 +263,8 @@ function RelatedProducts({ product, waNumber }) {
                       </div>
                     )}
                   </div>
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 500, color: '#1a1208', marginBottom: 4 }}>{p.name}</p>
-                  <p style={{ fontSize: 12, color: (p.base_price && Number(p.base_price) > 0) ? '#1a1208' : GOLD, fontWeight: 600 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 500, color: 'var(--color-text)', marginBottom: 4 }}>{p.name}</p>
+                  <p style={{ fontSize: 12, color: (p.base_price && Number(p.base_price) > 0) ? 'var(--color-text)' : GOLD, fontWeight: 600 }}>
                     {p.base_price && Number(p.base_price) > 0 ? `AED ${Number(p.base_price).toLocaleString()}` : 'Request Price'}
                   </p>
                 </Link>
@@ -303,7 +303,7 @@ function RecentlyViewed({ excludeId }) {
                   <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8ddd0, #d4c4a8)' }} />
                 )}
               </div>
-              <p style={{ fontSize: 11, color: '#1a1208', lineHeight: 1.3 }}>{p.name}</p>
+              <p style={{ fontSize: 11, color: 'var(--color-text)', lineHeight: 1.3 }}>{p.name}</p>
             </Link>
           ))}
         </div>
@@ -365,7 +365,7 @@ export default function ProductPage({ params }) {
   if (!product) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48, background: CREAM }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, color: '#1a1208', marginBottom: 16 }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, color: 'var(--color-text)', marginBottom: 16 }}>
           This piece is no longer available
         </p>
         <Link href="/jewellery" style={{ color: GOLD, textDecoration: 'none', fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
@@ -388,7 +388,7 @@ export default function ProductPage({ params }) {
   return (
     <>
       {/* Breadcrumb */}
-      <nav style={{ background: '#fdf8f3', borderBottom: '1px solid #f0ebe3', padding: '12px 48px' }}>
+      <nav style={{ background: 'var(--color-bg)', borderBottom: '1px solid #f0ebe3', padding: '12px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#8b7355' }}>
           <Link href="/" style={{ color: '#8b7355', textDecoration: 'none' }}>Home</Link>
           <span>/</span>
@@ -402,7 +402,7 @@ export default function ProductPage({ params }) {
             </>
           )}
           <span>/</span>
-          <span style={{ color: '#1a1208' }}>{product.name}</span>
+          <span style={{ color: 'var(--color-text)' }}>{product.name}</span>
         </div>
       </nav>
 
@@ -436,7 +436,7 @@ export default function ProductPage({ params }) {
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
                 fontSize: 'clamp(24px, 3vw, 38px)',
                 fontWeight: 300,
-                color: '#1a1208',
+                color: 'var(--color-text)',
                 lineHeight: 1.15,
                 marginBottom: 8,
               }}>
@@ -460,7 +460,7 @@ export default function ProductPage({ params }) {
               {/* Price */}
               <div style={{ marginBottom: 24 }}>
                 {product.base_price && Number(product.base_price) > 0 ? (
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 500, color: '#1a1208' }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 500, color: 'var(--color-text)' }}>
                     AED {Number(product.base_price).toLocaleString()}
                   </p>
                 ) : (

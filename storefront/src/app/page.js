@@ -4,9 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const API   = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const GOLD  = '#b8860b';
-const CREAM = '#fdf8f3';
-const DARK  = '#0a0a0a';
+const GOLD = 'var(--color-accent)';
+const CREAM = 'var(--color-bg)';
+const DARK = 'var(--color-text)';
 
 // ── BLUR PLACEHOLDER (tiny gold square) ──────────────────────
 const BLUR_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAABmJLR0QA/wD/AP+gvaeTAAAADklEQVQI12NgYGD4TwABBAEBKkfBGgAAAABJRU5ErkJggg==';
@@ -192,7 +192,7 @@ function CollectionsSection() {
             fontFamily: "'Cormorant Garamond', Georgia, serif",
             fontSize: 'clamp(32px, 4vw, 52px)',
             fontWeight: 300,
-            color: '#1a1208',
+            color: 'var(--color-text)',
             lineHeight: 1.1,
           }}>
             Explore Our Collections
@@ -232,12 +232,12 @@ function CollectionsSection() {
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
                   fontSize: 18,
                   fontWeight: 500,
-                  color: '#1a1208',
+                  color: 'var(--color-text)',
                   marginBottom: 6,
                   transition: 'color 150ms ease',
                 }}
                 onMouseOver={e => e.target.style.color = GOLD}
-                onMouseOut={e => e.target.style.color = '#1a1208'}
+                onMouseOut={e => e.target.style.color = 'var(--color-text)'}
                 >
                   {col.name}
                 </p>
@@ -376,7 +376,7 @@ function ProductCard({ product, waNumber }) {
           fontSize: 14,
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontWeight: 500,
-          color: '#1a1208',
+          color: 'var(--color-text)',
           marginBottom: 4,
           lineHeight: 1.3,
         }}>
@@ -387,7 +387,7 @@ function ProductCard({ product, waNumber }) {
             {[product.metal_type, product.stone_type].filter(Boolean).join(' · ')}
           </p>
         )}
-        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? '#1a1208' : GOLD }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? 'var(--color-text)' : GOLD }}>
           {product.base_price && Number(product.base_price) > 0
             ? `AED ${Number(product.base_price).toLocaleString()}`
             : 'Request Price'}
@@ -420,7 +420,7 @@ function FeaturedProductsSection({ waNumber }) {
               fontFamily: "'Cormorant Garamond', Georgia, serif",
               fontSize: 'clamp(28px, 3.5vw, 46px)',
               fontWeight: 300,
-              color: '#1a1208',
+              color: 'var(--color-text)',
             }}>
               Featured Pieces
             </h2>
@@ -554,7 +554,7 @@ function GoldRateSection() {
 
   return (
     <div style={{
-      background: '#1a1208',
+      background: 'var(--color-text)',
       borderTop: `1px solid rgba(184,134,11,0.2)`,
       borderBottom: `1px solid rgba(184,134,11,0.2)`,
       padding: '14px 48px',
@@ -604,7 +604,7 @@ function WhatsAppCTASection({ waNumber }) {
         fontFamily: "'Cormorant Garamond', Georgia, serif",
         fontSize: 'clamp(28px, 4vw, 46px)',
         fontWeight: 300,
-        color: '#1a1208',
+        color: 'var(--color-text)',
         marginBottom: 16,
       }}>
         Speak to Our Jewellery Expert
@@ -687,3 +687,4 @@ export default function HomePage() {
     </main>
   );
 }
+

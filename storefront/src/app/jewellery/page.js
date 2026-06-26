@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { SlidersHorizontal, X, Heart, ChevronDown } from 'lucide-react';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const GOLD = '#b8860b';
+const GOLD = 'var(--color-accent)';
 
 const CATEGORIES  = ['Rings','Necklaces','Bracelets','Earrings','Pendants','Sets','Bangles','Engagement Rings'];
 const COLLECTIONS = ['Aurora Collection','Bridal Edit','Frost Collection','Vivid Collection','Heritage Line','New Arrivals','Classics'];
@@ -144,7 +144,7 @@ function ProductCard({ product, waNumber }) {
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontSize: 15,
           fontWeight: 500,
-          color: '#1a1208',
+          color: 'var(--color-text)',
           marginBottom: 4,
           lineHeight: 1.3,
         }}>
@@ -155,7 +155,7 @@ function ProductCard({ product, waNumber }) {
             {[product.metal_type, product.stone_type].filter(Boolean).join(' · ')}
           </p>
         )}
-        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? '#1a1208' : GOLD }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: (product.base_price && Number(product.base_price) > 0) ? 'var(--color-text)' : GOLD }}>
           {product.base_price && Number(product.base_price) > 0
             ? `AED ${Number(product.base_price).toLocaleString()}`
             : 'Request Price'}
@@ -178,7 +178,7 @@ function FilterSection({ heading, children, defaultOpen = true }) {
           cursor: 'pointer', marginBottom: open ? 14 : 0, padding: 0,
         }}
       >
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1a1208' }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text)' }}>
           {heading}
         </span>
         <ChevronDown size={12} color="#8b7355" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 200ms ease' }} />
@@ -196,7 +196,7 @@ function FilterSidebar({ filters, set, onClose, waNumber }) {
         marginBottom: 24,
         paddingBottom: 16, borderBottom: '1px solid #e8ddd0',
       }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1a1208' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-text)' }}>
           Filter
         </span>
         {onClose && (
@@ -271,7 +271,7 @@ function FilterSidebar({ filters, set, onClose, waNumber }) {
             style={{
               flex: 1, padding: '7px 10px', fontSize: 12,
               border: '1px solid #e0d4c0', background: '#faf6f0',
-              color: '#1a1208', outline: 'none',
+              color: 'var(--color-text)', outline: 'none',
             }}
           />
           <input
@@ -282,7 +282,7 @@ function FilterSidebar({ filters, set, onClose, waNumber }) {
             style={{
               flex: 1, padding: '7px 10px', fontSize: 12,
               border: '1px solid #e0d4c0', background: '#faf6f0',
-              color: '#1a1208', outline: 'none',
+              color: 'var(--color-text)', outline: 'none',
             }}
           />
         </div>
@@ -401,11 +401,11 @@ function JewelleryPageInner() {
   ].reduce((a, b) => a + b, 0);
 
   return (
-    <div style={{ background: '#fdf8f3', minHeight: '100vh', fontFamily: "'Inter', system-ui" }}>
+    <div style={{ background: 'var(--color-bg)', minHeight: '100vh', fontFamily: "'Inter', system-ui" }}>
 
       {/* Page header */}
       <div style={{
-        background: '#1a1208',
+        background: 'var(--color-text)',
         padding: '48px 48px 40px',
         textAlign: 'center',
       }}>
@@ -441,7 +441,7 @@ function JewelleryPageInner() {
               background: 'none', border: `1px solid #e0d4c0`,
               padding: '8px 16px', cursor: 'pointer',
               fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-              color: '#1a1208',
+              color: 'var(--color-text)',
             }}
           >
             <SlidersHorizontal size={14} />
@@ -470,7 +470,7 @@ function JewelleryPageInner() {
                 onChange={e => setFilter('sort', e.target.value)}
                 style={{
                   padding: '7px 10px', fontSize: 11, border: '1px solid #e0d4c0',
-                  background: '#fdf8f3', color: '#1a1208', cursor: 'pointer', outline: 'none',
+                  background: 'var(--color-bg)', color: 'var(--color-text)', cursor: 'pointer', outline: 'none',
                 }}
               >
                 {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -496,7 +496,7 @@ function JewelleryPageInner() {
               <div style={{ textAlign: 'center', padding: '80px 0' }}>
                 <p style={{
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
-                  fontSize: 28, fontWeight: 300, color: '#1a1208', marginBottom: 12,
+                  fontSize: 28, fontWeight: 300, color: 'var(--color-text)', marginBottom: 12,
                 }}>
                   No pieces found
                 </p>
@@ -559,7 +559,7 @@ function JewelleryPageInner() {
           <div style={{
             position: 'fixed', top: 0, left: 0,
             width: 'min(300px, 90vw)', height: '100%',
-            background: '#fdf8f3', zIndex: 201,
+            background: 'var(--color-bg)', zIndex: 201,
             overflowY: 'auto', padding: '28px 24px',
           }}>
             <FilterSidebar filters={filters} set={setFilter} onClose={() => setSidebarOpen(false)} />
@@ -574,7 +574,7 @@ function JewelleryPageInner() {
 export default function JewelleryPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf8f3' }}>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
         <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: '#8b7355' }}>
           Loading collection…
         </p>
@@ -584,3 +584,4 @@ export default function JewelleryPage() {
     </Suspense>
   );
 }
+
