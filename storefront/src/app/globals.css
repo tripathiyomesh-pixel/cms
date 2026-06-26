@@ -7,19 +7,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
-/* ── Tejori design tokens ────────────────────────────────────── */
+/* ── Theme-switchable CSS variables (defaults = Tejori) ─────── */
 :root {
-  --tejori-gold:       #b8860b;
-  --tejori-gold-light: #d4a843;
-  --tejori-cream:      #fdf8f3;
-  --tejori-cream-dark: #f5ede2;
-  --tejori-black:      #1a1a1a;
-  --tejori-grey:       #6b6b6b;
-  --tejori-border:     #e5e0d8;
-  --font-heading:      'Cormorant Garamond', Georgia, serif;
-  --font-body:         'Inter', system-ui, sans-serif;
-  --nav-height:        72px;
-  --max-width:         1320px;
+  --color-bg:           #fdf8f3;
+  --color-surface:      #ffffff;
+  --color-text:         #1a1208;
+  --color-text-muted:   #6b7280;
+  --color-accent:       #b8860b;
+  --color-accent-hover: #9a7209;
+  --color-border:       #e5e0d8;
+  --color-heading:      #1a1208;
+  --nav-bg:             #1a1208;
+  --nav-text:           #ffffff;
+  --nav-accent:         #b8860b;
+  --font-heading:       var(--font-cormorant, 'Cormorant Garamond'), Georgia, serif;
+  --font-body:          var(--font-inter, 'Inter'), system-ui, sans-serif;
+  --radius-btn:         0px;
+  --nav-height:         72px;
+  --max-width:          1320px;
+
+  /* Legacy aliases — keep for any component referencing these */
+  --tejori-gold:        var(--color-accent);
+  --tejori-gold-light:  #d4a843;
+  --tejori-cream:       var(--color-bg);
+  --tejori-cream-dark:  #f5ede2;
+  --tejori-black:       var(--color-text);
+  --tejori-grey:        var(--color-text-muted);
+  --tejori-border:      var(--color-border);
 }
 
 /* ── Base resets (safe, no conflict with Tailwind) ─────────── */
@@ -28,25 +42,26 @@ body { -webkit-font-smoothing: antialiased; }
 a { text-decoration: none; }
 
 /* ── Tejori utility classes ──────────────────────────────────── */
-.font-cormorant { font-family: 'Cormorant Garamond', Georgia, serif; }
+.font-cormorant { font-family: var(--font-heading); }
 .tejori-label {
   font-size: 10px; font-weight: 500;
   letter-spacing: 0.25em; text-transform: uppercase;
-  color: var(--tejori-gold);
+  color: var(--color-accent);
 }
 .btn-tejori {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 13px 32px; background: #1a1a1a; color: #fff;
+  padding: 13px 32px; background: var(--color-text); color: var(--nav-text);
   font-size: 11px; font-weight: 500;
   letter-spacing: 0.15em; text-transform: uppercase;
+  border-radius: var(--radius-btn);
   border: none; cursor: pointer; transition: background .2s;
 }
-.btn-tejori:hover { background: var(--tejori-gold); }
+.btn-tejori:hover { background: var(--color-accent); }
 
 .btn-whatsapp {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%; padding: 14px 28px;
-  background: #1a1a1a; color: #fff;
+  background: var(--color-text); color: var(--nav-text);
   font-size: 11px; font-weight: 500;
   letter-spacing: 0.12em; text-transform: uppercase;
   border: none; cursor: pointer; transition: background .2s;
