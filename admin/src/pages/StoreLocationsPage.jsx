@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
-import { MapPin, Plus, Trash2, Phone, Clock, Globe, Star, X } from 'lucide-react';
+import { MapPin, Plus, Trash2, Phone, Clock, Globe, Star, X, Edit2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -17,16 +17,16 @@ const empty = { name: '', address: '', city: '', country_code: 'AE', phone: '', 
 export default function StoreLocationsPage() {
   const { collapsed, toggleSidebar } = useOutletContext();
   const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(empty);
-  const [saving, setSaving] = useState(false);
+  const [loading,   setLoading]   = useState(true);
+  const [showForm,  setShowForm]  = useState(false);
+  const [editLoc,   setEditLoc]   = useState(null);
+  const [form,      setForm]      = useState(empty);
+  const [saving,    setSaving]    = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
-      const user = JSON.parse(localStorage.getItem('jcms_user') || '{}');
-      const res = await api.get('/jewellery/locations', { params: { license_id: user.license_id || user.id } });
+      const res = await api.get('/jewellery/locations');
       setLocations(res.data.data || []);
     } catch { toast.error('Failed to load locations'); }
     setLoading(false);
@@ -46,6 +46,24 @@ export default function StoreLocationsPage() {
       setForm(empty);
       load();
     } catch { toast.error('Failed to save'); }
+    setSaving(false);
+  };
+
+  const handleEdit = (loc) => {
+    setEditLoc(loc);
+    setForm({ name: loc.name, address: loc.address, city: loc.city || '', country_code: loc.country_code || 'AE', phone: loc.phone || '', whatsapp: loc.whatsapp || '', email: loc.email || '', google_maps_url: loc.google_maps_url || '', working_hours: loc.working_hours || '', is_primary: loc.is_primary || false });
+  };
+
+  const handleEditSave = async () => {
+    if (!form.name || !form.address) return toast.error('Name and address required');
+    setSaving(true);
+    try {
+      await api.patch(`/jewellery/locations/${editLoc.id}`, form);
+      toast.success('Location updated');
+      setEditLoc(null);
+      setForm(empty);
+      load();
+    } catch { toast.error('Failed to update'); }
     setSaving(false);
   };
 
@@ -101,16 +119,88 @@ export default function StoreLocationsPage() {
                     <a href={`https://wa.me/${loc.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
                       className="text-xs text-green-600 hover:underline">WhatsApp: {loc.whatsapp}</a>
                   ) : <span />}
-                  <button onClick={() => handleDelete(loc.id, loc.name)}
-                    className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
-                    <Trash2 size={13} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => handleEdit(loc)}
+                      className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600">
+                      <Edit2 size={13} />
+                    </button>
+                    <button onClick={() => handleDelete(loc.id, loc.name)}
+                      className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit location modal */}
+      {editLoc && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={e => e.target === e.currentTarget && setEditLoc(null)}>
+          <div className="bg-white dark:bg-ink-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between p-5 border-b border-ink-200 dark:border-ink-700">
+              <h2 className="font-semibold text-ink-800 dark:text-ink-100">Edit — {editLoc.name}</h2>
+              <button onClick={() => setEditLoc(null)} className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><X size={16} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Location name *</label>
+                  <input className="input-field" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Dubai Mall Boutique" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Address *</label>
+                  <textarea className="input-field" rows={2} value={form.address} onChange={e => set('address', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">City</label>
+                  <input className="input-field" value={form.city} onChange={e => set('city', e.target.value)} placeholder="Dubai" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Country</label>
+                  <select className="input-field" value={form.country_code} onChange={e => set('country_code', e.target.value)}>
+                    {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Phone</label>
+                  <input className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">WhatsApp</label>
+                  <input className="input-field" value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Email</label>
+                  <input className="input-field" type="email" value={form.email} onChange={e => set('email', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Working hours</label>
+                  <input className="input-field" value={form.working_hours} onChange={e => set('working_hours', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Google Maps URL</label>
+                  <input className="input-field" value={form.google_maps_url} onChange={e => set('google_maps_url', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.is_primary} onChange={e => set('is_primary', e.target.checked)} />
+                    <span className="text-sm text-ink-600 dark:text-ink-300">Set as primary location</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 p-5 border-t border-ink-200 dark:border-ink-700">
+              <button onClick={() => setEditLoc(null)} className="btn-ghost flex-1">Cancel</button>
+              <button onClick={handleEditSave} disabled={saving} className="btn-gold flex-1 flex items-center justify-center gap-1.5">
+                <Save size={13}/>{saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add location modal */}
       {showForm && (
@@ -123,41 +213,41 @@ export default function StoreLocationsPage() {
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="label">Location name *</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Location name *</label>
                   <input className="input-field" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Dubai Mall Boutique" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Address *</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Address *</label>
                   <textarea className="input-field" rows={2} value={form.address} onChange={e => set('address', e.target.value)} placeholder="Full address" />
                 </div>
                 <div>
-                  <label className="label">City</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">City</label>
                   <input className="input-field" value={form.city} onChange={e => set('city', e.target.value)} placeholder="Dubai" />
                 </div>
                 <div>
-                  <label className="label">Country</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Country</label>
                   <select className="input-field" value={form.country_code} onChange={e => set('country_code', e.target.value)}>
                     {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label">Phone</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Phone</label>
                   <input className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+971 4 000 0000" />
                 </div>
                 <div>
-                  <label className="label">WhatsApp</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">WhatsApp</label>
                   <input className="input-field" value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} placeholder="+971 50 000 0000" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Email</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Email</label>
                   <input className="input-field" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="store@brand.com" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Working hours</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Working hours</label>
                   <input className="input-field" value={form.working_hours} onChange={e => set('working_hours', e.target.value)} placeholder="Mon–Sat 10am–8pm, Fri 2pm–10pm" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Google Maps URL</label>
+                  <label className="block text-xs font-medium text-ink-500 dark:text-ink-400 mb-1.5">Google Maps URL</label>
                   <input className="input-field" value={form.google_maps_url} onChange={e => set('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." />
                 </div>
                 <div className="col-span-2">
