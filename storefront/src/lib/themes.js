@@ -12,6 +12,59 @@ export const THEMES = [
   { id:'platinum-slate',  name:'Platinum Slate',   thumbnail:'🔘', category:'Diamond',   colors:{ bg:'#f8fafc',bgSecondary:'#f1f5f9',bgCard:'#ffffff',border:'#e2e8f0',text:'#0f172a',textMuted:'#475569',accent:'#64748b',accentHover:'#475569',navBg:'#0f172a',buttonBg:'#0f172a',buttonText:'#ffffff' }, fonts:{ heading:"'Inter', system-ui, sans-serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#0f172a',topBarText:'#94a3b8' }, buttons:{ radius:'50px' }, preview:{ bg:'#f8fafc',accent:'#0f172a',text:'#0f172a' } },
   { id:'tiffany-blue',    name:'Tiffany Blue',     thumbnail:'🩵', category:'Editorial', colors:{ bg:'#f0fafa',bgSecondary:'#e0f5f5',bgCard:'#ffffff',border:'#b2e0e0',text:'#0d3333',textMuted:'#4a8888',accent:'#0ababa',accentHover:'#089898',navBg:'#0d3333',buttonBg:'#0ababa',buttonText:'#ffffff' }, fonts:{ heading:"'Playfair Display', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#0d3333',topBarText:'#b2e0e0' }, buttons:{ radius:'50px' }, preview:{ bg:'#f0fafa',accent:'#0ababa',text:'#0d3333' } },
   { id:'midnight-emerald',name:'Midnight Emerald', thumbnail:'💚', category:'Editorial', colors:{ bg:'#0a1a0f',bgSecondary:'#0f2218',bgCard:'#142a1c',border:'#1e4028',text:'#e8f5ec',textMuted:'#6a9878',accent:'#4caf70',accentHover:'#3d9060',navBg:'rgba(10,26,15,0.97)',buttonBg:'#4caf70',buttonText:'#0a1a0f' }, fonts:{ heading:"'Playfair Display', Georgia, serif",body:"'Inter', system-ui, sans-serif",headingWeight:400 }, nav:{ topBar:true,topBarBg:'#4caf70',topBarText:'#0a1a0f' }, buttons:{ radius:'6px' }, preview:{ bg:'#0a1a0f',accent:'#4caf70',text:'#e8f5ec' } },
+
+  // ── Named themes for Tejori store ────────────────────────────
+  {
+    id: 'tejori',
+    name: 'Tejori — Rose Gold',
+    thumbnail: '🤎',
+    category: 'Tejori',
+    colors: {
+      bg: '#fdf8f3', surface: '#ffffff', text: '#1a1208',
+      textMuted: '#6b7280', accent: '#b8860b', accentHover: '#9a7209',
+      border: '#e5e7eb', heading: '#1a1208',
+      navBg: '#1a1208', navText: '#ffffff', navAccent: '#b8860b',
+      bgSecondary: '#f5ede2', bgCard: '#ffffff', buttonText: '#ffffff',
+    },
+    fonts: { heading: 'cormorant', body: 'inter', headingWeight: 400 },
+    buttonRadius: '0px',
+    buttons: { radius: '0px' },
+    preview: { bg: '#fdf8f3', accent: '#b8860b', text: '#1a1208' },
+  },
+  {
+    id: 'noir',
+    name: 'Noir — Cartier Black',
+    thumbnail: '⬛',
+    category: 'Tejori',
+    colors: {
+      bg: '#0a0a0a', surface: '#1a1a1a', text: '#f5f5f5',
+      textMuted: '#9ca3af', accent: '#c9a84c', accentHover: '#b8960a',
+      border: '#2d2d2d', heading: '#ffffff',
+      navBg: '#000000', navText: '#ffffff', navAccent: '#c9a84c',
+      bgSecondary: '#141414', bgCard: '#1a1a1a', buttonText: '#000000',
+    },
+    fonts: { heading: 'playfair', body: 'inter', headingWeight: 400 },
+    buttonRadius: '0px',
+    buttons: { radius: '0px' },
+    preview: { bg: '#0a0a0a', accent: '#c9a84c', text: '#f5f5f5' },
+  },
+  {
+    id: 'pearl',
+    name: 'Pearl — Tiffany White',
+    thumbnail: '🩵',
+    category: 'Tejori',
+    colors: {
+      bg: '#ffffff', surface: '#f8fffe', text: '#2c3e50',
+      textMuted: '#6b7280', accent: '#0abab5', accentHover: '#089e99',
+      border: '#e0f7f6', heading: '#1a3a3a',
+      navBg: '#0d3333', navText: '#ffffff', navAccent: '#0abab5',
+      bgSecondary: '#f0fafa', bgCard: '#ffffff', buttonText: '#ffffff',
+    },
+    fonts: { heading: 'cormorant', body: 'inter', headingWeight: 400 },
+    buttonRadius: '4px',
+    buttons: { radius: '4px' },
+    preview: { bg: '#ffffff', accent: '#0abab5', text: '#2c3e50' },
+  },
 ];
 
 export const getThemeById = (id) => THEMES.find(t => t.id === id) || THEMES[0];
@@ -26,10 +79,19 @@ export function applyThemeVars(theme, config = {}) {
 
   const accent      = config.theme_accent_color  || theme.colors.accent;
   const bg          = config.theme_bg_color       || theme.colors.bg;
-  const headingFont = config.theme_heading_font   || theme.fonts.heading;
-  const bodyFont    = config.theme_body_font      || theme.fonts.body;
-  const btnRadius   = config.theme_button_radius  || theme.buttons.radius;
   const darkMode    = config.theme_dark_mode      === 'true';
+
+  // Font resolution: named key ('cormorant') → CSS variable, or use raw value
+  const FONT_MAP = {
+    cormorant: "var(--font-cormorant, 'Cormorant Garamond', Georgia, serif)",
+    playfair:  "var(--font-playfair, 'Playfair Display', Georgia, serif)",
+    inter:     "var(--font-inter, 'Inter', system-ui, sans-serif)",
+    lato:      "'Lato', system-ui, sans-serif",
+  };
+  const resolveFont = (v) => (v && FONT_MAP[v]) ? FONT_MAP[v] : (v || FONT_MAP.cormorant);
+  const headingFont = config.theme_heading_font || resolveFont(theme.fonts.heading);
+  const bodyFont    = config.theme_body_font    || resolveFont(theme.fonts.body);
+  const btnRadius   = config.theme_button_radius || theme.buttons?.radius || theme.buttonRadius || '0px';
 
   const root = document.documentElement;
 
@@ -37,22 +99,33 @@ export function applyThemeVars(theme, config = {}) {
   root.style.setProperty('--color-accent',        accent);
   root.style.setProperty('--color-accent-hover',  config.theme_accent_hover || theme.colors.accentHover || accent);
   root.style.setProperty('--color-bg',            bg);
-  root.style.setProperty('--color-bg-secondary',  theme.colors.bgSecondary);
-  root.style.setProperty('--color-bg-card',       theme.colors.bgCard       || theme.colors.bgSecondary);
+  root.style.setProperty('--color-surface',       theme.colors.surface      || theme.colors.bgCard || bg);
+  root.style.setProperty('--color-bg-secondary',  theme.colors.bgSecondary  || theme.colors.surface || bg);
+  root.style.setProperty('--color-bg-card',       theme.colors.bgCard       || theme.colors.surface || bg);
   root.style.setProperty('--color-border',        theme.colors.border);
   root.style.setProperty('--color-text',          theme.colors.text);
   root.style.setProperty('--color-text-muted',    theme.colors.textMuted);
-  root.style.setProperty('--color-nav-bg',        theme.colors.navBg);
+  root.style.setProperty('--color-heading',       theme.colors.heading      || theme.colors.text);
   root.style.setProperty('--color-button-bg',     accent);
   root.style.setProperty('--color-button-text',   theme.colors.buttonText   || '#ffffff');
+
+  // Nav / header tokens (both --nav-bg and legacy --color-nav-bg)
+  const navBg   = theme.colors.navBg   || theme.colors.nav?.bg  || theme.colors.text;
+  const navText = theme.colors.navText || theme.colors.nav?.text || '#ffffff';
+  const navAccent = theme.colors.navAccent || theme.colors.nav?.accent || accent;
+  root.style.setProperty('--nav-bg',              navBg);
+  root.style.setProperty('--nav-text',            navText);
+  root.style.setProperty('--nav-accent',          navAccent);
+  root.style.setProperty('--color-nav-bg',        navBg);   // legacy alias
 
   // Typography
   root.style.setProperty('--font-heading',        headingFont);
   root.style.setProperty('--font-body',           bodyFont);
-  root.style.setProperty('--font-heading-weight', String(theme.fonts.headingWeight || 400));
+  root.style.setProperty('--font-heading-weight', String(theme.fonts.headingWeight || theme.fonts.weight || 400));
 
   // Buttons
   root.style.setProperty('--btn-radius',          btnRadius);
+  root.style.setProperty('--radius-btn',          btnRadius);  // alias used in globals.css
 
   // Layout
   root.style.setProperty('--max-width',           '1320px');
