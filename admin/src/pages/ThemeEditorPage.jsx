@@ -602,8 +602,8 @@ export default function ThemeEditorPage() {
                 </button>
               ))}
             </div>
-            <div className="flex-1 text-xs text-ink-400 font-mono truncate">http://localhost:3011</div>
-            <a href="http://localhost:3011" target="_blank" rel="noreferrer" className="btn-ghost text-xs flex items-center gap-1.5">
+            <div className="flex-1 text-xs text-ink-400 font-mono truncate">{import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3011'}</div>
+            <a href={import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3011'} target="_blank" rel="noreferrer" className="btn-ghost text-xs flex items-center gap-1.5">
               <Eye size={12}/> Open in tab
             </a>
           </div>
@@ -618,7 +618,7 @@ export default function ThemeEditorPage() {
               overflow:'hidden',
             }}>
               {useIframe ? (
-                <iframe ref={iframeRef} src="http://localhost:3011"
+                <iframe ref={iframeRef} src={import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3011'}
                   style={{ width:'100%', height:'100%', minHeight:600, border:'none' }}
                   title="Storefront live preview"/>
               ) : (

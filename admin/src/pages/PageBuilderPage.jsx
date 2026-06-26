@@ -379,7 +379,7 @@ export default function PageBuilderPage() {
           <Eye size={13}/> {preview ? 'Edit' : 'Preview'}
         </button>
 
-        <a href="http://localhost:3001" target="_blank" rel="noreferrer"
+        <a href={import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3011'} target="_blank" rel="noreferrer"
           style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', fontSize:11, border:'1px solid #e5e0d8', borderRadius:6, color:'#4a4a4a', textDecoration:'none', transition:'all .15s' }}>
           🌐 View live
         </a>

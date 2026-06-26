@@ -142,7 +142,7 @@ export default function PagesAdminPage() {
                         </button>
 
                         {/* Preview */}
-                        <a href={`${import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3001'}/${page.slug}`}
+                        <a href={`${import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:3011'}/${page.slug}`}
                           target="_blank" rel="noreferrer" title="Preview"
                           className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400 hover:text-ink-600 transition-colors">
                           <ExternalLink size={13}/>
