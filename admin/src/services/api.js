@@ -121,49 +121,49 @@ export const pluginsAPI = {
 
 // ─── Jewellery API ───────────────────────────────────────────
 export const jewelleryAPI = {
-  getSpecs:       (pid)      => API.get(`/jewellery/specs/${pid}`),
-  saveSpecs:      (pid, d)   => API.post(`/jewellery/specs/${pid}`, d),
-  getCerts:       (pid)      => API.get(`/jewellery/certifications/${pid}`),
-  addCert:        (pid, fd)  => API.post(`/jewellery/certifications/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
-  deleteCert:     (id)       => API.delete(`/jewellery/certifications/${id}`),
-  getImages:      (pid)      => API.get(`/jewellery/images/${pid}`),
-  uploadImages:   (pid, fd)  => API.post(`/jewellery/images/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
-  deleteImage:    (id)       => API.delete(`/jewellery/images/${id}`),
-  setImagePrimary:(id)       => API.patch(`/jewellery/images/${id}/primary`),
-  getMetalRates:  ()         => API.get('/jewellery/metal-rates'),
-  saveMetalRate:  (d)        => API.post('/jewellery/metal-rates', d),
-  getEnquiries:   (p)        => API.get('/jewellery/enquiries', {params:p}),
-  updateEnquiry:  (id, d)    => API.patch(`/jewellery/enquiries/${id}`, d),
-  submitEnquiry:  (d)        => API.post('/jewellery/enquiries', d),
-  waLink:         (d)        => API.post('/jewellery/whatsapp-link', d),
-  getBadges:      (lid)      => API.get(`/jewellery/trust-badges?license_id=${lid}`),
-  addBadge:       (d)        => API.post('/jewellery/trust-badges', d),
-  deleteBadge:    (id)       => API.delete(`/jewellery/trust-badges/${id}`),
-  getAppointments:(p)        => API.get('/jewellery/appointments', {params:p}),
-  bookAppointment:(d)        => API.post('/jewellery/appointments', d),
-  updateAppt:     (id, d)    => API.patch(`/jewellery/appointments/${id}`, d),
-  getLocations:   (lid)      => API.get(`/jewellery/locations?license_id=${lid}`),
-  addLocation:    (d)        => API.post('/jewellery/locations', d),
-  deleteLocation: (id)       => API.delete(`/jewellery/locations/${id}`),
+  getSpecs:       (pid)      => api.get(`/jewellery/specs/${pid}`),
+  saveSpecs:      (pid, d)   => api.post(`/jewellery/specs/${pid}`, d),
+  getCerts:       (pid)      => api.get(`/jewellery/certifications/${pid}`),
+  addCert:        (pid, fd)  => api.post(`/jewellery/certifications/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
+  deleteCert:     (id)       => api.delete(`/jewellery/certifications/${id}`),
+  getImages:      (pid)      => api.get(`/jewellery/images/${pid}`),
+  uploadImages:   (pid, fd)  => api.post(`/jewellery/images/${pid}`, fd, {headers:{'Content-Type':'multipart/form-data'}}),
+  deleteImage:    (id)       => api.delete(`/jewellery/images/${id}`),
+  setImagePrimary:(id)       => api.patch(`/jewellery/images/${id}/primary`),
+  getMetalRates:  ()         => api.get('/jewellery/metal-rates'),
+  saveMetalRate:  (d)        => api.post('/jewellery/metal-rates', d),
+  getEnquiries:   (p)        => api.get('/jewellery/enquiries', {params:p}),
+  updateEnquiry:  (id, d)    => api.patch(`/jewellery/enquiries/${id}`, d),
+  submitEnquiry:  (d)        => api.post('/jewellery/enquiries', d),
+  waLink:         (d)        => api.post('/jewellery/whatsapp-link', d),
+  getBadges:      (lid)      => api.get(`/jewellery/trust-badges?license_id=${lid}`),
+  addBadge:       (d)        => api.post('/jewellery/trust-badges', d),
+  deleteBadge:    (id)       => api.delete(`/jewellery/trust-badges/${id}`),
+  getAppointments:(p)        => api.get('/appointments', {params:p}),
+  bookAppointment:(d)        => api.post('/appointments', d),
+  updateAppt:     (id, d)    => api.patch(`/appointments/${id}`, d),
+  getLocations:   (lid)      => api.get(`/jewellery/locations?license_id=${lid}`),
+  addLocation:    (d)        => api.post('/jewellery/locations', d),
+  deleteLocation: (id)       => api.delete(`/jewellery/locations/${id}`),
 };
 
 // ─── Appointments extended API ───────────────────────────────
 export const appointmentsAPI = {
-  getSlots:      (p)       => API.get('/appointments/slots', {params:p}),
-  book:          (d)       => API.post('/appointments', d),
-  getByRef:      (ref)     => API.get(`/appointments/ref/${ref}`),
-  list:          (p)       => API.get('/appointments', {params:p}),
-  update:        (id,d)    => API.patch(`/appointments/${id}`, d),
-  summary:       ()        => API.get('/appointments/summary/today'),
+  getSlots:      (p)       => api.get('/appointments/slots', {params:p}),
+  book:          (d)       => api.post('/appointments', d),
+  getByRef:      (ref)     => api.get(`/appointments/ref/${ref}`),
+  list:          (p)       => api.get('/appointments', {params:p}),
+  update:        (id,d)    => api.patch(`/appointments/${id}`, d),
+  summary:       ()        => api.get('/appointments/summary/today'),
 };
 // Patch jewelleryAPI with slots + summary (also on appointmentsAPI above)
 // Use appointmentsAPI for new code; these aliases kept for backward compat
 if(typeof jewelleryAPI !== 'undefined'){
-  jewelleryAPI.getSlots = (p) => API.get('/appointments/slots',{params:p});
-  jewelleryAPI.bookAppointment = (d) => API.post('/appointments',d);
-  jewelleryAPI.getAppointments = (p) => API.get('/appointments',{params:p});
-  jewelleryAPI.updateAppt = (id,d) => API.patch(`/appointments/${id}`,d);
-  jewelleryAPI.getAppointmentSummary = () => API.get('/appointments/summary/today');
+  jewelleryAPI.getSlots = (p) => api.get('/appointments/slots',{params:p});
+  jewelleryAPI.bookAppointment = (d) => api.post('/appointments',d);
+  jewelleryAPI.getAppointments = (p) => api.get('/appointments',{params:p});
+  jewelleryAPI.updateAppt = (id,d) => api.patch(`/appointments/${id}`,d);
+  jewelleryAPI.getAppointmentSummary = () => api.get('/appointments/summary/today');
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────
