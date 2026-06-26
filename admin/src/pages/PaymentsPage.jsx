@@ -179,7 +179,7 @@ export default function PaymentsPage() {
               <Save size={13}/>{saving?'Saving…':'Save settings'}
             </button>
           ) : (
-            <button onClick={loadTransactions} className="btn-outline flex items-center gap-1.5 text-xs">
+            <button onClick={loadTransactions} className="btn-ghost flex items-center gap-1.5 text-xs">
               <RefreshCw size={13}/>Refresh
             </button>
           )
@@ -250,7 +250,7 @@ export default function PaymentsPage() {
                     <div className="mt-3 bg-white dark:bg-ink-900 rounded-xl p-3">
                       <p className="text-[10px] text-ink-400 mb-1">Webhook URL — paste this in {gw.name} dashboard</p>
                       <code className="text-[11px] text-green-600 font-mono">
-                        {window.location.origin.replace('3010','4000')}/api/payments/webhook/{gw.id}
+                        {(import.meta.env.VITE_API_URL || 'http://localhost:4000')}/api/payments/webhook/{gw.id}
                       </code>
                     </div>
                   </div>
@@ -287,7 +287,7 @@ export default function PaymentsPage() {
                 <option value="">All statuses</option>
                 {['pending','initiated','captured','failed','refunded','cancelled'].map(s=><option key={s} value={s}>{s}</option>)}
               </select>
-              <button onClick={loadTransactions} className="btn-outline text-xs">Apply filters</button>
+              <button onClick={loadTransactions} className="btn-ghost text-xs">Apply filters</button>
             </div>
 
             {/* Table */}
