@@ -168,7 +168,7 @@ export default function SeoPage() {
             <button key={t} onClick={() => setTab(i)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === i
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                  ? 'border-gold-500 text-gold-600 dark:text-gold-400'
                   : 'border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'
               }`}>
               {t}
@@ -268,7 +268,7 @@ export default function SeoPage() {
               </div>
             </div>
             <textarea value={robotsTxt} onChange={e => setRobotsTxt(e.target.value)} rows={18}
-              className="w-full font-mono text-xs bg-ink-950 dark:bg-ink-950 text-green-400 p-4 rounded-xl border border-ink-700 focus:outline-none focus:border-brand-500 resize-y"/>
+              className="w-full font-mono text-xs bg-ink-950 dark:bg-ink-950 text-green-400 p-4 rounded-xl border border-ink-700 focus:outline-none focus:border-gold-500 resize-y"/>
             <p className="text-xs text-ink-400">Changes are saved to the database and served dynamically. The default is generated from your site URL if you haven't customised it.</p>
           </div>
         )}
@@ -305,7 +305,7 @@ export default function SeoPage() {
                   <div>
                     <div className="text-2xl font-bold text-ink-700 dark:text-ink-200">{auditResult.score}/100</div>
                     <div className="w-48 h-2 bg-ink-100 dark:bg-ink-700 rounded-full mt-2 overflow-hidden">
-                      <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${auditResult.score}%` }}/>
+                      <div className="h-full bg-gold-500 rounded-full transition-all" style={{ width: `${auditResult.score}%` }}/>
                     </div>
                     <div className="text-xs text-ink-400 mt-1">{auditResult.summary.issues} issues · {auditResult.summary.warnings} warnings · {auditResult.summary.passes} passed</div>
                   </div>
@@ -491,3 +491,4 @@ export default function SeoPage() {
     </div>
   );
 }
+

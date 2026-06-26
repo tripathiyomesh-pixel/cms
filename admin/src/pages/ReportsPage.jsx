@@ -126,7 +126,7 @@ export default function ReportsPage() {
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
                   tab === t.key
-                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    ? 'border-gold-500 text-gold-600 dark:text-gold-400'
                     : 'border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'
                 }`}>
                 <Icon size={12}/>{t.label}
@@ -166,7 +166,7 @@ export default function ReportsPage() {
               <div className="space-y-6">
                 {/* KPIs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Chip label="Total Revenue"    value={fmt(data.totals?.total_revenue)} color="text-brand-600"/>
+                  <Chip label="Total Revenue"    value={fmt(data.totals?.total_revenue)} color="text-gold-600"/>
                   <Chip label="Total Orders"     value={num(data.totals?.total_orders)}/>
                   <Chip label="Avg Order Value"  value={fmt(data.totals?.avg_order_value)}/>
                   <Chip label="VAT Collected"    value={fmt(data.totals?.total_tax)} color="text-amber-600"/>
@@ -216,7 +216,7 @@ export default function ReportsPage() {
                           <td className="px-4 py-3 text-xs text-ink-600 dark:text-ink-300">{num(m.order_count)}</td>
                           <td className="px-4 py-3 text-xs text-ink-600 dark:text-ink-300">{fmt(m.subtotal)}</td>
                           <td className="px-4 py-3 text-xs text-ink-600 dark:text-ink-300">{fmt(m.tax)}</td>
-                          <td className="px-4 py-3 text-xs font-bold text-brand-600 dark:text-brand-400">{fmt(m.revenue)}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-gold-600 dark:text-gold-400">{fmt(m.revenue)}</td>
                           <td className="px-4 py-3 text-xs text-green-600">{num(m.delivered)}</td>
                           <td className="px-4 py-3 text-xs text-red-500">{num(m.cancelled)}</td>
                         </tr>
@@ -255,7 +255,7 @@ export default function ReportsPage() {
                                 <span className="text-xs font-bold text-ink-700 dark:text-ink-200 ml-2 flex-shrink-0">{p.enquiry_count}</span>
                               </div>
                               <div className="h-1.5 bg-ink-100 dark:bg-ink-800 rounded-full">
-                                <div className="h-full bg-brand-500 rounded-full" style={{ width: `${pct}%` }}/>
+                                <div className="h-full bg-gold-500 rounded-full" style={{ width: `${pct}%` }}/>
                               </div>
                             </div>
                           </div>
@@ -354,11 +354,11 @@ export default function ReportsPage() {
                             {s.stage}
                           </span>
                           <div className="flex-1 h-2 bg-ink-100 dark:bg-ink-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-brand-500 rounded-full" style={{ width: `${pct}%` }}/>
+                            <div className="h-full bg-gold-500 rounded-full" style={{ width: `${pct}%` }}/>
                           </div>
                           <div className="flex items-center gap-3 w-52 flex-shrink-0 text-xs text-ink-600 dark:text-ink-300">
                             <span className="font-bold w-8">{s.count}</span>
-                            <span className="text-brand-600 font-medium">{fmt(s.total_value)}</span>
+                            <span className="text-gold-600 font-medium">{fmt(s.total_value)}</span>
                           </div>
                         </div>
                       );
@@ -375,7 +375,7 @@ export default function ReportsPage() {
                         <div key={s.source} className="text-center p-3 bg-ink-50 dark:bg-ink-800 rounded-xl">
                           <p className="text-lg font-bold text-ink-700 dark:text-ink-200">{s.count}</p>
                           <p className="text-xs text-ink-400 capitalize">{s.source}</p>
-                          {s.total_value > 0 && <p className="text-[10px] text-brand-600 mt-1">{fmt(s.total_value)}</p>}
+                          {s.total_value > 0 && <p className="text-[10px] text-gold-600 mt-1">{fmt(s.total_value)}</p>}
                         </div>
                       ))}
                     </div>

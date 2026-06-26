@@ -13,6 +13,7 @@ import {
   DollarSign, Flag, RefreshCw, CheckCircle, Circle,
   ArrowRight, MoreVertical, Star, Clock, AlertCircle,
 } from 'lucide-react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import toast from 'react-hot-toast';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -114,7 +115,7 @@ function LeadCard({ lead, onEdit, onMove, stages }) {
 
       {/* Value */}
       {lead.value && (
-        <div className="text-xs font-bold text-brand-600 dark:text-brand-400 mb-2">
+        <div className="text-xs font-bold text-gold-600 dark:text-gold-400 mb-2">
           {fmt(lead.value, lead.currency)}
         </div>
       )}
@@ -289,6 +290,7 @@ export default function CrmPage() {
   const [stageFilter, setStageFilter] = useState('');
   const [search,      setSearch]      = useState('');
   const [deleting,    setDeleting]    = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [listPage,    setListPage]    = useState(1);
   const [listTotal,   setListTotal]   = useState(0);
   const LIST_LIMIT = 30;
@@ -342,12 +344,13 @@ export default function CrmPage() {
     } catch { toast.error('Failed'); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this lead?')) return;
-    setDeleting(id);
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(deleteConfirm);
     try {
-      await crmAPI.deleteLead(id);
+      await crmAPI.deleteLead(deleteConfirm);
       toast.success('Lead deleted');
+      setDeleteConfirm(null);
       if (tab === 0) loadBoard();
       else loadList();
     } catch { toast.error('Failed'); }
@@ -378,6 +381,14 @@ export default function CrmPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Delete this lead?"
+        message="This will permanently remove the lead and all associated notes."
+        confirmLabel="Delete lead"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
       <Topbar
         title="CRM & Leads"
         subtitle="Pipeline · Leads · Customer activity"
@@ -394,7 +405,7 @@ export default function CrmPage() {
       {tab === 0 && !loading && (
         <div className="flex gap-6 px-6 py-3 border-b border-ink-100 dark:border-ink-800 bg-ink-50/50 dark:bg-ink-900/50 text-xs text-ink-500">
           <span><span className="font-semibold text-ink-700 dark:text-ink-200">{Object.values(board).flat().length}</span> total leads</span>
-          <span><span className="font-semibold text-brand-600">AED {totalPipelineValue.toLocaleString()}</span> open pipeline</span>
+          <span><span className="font-semibold text-gold-600">AED {totalPipelineValue.toLocaleString()}</span> open pipeline</span>
           <span><span className="font-semibold text-green-600">AED {totalWonValue.toLocaleString()}</span> won</span>
         </div>
       )}
@@ -405,7 +416,7 @@ export default function CrmPage() {
           <button key={t} onClick={() => setTab(i)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === i
-                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                ? 'border-gold-500 text-gold-600 dark:text-gold-400'
                 : 'border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'
             }`}>
             {t}
@@ -497,7 +508,7 @@ export default function CrmPage() {
                   <button key={s.key} onClick={() => setStageFilter(s.key)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       stageFilter === s.key
-                        ? 'bg-brand-500 text-white'
+                        ? 'bg-gold-500 text-white'
                         : 'bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200'
                     }`}>
                     {s.label || 'All'}
@@ -530,7 +541,7 @@ export default function CrmPage() {
                     ))
                   ) : leads.length === 0 ? (
                     <tr><td colSpan={7} className="px-4 py-16 text-center text-sm text-ink-400">
-                      No leads found. <button onClick={() => setModalLead('new')} className="text-brand-500 hover:underline">Create the first one</button>
+                      No leads found. <button onClick={() => setModalLead('new')} className="text-gold-500 hover:underline">Create the first one</button>
                     </td></tr>
                   ) : leads.map(lead => {
                     const stage = STAGES.find(s => s.key === lead.stage) || STAGES[0];
@@ -567,7 +578,7 @@ export default function CrmPage() {
                               className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400 hover:text-ink-600 transition-colors">
                               <Edit2 size={12}/>
                             </button>
-                            <button onClick={() => handleDelete(lead.id)} disabled={deleting === lead.id}
+                            <button onClick={() => setDeleteConfirm(lead.id)} disabled={deleting === lead.id}
                               className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500 transition-colors">
                               {deleting === lead.id ? <RefreshCw size={12} className="animate-spin"/> : <Trash2 size={12}/>}
                             </button>
@@ -656,7 +667,7 @@ export default function CrmPage() {
                     <div className="space-y-3">
                       {stats.recent_activities.map((a, i) => (
                         <div key={i} className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center flex-shrink-0 text-xs">
+                          <div className="w-7 h-7 rounded-full bg-gold-100 dark:bg-brand-900/20 flex items-center justify-center flex-shrink-0 text-xs">
                             {a.type === 'note' ? '📝' : a.type === 'enquiry' ? '💬' : a.type === 'appointment' ? '📅' : '🔔'}
                           </div>
                           <div className="flex-1">
@@ -686,3 +697,4 @@ export default function CrmPage() {
     </div>
   );
 }
+

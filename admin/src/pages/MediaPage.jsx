@@ -8,6 +8,7 @@ import {
   List, Search, Copy, X, ExternalLink, RefreshCw, Filter,
   CheckSquare, Square, Trash,
 } from 'lucide-react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 const TYPE_ICON = { image: Image, video: Video, pdf: FileText };
 const TYPE_COLOR = { image:'badge-blue', video:'badge-purple', pdf:'badge-red' };
@@ -109,6 +110,8 @@ export default function MediaPage() {
   const [stats, setStats]       = useState({ total: 0, images: 0, videos: 0 });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [folders, setFolders] = useState([]);
   const fileRef = useRef();
   const dropRef = useRef();
@@ -144,13 +147,13 @@ export default function MediaPage() {
   // ── Upload ────────────────────────────────────────────────────────────────
   const handleUpload = async (files, productId) => {
     if (!files.length) return;
-    if (!productId) { toast.error('Select a product to upload media for'); return; }
     setUploading(true);
     setProgress(0);
     try {
       const fd = new FormData();
       files.forEach(f => fd.append('files', f));
-      await api.post(`/products/${productId}/media`, fd, {
+      const endpoint = productId ? `/products/${productId}/media` : '/media/upload';
+      await api.post(endpoint, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: e => setProgress(Math.round((e.loaded / e.total) * 100)),
       });
@@ -165,22 +168,31 @@ export default function MediaPage() {
   };
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  const handleDelete = async (item) => {
-    if (!confirm(`Delete this file? It will be removed from the product gallery.`)) return;
+  const handleDelete = (item) => { setDeleteItem(item); };
+
+  const confirmDelete = async () => {
+    if (!deleteItem) return;
     try {
-      await api.delete(`/products/${item.product_id}/media/${item.id}`);
+      if (deleteItem.product_id) {
+        await api.delete(`/products/${deleteItem.product_id}/media/${deleteItem.id}`);
+      } else {
+        await api.delete(`/media/${deleteItem.id}`);
+      }
       toast.success('File deleted');
-      setMedia(prev => prev.filter(m => m.id !== item.id));
+      setMedia(prev => prev.filter(m => m.id !== deleteItem.id));
+      setDeleteItem(null);
     } catch {
       toast.error('Delete failed — try again');
     }
   };
 
   // ── Bulk delete ───────────────────────────────────────────────────────────
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => { setBulkDeleteConfirm(true); };
+
+  const confirmBulkDelete = async () => {
     if (!selectedIds.size) return;
-    if (!confirm(`Delete ${selectedIds.size} file(s)? This cannot be undone.`)) return;
     setBulkDeleting(true);
+    setBulkDeleteConfirm(false);
     try {
       await api.post('/media/bulk-delete', { ids: Array.from(selectedIds) });
       toast.success(`${selectedIds.size} file(s) deleted`);
@@ -220,11 +232,7 @@ export default function MediaPage() {
   const handleDrop = (e) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    if (files.length && productFilter) {
-      handleUpload(files, productFilter);
-    } else if (!productFilter) {
-      toast.error('Select a product first, then drop files');
-    }
+    if (files.length) handleUpload(files, productFilter || null);
   };
 
   // ── Filter ────────────────────────────────────────────────────────────────
@@ -239,6 +247,22 @@ export default function MediaPage() {
 
   return (
     <>
+      <ConfirmDialog
+        open={!!deleteItem}
+        title="Delete this file?"
+        message="The file will be permanently removed from the media library."
+        confirmLabel="Delete file"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteItem(null)}
+      />
+      <ConfirmDialog
+        open={bulkDeleteConfirm}
+        title={`Delete ${selectedIds.size} file(s)?`}
+        message="These files will be permanently removed. This cannot be undone."
+        confirmLabel={`Delete ${selectedIds.size} files`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirm(false)}
+      />
       <Topbar
         title="Media Library"
         subtitle={`${stats.total} files · ${stats.images} images · ${stats.videos} videos`}
@@ -279,19 +303,14 @@ export default function MediaPage() {
           ref={dropRef}
           onDragOver={e => e.preventDefault()}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors
-            ${productFilter
-              ? 'border-gold-300 dark:border-gold-700 hover:border-gold-400 cursor-pointer'
-              : 'border-ink-200 dark:border-ink-700'}`}
-          onClick={() => productFilter && fileRef.current?.click()}>
+          className="border-2 border-dashed border-gold-300 dark:border-gold-700 hover:border-gold-400 rounded-xl p-6 text-center transition-colors cursor-pointer"
+          onClick={() => fileRef.current?.click()}>
           <Upload size={24} className="mx-auto text-ink-300 mb-2"/>
-          {productFilter ? (
-            <p className="text-xs text-ink-500">
-              Drop files here or click to upload to <strong className="text-ink-700 dark:text-ink-200">{products.find(p=>p.id===productFilter)?.name}</strong>
-            </p>
-          ) : (
-            <p className="text-xs text-ink-400">Select a product below to enable upload</p>
-          )}
+          <p className="text-xs text-ink-500">
+            {productFilter
+              ? <>Drop or click to upload to <strong className="text-ink-700 dark:text-ink-200">{products.find(p => p.id === productFilter)?.name}</strong></>
+              : 'Drop files here or click to upload to the general library'}
+          </p>
           {uploading && (
             <div className="mt-3 max-w-xs mx-auto">
               <div className="h-1.5 bg-ink-100 dark:bg-ink-700 rounded-full overflow-hidden">
@@ -343,7 +362,7 @@ export default function MediaPage() {
             className="btn-ghost flex items-center gap-1.5 text-xs py-1.5"
             title={selectedIds.size === media.length ? 'Deselect all' : 'Select all'}>
             {selectedIds.size === media.length && media.length > 0
-              ? <CheckSquare size={13} className="text-brand-500"/>
+              ? <CheckSquare size={13} className="text-gold-500"/>
               : <Square size={13}/>}
             {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
           </button>

@@ -160,7 +160,7 @@ export default function CustomersPage() {
                 {/* View full profile */}
                 <button
                   onClick={() => navigate(`/customers/${selected.id}`)}
-                  className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors mb-3 font-medium">
+                  className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg bg-gold-50 dark:bg-brand-900/20 text-gold-600 hover:bg-gold-100 dark:hover:bg-brand-900/30 transition-colors mb-3 font-medium">
                   <ChevronRight size={13}/> View Full Profile & Timeline
                 </button>
 
@@ -188,3 +188,4 @@ export default function CustomersPage() {
     </>
   );
 }
+

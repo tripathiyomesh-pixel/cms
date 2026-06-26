@@ -178,7 +178,7 @@ export default function CustomerDetailPage() {
           <div className="card p-6">
             <div className="flex items-start gap-5">
               {/* Avatar */}
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0 text-white text-xl font-bold shadow-md">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center flex-shrink-0 text-white text-xl font-bold shadow-md">
                 {(customer.name || '?').charAt(0).toUpperCase()}
               </div>
 
@@ -239,7 +239,7 @@ export default function CustomerDetailPage() {
               <button key={t.key} onClick={() => setActiveTab(t.key)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                   activeTab === t.key
-                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    ? 'border-gold-500 text-gold-600 dark:text-gold-400'
                     : 'border-transparent text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'
                 }`}>
                 {t.label}
@@ -316,12 +316,12 @@ export default function CustomerDetailPage() {
               {notes.length === 0 ? (
                 <p className="text-sm text-ink-400 text-center py-8">No notes yet.</p>
               ) : notes.map(note => (
-                <div key={note.id} className={`card p-4 ${note.is_pinned ? 'border-brand-300 dark:border-brand-700 bg-brand-50/30 dark:bg-brand-900/10' : ''}`}>
+                <div key={note.id} className={`card p-4 ${note.is_pinned ? 'border-brand-300 dark:border-gold-700 bg-gold-50/30 dark:bg-brand-900/10' : ''}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs text-ink-700 dark:text-ink-200 leading-relaxed flex-1">{note.content}</p>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button onClick={() => togglePin(note)} title={note.is_pinned ? 'Unpin' : 'Pin'}
-                        className={`p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors ${note.is_pinned ? 'text-brand-500' : 'text-ink-300'}`}>
+                        className={`p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors ${note.is_pinned ? 'text-gold-500' : 'text-ink-300'}`}>
                         <Pin size={11}/>
                       </button>
                       <button onClick={() => deleteNote(note.id)}
@@ -331,7 +331,7 @@ export default function CustomerDetailPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    {note.is_pinned && <span className="text-[9px] bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-1.5 py-0.5 rounded-full font-medium">Pinned</span>}
+                    {note.is_pinned && <span className="text-[9px] bg-gold-100 dark:bg-brand-900/30 text-gold-600 dark:text-gold-400 px-1.5 py-0.5 rounded-full font-medium">Pinned</span>}
                     <span className="text-[10px] text-ink-300">{note.user_name} · {timeAgo(note.created_at)}</span>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ export default function CustomerDetailPage() {
                     <button key={t} onClick={() => setLogForm(f => ({ ...f, type: t }))}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
                         logForm.type === t
-                          ? 'bg-brand-500 text-white'
+                          ? 'bg-gold-500 text-white'
                           : 'bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200'
                       }`}>
                       {ACTIVITY_CONFIG[t]?.emoji} {t}
@@ -434,3 +434,4 @@ export default function CustomerDetailPage() {
     </div>
   );
 }
+
