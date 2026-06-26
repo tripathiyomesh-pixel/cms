@@ -49,6 +49,21 @@ const ACCENT_COLORS = [
   { label:'Ruby',      value:'#9b2335' },
 ];
 
+const MENU_STYLES = [
+  { id:'M1',  label:'M1 – Cartier Classic',       desc:'3 cols + right image panel, hover changes image — timeless luxury',       icon:'🏛️' },
+  { id:'M2',  label:'M2 – Tiffany Editorial',     desc:'5 full-width columns + bottom image card filmstrip',                      icon:'✦'  },
+  { id:'M3',  label:'M3 – Vertical Side Panel',   desc:'Left tall editorial image + 2 columns of links',                          icon:'◧'  },
+  { id:'M4',  label:'M4 – Horizontal Filmstrip',  desc:'Scrollable image cards — visual-first product discovery',                 icon:'🎞️' },
+  { id:'M5',  label:'M5 – Accordion Vertical',    desc:'Section accordion on left + right editorial panel',                       icon:'≡'  },
+  { id:'M6',  label:'M6 – Fullscreen Overlay',    desc:'Graff-style full viewport dark takeover — most dramatic',                 icon:'⬛' },
+  { id:'M7',  label:'M7 – Tabbed Mega',           desc:'Tab bar switches between Jewellery / Diamonds / Collections',             icon:'⊞'  },
+  { id:'M8',  label:'M8 – Dual Panel + Products', desc:'Left categories + right live featured products from API',                 icon:'↔️' },
+  { id:'M9',  label:'M9 – Magazine Editorial',    desc:'Big hero left with story text + right link list',                         icon:'📰' },
+  { id:'M10', label:'M10 – Tooltip Preview',      desc:'Small floating card tooltip — no dropdown, clean minimal',                icon:'💬' },
+  { id:'M11', label:'M11 – Split Screen',         desc:'Full-width: left dark list + right full-bleed image',                     icon:'⬜' },
+  { id:'M12', label:'M12 – GCC Regional',         desc:'Live gold rate bar + EN/AR toggle + Arabic RTL labels',                   icon:'🌙' },
+];
+
 const HEADER_STYLES = [
   { id:'mega',     label:'Mega Menu',     desc:'Full-width hover panel with image — Cartier/Palmiero style', icon:'🏛️', preview:'LOGO  Jewellery  Diamonds  Bespoke  Heritage' },
   { id:'standard', label:'Standard',      desc:'Horizontal nav, simple dropdowns, no image panel',          icon:'📐', preview:'LOGO ─────────────────────── Search ❤ WA' },
@@ -119,6 +134,7 @@ export default function ThemeEditorPage() {
         footer_newsletter: map.theme_footer_newsletter || 'false',
         footer_social:     map.theme_footer_social     || 'true',
         header_style:      map.theme_header_style      || 'mega',
+        menu_style:        map.menu_style              || 'M1',
         footer_style:      map.theme_footer_style      || 'full',
         nav_style:         map.theme_nav_style         || 'transparent-scroll',
         sticky_header:     map.theme_sticky_header     || 'true',
@@ -170,6 +186,7 @@ export default function ThemeEditorPage() {
         { key:'theme_footer_newsletter', value: customConfig.footer_newsletter || 'false' },
         { key:'theme_footer_social',     value: customConfig.footer_social     || 'true' },
         { key:'theme_header_style',      value: customConfig.header_style      || 'mega' },
+        { key:'menu_style',             value: customConfig.menu_style         || 'M1'   },
         { key:'theme_footer_style',      value: customConfig.footer_style      || 'full' },
         { key:'theme_nav_style',         value: customConfig.nav_style         || 'transparent-scroll' },
         { key:'theme_sticky_header',     value: customConfig.sticky_header     || 'true' },
@@ -290,6 +307,25 @@ export default function ThemeEditorPage() {
                         </div>
                         <p className="text-[10px] text-ink-400 mb-2">{s.desc}</p>
                         <div className="px-2 py-1.5 bg-ink-50 dark:bg-ink-800 rounded text-[9px] font-mono text-ink-400 truncate">{s.preview}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* MENU STYLE SELECTOR */}
+                <div>
+                  <label className={lbl}>Mega Menu Style (M1–M12)</label>
+                  <p className="text-[10px] text-ink-400 mb-3">Changes take effect instantly — no rebuild required.</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {MENU_STYLES.map(s => (
+                      <button key={s.id} onClick={() => set('menu_style', s.id)}
+                        className={`text-left p-2.5 rounded-xl border-2 transition-all ${customConfig.menu_style === s.id ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20' : 'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-sm">{s.icon}</span>
+                          <span className="text-[10px] font-bold text-ink-700 dark:text-ink-200 leading-tight">{s.label}</span>
+                          {customConfig.menu_style === s.id && <span className="ml-auto text-[8px] bg-gold-100 text-gold-700 px-1 py-0.5 rounded-full font-bold flex-shrink-0">Active</span>}
+                        </div>
+                        <p className="text-[9px] text-ink-400 leading-relaxed">{s.desc}</p>
                       </button>
                     ))}
                   </div>
