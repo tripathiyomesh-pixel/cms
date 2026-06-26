@@ -57,7 +57,7 @@ export default function SeoPage() {
   // ── Load robots.txt ────────────────────────────────────────
   useEffect(() => {
     if (tab !== 1) return;
-    fetch('/api/seo/robots.txt').then(r => r.text()).then(setRobotsTxt).catch(() => {});
+    api.get('/seo/robots', { responseType: 'text' }).then(r => setRobotsTxt(r.data)).catch(() => {});
   }, [tab]);
 
   // ── Load SMTP status ───────────────────────────────────────
@@ -77,6 +77,10 @@ export default function SeoPage() {
   const saveRedirect = async () => {
     if (!rForm.from_path || !rForm.to_path)
       return toast.error('Both paths are required');
+    if (!rForm.from_path.startsWith('/'))
+      return toast.error('From path must start with /');
+    if (!rForm.to_path.startsWith('/') && !rForm.to_path.startsWith('http'))
+      return toast.error('To path must start with / or http');
     setRSaving(true);
     try {
       if (editId) {
@@ -179,7 +183,7 @@ export default function SeoPage() {
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"/>
                 <input value={rSearch} onChange={e => setRSearch(e.target.value)}
-                  placeholder="Search paths…" className="input pl-9 w-64"/>
+                  placeholder="Search paths…" className="input-field pl-9 w-64"/>
               </div>
               <button onClick={openNew} className="btn-primary flex items-center gap-2 text-sm">
                 <Plus size={14}/> Add Redirect
@@ -275,14 +279,14 @@ export default function SeoPage() {
             <div className="card p-5 space-y-4">
               <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200">Run SEO Audit</h3>
               <div className="flex gap-3">
-                <select value={auditType} onChange={e => setAuditType(e.target.value)} className="input w-36">
+                <select value={auditType} onChange={e => setAuditType(e.target.value)} className="input-field w-36">
                   <option value="product">Product</option>
                   <option value="page">Page</option>
                   <option value="blog">Blog Post</option>
                 </select>
                 <input value={auditSlug} onChange={e => setAuditSlug(e.target.value)}
                   placeholder="Enter slug (e.g. diamond-solitaire-ring)"
-                  className="input flex-1" onKeyDown={e => e.key === 'Enter' && runAudit()}/>
+                  className="input-field flex-1" onKeyDown={e => e.key === 'Enter' && runAudit()}/>
                 <button onClick={runAudit} disabled={auditLoading} className="btn-primary flex items-center gap-2 text-sm">
                   {auditLoading ? <RefreshCw size={13} className="animate-spin"/> : <Search size={13}/>}
                   Audit
@@ -412,7 +416,7 @@ export default function SeoPage() {
               </h3>
               <div className="flex gap-2">
                 <input value={testEmail} onChange={e => setTestEmail(e.target.value)}
-                  type="email" placeholder="recipient@email.com" className="input flex-1"/>
+                  type="email" placeholder="recipient@email.com" className="input-field flex-1"/>
                 <button onClick={sendTestEmail} disabled={sending}
                   className="btn-primary text-sm flex items-center gap-2">
                   {sending ? <RefreshCw size={13} className="animate-spin"/> : <Mail size={13}/>}
@@ -457,19 +461,19 @@ export default function SeoPage() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="label">From Path <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">From Path <span className="text-red-500">*</span></label>
                 <input value={rForm.from_path} onChange={e => setRForm(f => ({ ...f, from_path: e.target.value }))}
-                  placeholder="/old-url" className="input w-full" disabled={!!editId}/>
+                  placeholder="/old-url" className="input-field w-full" disabled={!!editId}/>
                 <p className="text-[10px] text-ink-400 mt-1">Must start with /</p>
               </div>
               <div>
-                <label className="label">To Path <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">To Path <span className="text-red-500">*</span></label>
                 <input value={rForm.to_path} onChange={e => setRForm(f => ({ ...f, to_path: e.target.value }))}
-                  placeholder="/new-url or https://external.com/path" className="input w-full"/>
+                  placeholder="/new-url or https://external.com/path" className="input-field w-full"/>
               </div>
               <div>
-                <label className="label">Redirect Type</label>
-                <select value={rForm.type} onChange={e => setRForm(f => ({ ...f, type: parseInt(e.target.value) }))} className="input w-full">
+                <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Redirect Type</label>
+                <select value={rForm.type} onChange={e => setRForm(f => ({ ...f, type: parseInt(e.target.value) }))} className="input-field w-full">
                   <option value={301}>301 — Permanent (recommended for moved pages)</option>
                   <option value={302}>302 — Temporary (for A/B tests, seasonal pages)</option>
                 </select>
@@ -477,7 +481,7 @@ export default function SeoPage() {
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setRModal(false)} className="btn-ghost">Cancel</button>
-              <button onClick={saveRedirect} disabled={rSaving} className="btn-primary">
+              <button onClick={saveRedirect} disabled={rSaving} className="btn-gold">
                 {rSaving ? 'Saving…' : editId ? 'Update' : 'Create'}
               </button>
             </div>
