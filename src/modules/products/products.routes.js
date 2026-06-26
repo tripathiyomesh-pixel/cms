@@ -338,4 +338,92 @@ router.delete('/:productId/variants/:variantId', authenticate, authorize(['super
   } catch (e) { error(res, e.message); }
 });
 
+
+// ─── PRICING ENGINE ──────────────────────────────────────────────────────────
+const { calculateFinalPrice } = require('../../common/pricing.service');
+
+// POST /api/products/:id/calculate-price
+router.post('/:id/calculate-price', authenticate, async (req, res) => {
+  try {
+    const { rows: [product] } = await pool.query(
+      `SELECT p.*, gr.rate_22k as live_rate_22k
+       FROM products p
+       LEFT JOIN gold_rates gr ON gr.is_active=true
+       WHERE p.id=$1 AND p.deleted_at IS NULL
+       ORDER BY gr.fetched_at DESC LIMIT 1`,
+      [req.params.id]
+    );
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    const purity_map = { '24K': 1.0, '22K': 0.9167, '21K': 0.875, '18K': 0.75, '14K': 0.5833, '9K': 0.375 };
+    const goldRate22k = parseFloat(req.body.gold_rate_22k) || parseFloat(product.live_rate_22k) || 0;
+    const purityFactor = purity_map[product.purity] || purity_map[(product.purity || '').toUpperCase()] || 0.75;
+    const grossWeight = parseFloat(product.gross_weight) || 0;
+
+    const base_price = grossWeight > 0 && goldRate22k > 0
+      ? grossWeight * goldRate22k * (purityFactor / purity_map['22K'])
+      : parseFloat(product.base_price) || 0;
+
+    const result = calculateFinalPrice({
+      base_price,
+      making_charges: product.making_charges || 0,
+      making_charge_pct: product.making_charge_pct || 0,
+      discount: product.discount || 0,
+      discount_pct: product.discount_pct || 0,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        stone_value: parseFloat(product.stone_value) || 0,
+        currency: product.currency || 'AED',
+        gold_rate_22k_used: goldRate22k,
+        gross_weight: grossWeight,
+        purity: product.purity,
+      },
+    });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// POST /api/products/bulk-price-update
+router.post('/bulk-price-update', authenticate, authorize(['super_admin', 'admin', 'manager']), async (req, res) => {
+  try {
+    const { collection_id, category_id, gold_rate_22k } = req.body;
+    if (!gold_rate_22k) return res.status(422).json({ success: false, message: 'gold_rate_22k required' });
+    if (!collection_id && !category_id) return res.status(422).json({ success: false, message: 'collection_id or category_id required' });
+
+    const purity_map = { '24K': 1.0, '22K': 0.9167, '21K': 0.875, '18K': 0.75, '14K': 0.5833, '9K': 0.375 };
+    const goldRate = parseFloat(gold_rate_22k);
+
+    let whereClause = 'deleted_at IS NULL AND gross_weight > 0 AND purity IS NOT NULL';
+    const params = [];
+    if (collection_id) { params.push(collection_id); whereClause += ` AND collection_id=${params.length}`; }
+    if (category_id)   { params.push(category_id);   whereClause += ` AND category_id=${params.length}`; }
+
+    const { rows: products } = await pool.query(
+      `SELECT id, purity, gross_weight, making_charges, making_charge_pct, discount, discount_pct FROM products WHERE ${whereClause}`,
+      params
+    );
+
+    let updated = 0;
+    for (const p of products) {
+      const purityFactor = purity_map[p.purity] || purity_map[(p.purity||'').toUpperCase()] || 0.75;
+      const base_price = parseFloat(p.gross_weight) * goldRate * (purityFactor / purity_map['22K']);
+      const { final_price } = calculateFinalPrice({
+        base_price,
+        making_charges: p.making_charges || 0,
+        making_charge_pct: p.making_charge_pct || 0,
+        discount: p.discount || 0,
+        discount_pct: p.discount_pct || 0,
+      });
+      await pool.query(`UPDATE products SET base_price=$1, final_price=$2, updated_at=NOW() WHERE id=$3`, [base_price, final_price, p.id]);
+      updated++;
+    }
+
+    res.json({ success: true, data: { updated_count: updated, gold_rate_22k_used: goldRate } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 module.exports = router;
+

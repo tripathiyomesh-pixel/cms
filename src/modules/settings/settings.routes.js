@@ -121,6 +121,15 @@ router.post('/page/:pageId', authenticate, authorize(['super_admin','admin']), a
   } catch (e) { error(res, e.message); }
 });
 
+// Public endpoint for whatsapp_number (storefront uses this)
+router.get('/whatsapp_number', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT value FROM settings WHERE key IN ('whatsapp_number','store_whatsapp') LIMIT 1`);
+    const val = rows[0]?.value ? String(rows[0].value).replace(/^"|"$/g, '') : '';
+    res.json({ success: true, data: { value: val } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 router.get('/:key', authenticate, authorize(['super_admin','admin']), async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM settings WHERE key=$1 LIMIT 1', [req.params.key]);

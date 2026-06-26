@@ -129,6 +129,21 @@ Sitemap: ${base}/sitemap.xml`;
 // ─────────────────────────────────────────────────────────────────────────────
 // ROBOTS.TXT — Update via admin
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/seo/robots — returns robots.txt content as JSON (admin)
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/robots', authenticate, authorize(ADMIN_ROLES), async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT value FROM settings WHERE key='robots_txt_content' LIMIT 1`).catch(() => [[]]);
+    const base = getBaseUrl(req);
+    const defaultContent = `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\n\nSitemap: ${base}/sitemap.xml`;
+    const content = rows[0]?.value
+      ? (typeof rows[0].value === 'string' ? rows[0].value.replace(/^"|"$/g, '') : rows[0].value)
+      : defaultContent;
+    res.json({ success: true, data: { content } });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 router.put('/robots', authenticate, authorize(ADMIN_ROLES), async (req, res) => {
   try {
     const { content } = req.body;
@@ -364,3 +379,4 @@ router.get('/smtp-status', authenticate, authorize(ADMIN_ROLES), async (req, res
 });
 
 module.exports = router;
+
