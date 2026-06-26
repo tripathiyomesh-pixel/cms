@@ -4,11 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Heart, Menu, X, ChevronDown, Phone } from 'lucide-react';
 
-// ── BRAND CONSTANTS ───────────────────────────────────────────
-const GOLD    = '#b8860b';
-const CREAM   = '#fdf8f3';
-const DARK    = '#1a1208';
-const MUTED   = '#8b7355';
+// ── BRAND CONSTANTS — use CSS vars so theme switching works ───
+const GOLD  = 'var(--color-accent)';
+const CREAM = 'var(--color-bg)';
+const DARK  = 'var(--color-text)';
+const MUTED = 'var(--color-text-muted)';
 
 // ── MEGA MENU DATA ────────────────────────────────────────────
 const JEWELLERY_MENU = {
@@ -93,7 +93,7 @@ function MegaPanel({ menu, open }) {
         left: 0,
         right: 0,
         background: CREAM,
-        borderTop: `1px solid #e8ddd0`,
+        borderTop: `1px solid var(--color-border)`,
         borderBottom: `3px solid ${GOLD}`,
         boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
         opacity: open ? 1 : 0,
@@ -122,7 +122,7 @@ function MegaPanel({ menu, open }) {
               color: MUTED,
               marginBottom: 20,
               paddingBottom: 10,
-              borderBottom: `1px solid #e8ddd0`,
+              borderBottom: `1px solid var(--color-border)`,
             }}>
               {col.heading}
             </p>
@@ -153,7 +153,7 @@ function MegaPanel({ menu, open }) {
                       className="mega-link-label"
                       style={{
                         fontSize: 13,
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontFamily: 'var(--font-heading)',
                         fontWeight: 500,
                         color: DARK,
                         letterSpacing: '0.04em',
@@ -173,7 +173,7 @@ function MegaPanel({ menu, open }) {
         ))}
 
         {/* Image Panel */}
-        <div style={{ position: 'relative', width: 280, height: 320, overflow: 'hidden', background: '#f0e8dc' }}>
+        <div style={{ position: 'relative', width: 280, height: 320, overflow: 'hidden', background: 'var(--color-bg)' }}>
           <img
             src={hoverImg}
             alt=""
@@ -268,7 +268,7 @@ function MobileDrawer({ open, onClose }) {
           borderBottom: `1px solid #e8ddd0`,
         }}>
           <span style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: 'var(--font-heading)',
             fontSize: 22,
             fontWeight: 400,
             letterSpacing: '0.12em',
@@ -299,7 +299,7 @@ function MobileDrawer({ open, onClose }) {
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: 13,
-                      fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      fontFamily: 'var(--font-heading)',
                       fontWeight: 500,
                       letterSpacing: '0.08em',
                       color: DARK,
@@ -323,7 +323,7 @@ function MobileDrawer({ open, onClose }) {
                     maxHeight: expanded === link.label ? 600 : 0,
                     overflow: 'hidden',
                     transition: 'max-height 250ms ease',
-                    background: '#f7f1e8',
+                    background: 'var(--color-surface, #f7f1e8)',
                   }}>
                     {link.mega.cols.map((col) => (
                       <div key={col.heading} style={{ padding: '12px 24px 4px' }}>
@@ -366,7 +366,7 @@ function MobileDrawer({ open, onClose }) {
                     display: 'block',
                     padding: '14px 24px',
                     fontSize: 13,
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
+                    fontFamily: 'var(--font-heading)',
                     fontWeight: 500,
                     letterSpacing: '0.08em',
                     color: DARK,
@@ -469,8 +469,8 @@ export default function Header() {
       >
         {/* Top bar */}
         <div style={{
-          background: DARK,
-          color: '#e8d5b0',
+          background: 'var(--nav-bg)',
+          color: 'var(--nav-text)',
           fontSize: 10,
           letterSpacing: '0.18em',
           textAlign: 'center',
@@ -511,7 +511,7 @@ export default function Header() {
           <Link
             href="/"
             style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontFamily: 'var(--font-heading)',
               fontSize: 26,
               fontWeight: 400,
               letterSpacing: '0.18em',
@@ -671,3 +671,4 @@ export default function Header() {
     </>
   );
 }
+
