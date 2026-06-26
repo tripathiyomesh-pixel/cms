@@ -1,171 +1,167 @@
-# JewelleryCMS — Backend API
+﻿# JCOS — Jewellery Commerce Operating System
+### By KenTech Global
 
-Secure, scalable, modular REST API for the Jewellery Industry CMS.  
-Built with **Node.js + Express + MySQL (Sequelize) + Redis + Cloudinary**.
-
----
-
-## Stack
-
-| Layer        | Technology                        |
-|-------------|-----------------------------------|
-| Runtime      | Node.js 20 LTS                   |
-| Framework    | Express.js                        |
-| Database     | MySQL 8 + Sequelize ORM           |
-| Cache        | Redis                             |
-| Media        | Cloudinary                        |
-| Auth         | JWT + RBAC                        |
-| Validation   | express-validator                 |
-| Logging      | Winston                           |
-| Testing      | Jest + Supertest                  |
+> The complete platform for luxury jewellery businesses.  
+> WhatsApp-first. GCC-built. Production-ready.
 
 ---
 
-## Quick Start
+## Live Demo
+| Surface | URL |
+|---------|-----|
+| Storefront | [Tejori Gems Demo](https://tejori.vantix.io) |
+| Admin | [admin.vantix.io](https://admin.vantix.io) · `admin@vantix.io` / `Admin@2026` |
 
-### 1. Clone & install
+---
+
+## Quick Start (5 minutes)
 
 ```bash
 git clone https://github.com/tripathiyomesh-pixel/cms.git
 cd cms
-npm install
+cp .env.production.example .env
+# Edit .env with your values
+docker compose up -d
+node src/database/migrate.js
+node tejori_v2.js
 ```
 
-### 2. Environment
+| Service | URL |
+|---------|-----|
+| Admin Dashboard | http://localhost:3010 |
+| Storefront | http://localhost:3011 |
+| API | http://localhost:4000/api |
+
+---
+
+## Production Deploy
 
 ```bash
-cp .env.example .env
-# Edit .env with your DB, Redis, Cloudinary, JWT values
+./scripts/deploy.sh
 ```
 
-### 3. Create Database
+Pulls latest code, rebuilds Docker images, runs migrations, reports live URLs.
 
-```sql
-CREATE DATABASE jewellery_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+---
+
+## Architecture
+
 ```
-
-### 4. Run Migration
-
-```bash
-node src/database/migrations/001_schema.js
-```
-
-### 5. Start Server
-
-```bash
-npm run dev       # development (nodemon)
-npm start         # production
+Browser
+  └── Nginx (80 / 443)
+        ├── /admin  → Admin:3010   (React 18 + Vite)
+        ├── /api    → Backend:4000 (Node.js + Express)
+        └── /       → Storefront:3011 (Next.js 14)
+                         └── PostgreSQL:5432
+                         └── Redis:6379
 ```
 
 ---
 
-## API Reference
+## What's Built
 
-### Auth
-| Method | Endpoint              | Description          | Auth |
-|--------|-----------------------|----------------------|------|
-| POST   | /api/auth/register    | Register user        | —    |
-| POST   | /api/auth/login       | Login                | —    |
-| GET    | /api/auth/me          | Current user         | JWT  |
-| POST   | /api/auth/change-password | Change password  | JWT  |
+| Layer | Count | Notes |
+|-------|-------|-------|
+| Admin pages | 33 | Fully audited and fixed |
+| Storefront pages | 19 | Complete storefront |
+| API endpoints | 60+ | RESTful, JWT-guarded |
+| Luxury themes | 10 | CSS variable system |
+| Seeded data | Full | Products, diamonds, settings |
 
-### Products
-| Method | Endpoint                   | Description           | Role          |
-|--------|----------------------------|-----------------------|---------------|
-| GET    | /api/products              | List (paginated+filter)| All           |
-| GET    | /api/products/:id          | Single product        | All           |
-| POST   | /api/products              | Create product        | editor+       |
-| PUT    | /api/products/:id          | Update product        | editor+       |
-| DELETE | /api/products/:id          | Delete (soft)         | admin+        |
-| PUT    | /api/products/:id/price    | Update pricing        | manager+      |
-| PUT    | /api/products/:id/stock    | Update stock          | manager+      |
-| POST   | /api/products/:id/media    | Upload media files    | editor+       |
-
-### Collections
-| Method | Endpoint                        | Description      |
-|--------|---------------------------------|------------------|
-| GET    | /api/collections                | All collections  |
-| GET    | /api/collections/:id            | With products    |
-| POST   | /api/collections                | Create           |
-| PUT    | /api/collections/:id            | Update           |
-| DELETE | /api/collections/:id            | Delete           |
-| POST   | /api/collections/:id/banner     | Upload banner    |
-
-### Categories
-| Method | Endpoint                  | Description        |
-|--------|---------------------------|--------------------|
-| GET    | /api/categories/tree      | Nested tree        |
-| GET    | /api/categories           | Flat list          |
-| POST   | /api/categories           | Create             |
-| PUT    | /api/categories/:id       | Update             |
-| DELETE | /api/categories/:id       | Delete             |
-
-### Inventory
-| Method | Endpoint                       | Description          |
-|--------|--------------------------------|----------------------|
-| GET    | /api/inventory/low-stock       | Low stock alerts     |
-| GET    | /api/inventory/:id/ledger      | Movement history     |
-| PUT    | /api/inventory/bulk-update     | Bulk stock update    |
-
-### Marketing
-| Method | Endpoint                             | Description          |
-|--------|--------------------------------------|----------------------|
-| GET    | /api/marketing/banners               | List banners         |
-| POST   | /api/marketing/banners               | Create banner        |
-| PUT    | /api/marketing/banners/:id           | Update banner        |
-| DELETE | /api/marketing/banners/:id           | Delete banner        |
-| GET    | /api/marketing/promocodes            | List promo codes     |
-| POST   | /api/marketing/promocodes            | Create promo code    |
-| POST   | /api/marketing/promocodes/validate   | Validate at checkout |
-| DELETE | /api/marketing/promocodes/:id        | Delete promo code    |
-
-### Users
-| Method | Endpoint                    | Description         |
-|--------|-----------------------------|---------------------|
-| GET    | /api/users                  | All users           |
-| GET    | /api/users/:id              | Single user         |
-| PUT    | /api/users/:id              | Update user         |
-| PUT    | /api/users/:id/permissions  | Set permissions     |
-| DELETE | /api/users/:id              | Delete user         |
+### Features
+- **WhatsApp Commerce** — no cart, no checkout, all CTAs → WhatsApp
+- **Gold Rate Engine** — Dubai 18K/22K/24K, updated 3× daily
+- **CRM + Appointments** — full sales pipeline, private viewings
+- **Certificate Verification** — GIA, IGI, HRD, GRS lookup
+- **Import Engine** — Excel/CSV with image import
+- **Diamond Separation** — natural and lab-grown strictly isolated
+- **Multi-Collection Management** — collections, campaigns, exhibitions
+- **Customer Portal** — login, wishlist, appointments, enquiries
+- **Exhibition Management** — countdown, registration, venue details
+- **Theme Editor** — live colour change, no rebuild needed
 
 ---
 
-## Roles & Permissions
+## Business Rules (Never Violate)
 
-| Role        | Access Level                                 |
-|-------------|----------------------------------------------|
-| super_admin | Full access to everything                    |
-| admin       | Full access except license management        |
-| manager     | Products, collections, inventory, marketing  |
-| editor      | Products (no delete), media upload           |
-| viewer      | Read-only access                             |
+1. **No cart, no checkout** — all CTAs go to WhatsApp only
+2. **Natural + lab-grown diamonds NEVER on the same page**
+3. **WhatsApp number from DB settings** — never hardcoded
+4. **Price 0 or null → "Price on Request"** — never show `AED 0`
+5. **Single vendor per installation** — one store, one brand
 
 ---
 
-## Jewellery Business Logic
-
-- **SKU Auto-generation**: `JM-{METAL}{PURITY}-{RAND}` e.g. `JM-GD18-X4K2`
-- **Pricing formula**: `final_price = base_price + making_charges − discount`
-  - making_charges can be fixed amount OR % of base_price
-  - discount can be fixed amount OR % of subtotal
-- **Purity validation**: Only `24K, 22K, 18K, 14K, 950, 925, other` accepted
-- **Gemstone validation**: Each stone must have `type`, valid `clarity` (FL→I3), valid `cut`
-- **Certification validation**: Only `GIA, IGI, SGL, HRD, AGS, other` accepted
-- **Stock ledger**: Every stock change creates an immutable ledger entry (in/out/adjustment/return/transfer)
-- **VAT**: `exempt` class skips tax; `reduced` halves the rate; `standard` applies full rate
-
----
-
-## Tests
+## New Client Setup
 
 ```bash
-npm test              # all tests
-npm run test:unit     # unit tests only (pricing logic)
+# 1. Clone to fresh VPS
+git clone https://github.com/tripathiyomesh-pixel/cms.git /var/www/jcos-CLIENT_NAME
+cd /var/www/jcos-CLIENT_NAME
+
+# 2. Update env
+cp .env.production.example .env
+nano .env  # Set DB_NAME, FRONTEND_URL, WHATSAPP_NUMBER, etc.
+
+# 3. Deploy
+./scripts/deploy.sh
+
+# 4. Import catalogue
+# Admin → Inventory → Bulk Import → Upload CSV/Excel
+
+# 5. Set theme
+# Admin → Settings → Theme Editor → Choose theme + colours
+
+# 6. Go live
+# Update DNS → wait for propagation → done
 ```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Node.js 20 + Express 4 |
+| Database | PostgreSQL 16 |
+| Cache | Redis 7 |
+| Admin | React 18 + Vite + Tailwind CSS |
+| Storefront | Next.js 14 (App Router) + Tailwind CSS |
+| Media | Cloudinary |
+| Infrastructure | Docker + Nginx + Let's Encrypt |
 
 ---
 
 ## Environment Variables
 
-See `.env.example` for the full list.  
-Minimum required: `DB_*`, `JWT_SECRET`, `CLOUDINARY_*`
+Copy `.env.production.example` to `.env` and fill in:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_PASS` | Strong PostgreSQL password |
+| `JWT_SECRET` | 64-char random string |
+| `FRONTEND_URL` | Your storefront domain |
+| `CLOUDINARY_*` | Image upload credentials |
+| `WHATSAPP_NUMBER` | Store WhatsApp (digits only) |
+| `SMTP_*` | Email delivery settings |
+
+---
+
+## JCOS Landing Page
+
+Open `landing/index.html` in any browser for the product marketing page.  
+No build step required — single self-contained HTML file.
+
+---
+
+## Support
+
+| Channel | Contact |
+|---------|---------|
+| WhatsApp | [+971 50 850 9747](https://wa.me/971508509747) |
+| Email | contact@kentech.ae |
+| Website | [kentech.ae](https://kentech.ae) |
+
+---
+
+*JCOS is proprietary software by KenTech Global. Licenced per installation.*
