@@ -1,0 +1,493 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JCOS — Jewellery Commerce Operating System</title>
+  <meta name="description" content="The complete operating system for luxury jewellery businesses in GCC. CMS, CRM, WhatsApp Commerce, Live Gold Rates."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: '#b8860b',
+            'gold-light': '#d4a017',
+            'card': '#111111',
+            'border': '#222222',
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #0a0a0a; color: #f5f5f5; font-family: 'Inter', sans-serif; }
+
+    /* Fade-in animation */
+    .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* Gradient text */
+    .gold-text { background: linear-gradient(135deg, #b8860b, #d4a017, #b8860b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* FAQ accordion */
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.3s ease; }
+    .faq-answer.open { max-height: 200px; }
+
+    /* Hero glow */
+    .hero-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(184,134,11,0.08) 0%, transparent 70%); pointer-events: none; }
+
+    /* Pricing highlight */
+    .pricing-pro { background: linear-gradient(180deg, rgba(184,134,11,0.08) 0%, #111 100%); border-color: #b8860b !important; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    /* Button transitions */
+    .btn-gold { background: #b8860b; color: #0a0a0a; font-weight: 700; letter-spacing: 0.06em; transition: background 0.2s, transform 0.15s; }
+    .btn-gold:hover { background: #d4a017; transform: translateY(-1px); }
+    .btn-outline { border: 1px solid #333; color: #f5f5f5; transition: border-color 0.2s, background 0.2s; }
+    .btn-outline:hover { border-color: #b8860b; background: rgba(184,134,11,0.06); }
+
+    /* Nav blur */
+    nav { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+
+    /* WA float */
+    @keyframes waIn { from { opacity: 0; transform: scale(0.7) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    #wa-float { animation: waIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 1.5s forwards; opacity: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAVBAR ─────────────────────────────────────────── -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-70 border-b border-[#1a1a1a]">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <span class="font-serif text-2xl gold-text font-medium tracking-widest">JCOS</span>
+    <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
+      <a href="#features" class="hover:text-[#b8860b] transition-colors">Features</a>
+      <a href="#pricing" class="hover:text-[#b8860b] transition-colors">Pricing</a>
+      <a href="#faq" class="hover:text-[#b8860b] transition-colors">FAQ</a>
+      <a href="#contact" class="hover:text-[#b8860b] transition-colors">Contact</a>
+      <a href="https://wa.me/971508509747" target="_blank" rel="noreferrer"
+        class="btn-gold px-5 py-2 text-xs rounded-none tracking-widest uppercase">
+        Request Demo
+      </a>
+    </div>
+    <!-- Mobile menu button -->
+    <button class="md:hidden text-gray-400 hover:text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-[#1a1a1a] bg-black">
+    <div class="px-6 py-4 flex flex-col gap-4 text-sm text-gray-400">
+      <a href="#features" class="hover:text-[#b8860b]">Features</a>
+      <a href="#pricing" class="hover:text-[#b8860b]">Pricing</a>
+      <a href="#faq" class="hover:text-[#b8860b]">FAQ</a>
+      <a href="https://wa.me/971508509747" target="_blank" class="btn-gold px-4 py-2 text-center text-xs tracking-widest uppercase rounded-none">Request Demo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ───────────────────────────────────────────── -->
+<section class="relative min-h-screen flex items-center justify-center text-center px-6 pt-16 overflow-hidden">
+  <div class="hero-glow"></div>
+  <!-- Grid bg -->
+  <div class="absolute inset-0" style="background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 64px 64px;"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto fade-in visible">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#2a2a1a] bg-[#0f0e09] text-xs font-medium text-[#b8860b] tracking-widest uppercase mb-8">
+      <span style="width:6px;height:6px;border-radius:50%;background:#b8860b;display:inline-block;animation:pulse 2s infinite;"></span>
+      Built for GCC Jewellery
+    </div>
+
+    <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl font-light leading-tight text-white mb-6">
+      The Complete Operating System<br/>
+      <span class="gold-text">for Luxury Jewellery Businesses</span>
+    </h1>
+
+    <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+      CMS · CRM · WhatsApp Commerce · Gold Pricing<br/>
+      Built for UAE and Indian jewellery retailers
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+      <a href="https://wa.me/971508509747" target="_blank" rel="noreferrer"
+        class="btn-gold px-8 py-4 text-sm uppercase tracking-widest">
+        Request a Demo
+      </a>
+      <a href="#demo" class="btn-outline px-8 py-4 text-sm uppercase tracking-widest">
+        See Live Demo
+      </a>
+    </div>
+
+    <p class="text-gray-500 text-sm">
+      <span class="text-[#b8860b]">★</span> Trusted by Tejori Gems, Dubai · Est. 1964
+    </p>
+  </div>
+
+  <!-- Bottom fade -->
+  <div class="absolute bottom-0 left-0 right-0 h-32" style="background: linear-gradient(transparent, #0a0a0a);"></div>
+</section>
+
+<!-- ─── FEATURES ───────────────────────────────────────── -->
+<section id="features" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">Platform</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-4">Everything Your Jewellery Business Needs</h2>
+      <div class="w-10 h-px bg-[#b8860b] mx-auto"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[#1a1a1a]">
+      <!-- Cards -->
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">💍</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Product Catalogue</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Jewellery-specific specs: karat, stone, weight, dimensions. SKU, barcode, multi-image.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">💬</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">WhatsApp Commerce</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Enquiry-first, no cart. Every product page drives directly to WhatsApp conversation.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">🥇</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Live Gold Rates</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Dubai gold rates updated 3x daily. 18K, 22K, 24K. Automatic price calculations.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">📅</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Appointments & CRM</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Full sales pipeline. Book private viewings, track leads, manage follow-ups.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">💎</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Diamond Separation</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Natural vs lab-grown diamonds strictly segregated. Never shown on the same page.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">🎪</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Exhibitions & Events</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Countdown timers, online registration, venue details. Perfect for trade shows.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">🌐</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Website Builder</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">10 luxury themes. Live colour editor. No rebuild needed — CSS variable system.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">📊</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Reports & Analytics</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Revenue tracking, CRM analytics, product performance. Full CSV export.</p>
+      </div>
+      <div class="feature-card bg-[#111] p-8 hover:bg-[#141414] transition-colors fade-in group">
+        <div class="text-3xl mb-4">🏪</div>
+        <h3 class="text-white font-semibold mb-2 text-sm tracking-wide">Multi-Branch</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Staff roles and permissions. Multiple boutique locations. Centralised management.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ────────────────────────────────────── -->
+<section class="py-24 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">Process</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-4">Up and Running in 5 Days</h2>
+      <div class="w-10 h-px bg-[#b8860b] mx-auto"></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center fade-in">
+        <div class="w-12 h-12 border border-[#b8860b] flex items-center justify-center mx-auto mb-6 font-serif text-2xl text-[#b8860b]">1</div>
+        <div class="hidden md:block absolute w-px h-12 bg-[#2a2a2a]"></div>
+        <h3 class="text-white font-semibold mb-3">We Import Your Catalogue</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Share your product list via Excel or CSV. We map, clean, and import every item with images.</p>
+      </div>
+      <div class="text-center fade-in">
+        <div class="w-12 h-12 border border-[#b8860b] flex items-center justify-center mx-auto mb-6 font-serif text-2xl text-[#b8860b]">2</div>
+        <h3 class="text-white font-semibold mb-3">Your Team Manages It</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Simple admin dashboard. Add products, manage enquiries, track appointments. No tech skills needed.</p>
+      </div>
+      <div class="text-center fade-in">
+        <div class="w-12 h-12 border border-[#b8860b] flex items-center justify-center mx-auto mb-6 font-serif text-2xl text-[#b8860b]">3</div>
+        <h3 class="text-white font-semibold mb-3">Customers Discover You</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Your luxury storefront is live. Customers browse, enquire on WhatsApp, book appointments.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DEMO ────────────────────────────────────────────── -->
+<section id="demo" class="py-24 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">Live Installation</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-4">See It In Action</h2>
+      <p class="text-gray-400 text-sm">Live installation for Tejori Gems, Dubai</p>
+      <div class="w-10 h-px bg-[#b8860b] mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 mb-12 fade-in">
+      <div class="bg-[#111] border border-[#222] overflow-hidden group hover:border-[#b8860b] transition-colors" style="border-radius:0;">
+        <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #0d0d0d, #1a1a12);">
+          <div class="text-center">
+            <div class="text-4xl mb-3">⚙️</div>
+            <p class="text-gray-500 text-xs tracking-widest uppercase">Dashboard</p>
+          </div>
+        </div>
+        <div class="p-4 border-t border-[#1a1a1a]">
+          <p class="text-white text-sm font-medium">Admin Dashboard</p>
+          <p class="text-gray-500 text-xs mt-1">Products, orders, CRM</p>
+        </div>
+      </div>
+      <div class="bg-[#111] border border-[#222] overflow-hidden group hover:border-[#b8860b] transition-colors" style="border-radius:0;">
+        <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #0d0d0d, #1a1812);">
+          <div class="text-center">
+            <div class="text-4xl mb-3">💍</div>
+            <p class="text-gray-500 text-xs tracking-widest uppercase">Catalogue</p>
+          </div>
+        </div>
+        <div class="p-4 border-t border-[#1a1a1a]">
+          <p class="text-white text-sm font-medium">Product Catalogue</p>
+          <p class="text-gray-500 text-xs mt-1">1,000+ jewellery pieces</p>
+        </div>
+      </div>
+      <div class="bg-[#111] border border-[#222] overflow-hidden group hover:border-[#b8860b] transition-colors" style="border-radius:0;">
+        <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #0d0d0d, #12180d);">
+          <div class="text-center">
+            <div class="text-4xl mb-3">🌐</div>
+            <p class="text-gray-500 text-xs tracking-widest uppercase">Storefront</p>
+          </div>
+        </div>
+        <div class="p-4 border-t border-[#1a1a1a]">
+          <p class="text-white text-sm font-medium">Live Storefront</p>
+          <p class="text-gray-500 text-xs mt-1">Luxury theme, fully live</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center fade-in">
+      <a href="https://wa.me/971508509747?text=Hi%20JCOS%2C%20I'd%20like%20to%20see%20the%20live%20demo" target="_blank" rel="noreferrer"
+        class="btn-gold px-8 py-4 text-sm uppercase tracking-widest inline-block">
+        Request Live Demo Access
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ─────────────────────────────────────────── -->
+<section id="pricing" class="py-24 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">Pricing</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-4">Simple Transparent Pricing</h2>
+      <div class="w-10 h-px bg-[#b8860b] mx-auto"></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 fade-in">
+      <!-- Starter -->
+      <div class="bg-[#111] border border-[#222] p-8 flex flex-col">
+        <p class="text-gray-400 text-xs tracking-widest uppercase mb-4">Starter</p>
+        <div class="mb-2">
+          <span class="text-white text-3xl font-light font-serif">AED 2,999</span>
+          <span class="text-gray-500 text-xs ml-2">setup</span>
+        </div>
+        <p class="text-[#b8860b] font-semibold mb-8">AED 499<span class="text-gray-500 font-normal text-sm">/month</span></p>
+        <ul class="flex-1 space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Up to 200 products</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> WhatsApp commerce</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> 1 boutique location</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Basic theme</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Email support</li>
+        </ul>
+        <a href="https://wa.me/971508509747?text=Hi%2C%20I'm%20interested%20in%20JCOS%20Starter%20plan" target="_blank" class="btn-outline py-3 text-center text-xs uppercase tracking-widest">Get Started</a>
+      </div>
+
+      <!-- Professional -->
+      <div class="pricing-pro border p-8 flex flex-col relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#b8860b] text-[#0a0a0a] text-[10px] font-bold px-4 py-1 tracking-widest uppercase">Most Popular</div>
+        <p class="text-[#b8860b] text-xs tracking-widest uppercase mb-4">Professional</p>
+        <div class="mb-2">
+          <span class="text-white text-3xl font-light font-serif">AED 5,999</span>
+          <span class="text-gray-500 text-xs ml-2">setup</span>
+        </div>
+        <p class="text-[#b8860b] font-semibold mb-8">AED 999<span class="text-gray-500 font-normal text-sm">/month</span></p>
+        <ul class="flex-1 space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> Up to 1,000 products</li>
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> All features included</li>
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> 3 boutique locations</li>
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> Custom theme</li>
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> WhatsApp support</li>
+          <li class="flex items-center gap-2 text-sm text-gray-300"><span class="text-[#b8860b]">✓</span> Gold rate pricing engine</li>
+        </ul>
+        <a href="https://wa.me/971508509747?text=Hi%2C%20I'm%20interested%20in%20JCOS%20Professional%20plan" target="_blank" class="btn-gold py-3 text-center text-xs uppercase tracking-widest">Get Started</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="bg-[#111] border border-[#222] p-8 flex flex-col">
+        <p class="text-gray-400 text-xs tracking-widest uppercase mb-4">Enterprise</p>
+        <p class="text-white text-3xl font-light font-serif mb-8">Custom Pricing</p>
+        <ul class="flex-1 space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Unlimited products</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Multi-branch management</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Custom development</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> Dedicated support</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> ERP integration</li>
+          <li class="flex items-center gap-2 text-sm text-gray-400"><span class="text-[#b8860b]">✓</span> SLA guarantee</li>
+        </ul>
+        <a href="https://wa.me/971508509747?text=Hi%2C%20I'm%20interested%20in%20JCOS%20Enterprise" target="_blank" class="btn-outline py-3 text-center text-xs uppercase tracking-widest">Contact Us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CLIENTS ─────────────────────────────────────────── -->
+<section class="py-24 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-3xl mx-auto text-center">
+    <div class="fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">Clients</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-16">Trusted By</h2>
+    </div>
+    <div class="bg-[#111] border border-[#222] p-10 mb-10 fade-in">
+      <p class="font-serif text-2xl text-white mb-1">Tejori Gems</p>
+      <p class="text-gray-500 text-sm mb-4">Dubai · Est. 1964</p>
+      <p class="text-[#b8860b] text-lg mb-6">★★★★★</p>
+      <p class="text-gray-400 leading-relaxed italic font-serif text-lg">
+        "JCOS transformed how we manage our jewellery business online. The WhatsApp commerce model is exactly what our clients expect."
+      </p>
+    </div>
+    <a href="https://wa.me/971508509747" target="_blank" class="text-[#b8860b] text-sm hover:underline">
+      Be our next success story →
+    </a>
+  </div>
+</section>
+
+<!-- ─── FAQ ─────────────────────────────────────────────── -->
+<section id="faq" class="py-24 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <p class="text-[#b8860b] text-xs font-semibold tracking-widest uppercase mb-4">FAQ</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-4">Frequently Asked Questions</h2>
+      <div class="w-10 h-px bg-[#b8860b] mx-auto"></div>
+    </div>
+
+    <div class="space-y-0 fade-in" id="faq-list">
+      <!-- FAQ items injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA BANNER ──────────────────────────────────────── -->
+<section id="contact" class="py-24 px-6" style="background: linear-gradient(135deg, #0f0e06 0%, #1a1508 50%, #0f0e06 100%); border-top: 1px solid #2a2410;">
+  <div class="max-w-3xl mx-auto text-center fade-in">
+    <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-6">
+      Ready to Transform Your<br/>
+      <span class="gold-text">Jewellery Business?</span>
+    </h2>
+    <p class="text-gray-400 mb-10 text-lg">Join leading jewellery retailers across UAE. Setup in 5 days.</p>
+    <a href="https://wa.me/971508509747?text=Hi%20JCOS%2C%20I'm%20interested%20in%20transforming%20my%20jewellery%20business" target="_blank"
+      class="btn-gold px-10 py-5 text-sm uppercase tracking-widest inline-flex items-center gap-3">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp Us Now
+    </a>
+  </div>
+</section>
+
+<!-- ─── FOOTER ──────────────────────────────────────────── -->
+<footer class="py-12 px-6 border-t border-[#1a1a1a]">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div>
+      <p class="font-serif text-xl gold-text mb-1">JCOS</p>
+      <p class="text-gray-500 text-xs">by KenTech Global · Dubai, United Arab Emirates</p>
+    </div>
+    <div class="flex gap-8 text-xs text-gray-500">
+      <a href="#features" class="hover:text-[#b8860b] transition-colors">Features</a>
+      <a href="#pricing" class="hover:text-[#b8860b] transition-colors">Pricing</a>
+      <a href="#faq" class="hover:text-[#b8860b] transition-colors">FAQ</a>
+      <a href="https://wa.me/971508509747" target="_blank" class="hover:text-[#b8860b] transition-colors">Contact</a>
+    </div>
+    <p class="text-gray-600 text-xs">© 2026 KenTech Global. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ─── WHATSAPP FLOAT ──────────────────────────────────── -->
+<div id="wa-float" style="position:fixed;bottom:28px;right:28px;z-index:9999;">
+  <div id="wa-tooltip" style="display:none;position:absolute;bottom:66px;right:0;background:#1a1a1a;color:#f5f5f5;font-size:11px;padding:6px 14px;white-space:nowrap;pointer-events:none;border:1px solid #333;">Chat with us</div>
+  <a href="https://wa.me/971508509747" target="_blank" rel="noreferrer"
+    style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,0.35);transition:transform 0.2s ease,box-shadow 0.2s ease;"
+    onmouseover="document.getElementById('wa-tooltip').style.display='block';this.style.transform='scale(1.08)';"
+    onmouseout="document.getElementById('wa-tooltip').style.display='none';this.style.transform='scale(1)';">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+</div>
+
+<script>
+// ── FAQ ACCORDION ─────────────────────────────
+const faqs = [
+  ['Do customers pay online?','No. JCOS is WhatsApp-first. Every product enquiry goes directly to WhatsApp. No cart, no checkout, no payment gateway needed.'],
+  ['Can I import my existing catalogue?','Yes. Excel/CSV import with automatic image mapping. We handle the import for you during onboarding.'],
+  ['Is Arabic supported?','RTL layout is built in. Full Arabic translation available on request at no extra charge.'],
+  ['How long does setup take?','5-7 business days from contract signing to a fully live store with your products and branding.'],
+  ['Is my data secure?','Single-tenant deployment. Your data is never shared with other clients. Dedicated infrastructure per installation with daily backups.'],
+];
+
+const faqList = document.getElementById('faq-list');
+faqs.forEach(([q, a], i) => {
+  const el = document.createElement('div');
+  el.className = 'border-b border-[#1a1a1a]';
+  el.innerHTML = `
+    <button onclick="toggleFaq(${i})" class="w-full flex items-center justify-between py-5 text-left text-white text-sm font-medium hover:text-[#b8860b] transition-colors group">
+      <span>${q}</span>
+      <span id="faq-icon-${i}" class="text-[#b8860b] text-lg leading-none transition-transform">+</span>
+    </button>
+    <div id="faq-answer-${i}" class="faq-answer text-gray-400 text-sm leading-relaxed">
+      <p class="pb-5">${a}</p>
+    </div>`;
+  faqList.appendChild(el);
+});
+
+function toggleFaq(i) {
+  const ans  = document.getElementById('faq-answer-' + i);
+  const icon = document.getElementById('faq-icon-' + i);
+  const open = ans.classList.contains('open');
+  // close all
+  document.querySelectorAll('.faq-answer').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('[id^="faq-icon-"]').forEach(el => { el.textContent = '+'; el.style.transform = ''; });
+  if (!open) {
+    ans.classList.add('open');
+    icon.textContent = '−';
+    icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+// ── SCROLL ANIMATIONS ─────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => {
+  if (!el.classList.contains('visible')) observer.observe(el);
+});
+
+// ── HERO PULSE KEYFRAME ───────────────────────
+const style = document.createElement('style');
+style.textContent = '@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
