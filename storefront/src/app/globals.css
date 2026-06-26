@@ -197,3 +197,30 @@ a { text-decoration: none; }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Diamond type badges */
+.badge-lab {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid #c8e6c9;
+}
+
+.badge-natural {
+  display: inline-block;
+  background: #fff8e1;
+  color: #f57f17;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid #ffe082;
+}

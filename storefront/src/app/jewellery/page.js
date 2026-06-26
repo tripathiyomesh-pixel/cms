@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { SlidersHorizontal, X, Heart, ChevronDown } from 'lucide-react';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -63,12 +64,12 @@ function ProductCard({ product, waNumber }) {
       {/* Image */}
       <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: '#f5f0e8' }}>
         {img1 ? (
-          <img
+          <Image
             src={hovered && img2 ? img2 : img1}
             alt={product.name}
-            loading="lazy"
+            fill
+            sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
             style={{
-              width: '100%', height: '100%',
               objectFit: 'cover',
               transition: 'transform 400ms ease',
               transform: hovered ? 'scale(1.04)' : 'scale(1)',
