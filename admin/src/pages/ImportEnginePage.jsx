@@ -163,8 +163,32 @@ export default function ImportEnginePage() {
 
               <div className="flex gap-3 justify-end">
                 <button onClick={()=>{setStep(1);setPreview(null);}} className="btn-outline text-xs">Start over</button>
-                <button onClick={()=>{ toast.success('Import queued — processing in background'); setStep(1); setPreview(null); loadJobs(); }}
-                  className="btn-gold text-xs flex items-center gap-1.5"><Upload size={13}/>Start import</button>
+                <button
+                  onClick={async () => {
+                    setUploading(true);
+                    try {
+                      const res = await api.post('/import/start', {
+                        job_id: preview.job_id,
+                        mapping,
+                        import_type: importType,
+                        rows: preview.preview_rows,
+                      });
+                      const d = res.data?.data;
+                      toast.success(d?.message || 'Import complete');
+                      setStep(1);
+                      setPreview(null);
+                    } catch(e) {
+                      toast.error(e.response?.data?.message || 'Import failed');
+                    } finally {
+                      setUploading(false);
+                      loadJobs();
+                    }
+                  }}
+                  disabled={uploading}
+                  className="btn-gold text-xs flex items-center gap-1.5"
+                >
+                  <Upload size={13}/>{uploading ? 'Importing…' : 'Start import'}
+                </button>
               </div>
             </div>
           )}
