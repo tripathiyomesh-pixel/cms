@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import StatusBadge from '../components/ui/StatusBadge';
 import { productsAPI } from '../services/api';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -41,6 +43,7 @@ export default function ProductsPage() {
   const [selected, setSelected]     = useState(new Set());
   const [bulkAction, setBulkAction] = useState('');
   const [bulking, setBulking]       = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
 
   // Load categories for filter
   useEffect(() => {
@@ -76,11 +79,12 @@ export default function ProductsPage() {
   };
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  const handleDelete = async (id, name) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
     try {
-      await productsAPI.delete(id);
+      await productsAPI.delete(deleteConfirm.id);
       toast.success('Product deleted');
+      setDeleteConfirm(null);
       load(pagination.page);
     } catch { toast.error('Delete failed'); }
   };
@@ -98,7 +102,6 @@ export default function ProductsPage() {
   };
   const runBulk = async () => {
     if (!bulkAction || selected.size === 0) return;
-    if (!confirm(`Apply "${bulkAction}" to ${selected.size} products?`)) return;
     setBulking(true);
     try {
       await api.post('/products/bulk-status', { ids: Array.from(selected), status: bulkAction });
@@ -114,6 +117,14 @@ export default function ProductsPage() {
 
   return (
     <>
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title={`Delete "${deleteConfirm?.name}"?`}
+        message="This action cannot be undone. The product will be permanently removed."
+        confirmLabel="Delete product"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
       <Topbar
         title="Products"
         subtitle={`${pagination.total || 0} total`}
@@ -272,14 +283,14 @@ export default function ProductsPage() {
 
                       {/* Price */}
                       <td className="px-3 py-3 font-medium text-ink-700 dark:text-ink-200">
-                        {p.final_price ? `${p.currency || 'AED'} ${Number(p.final_price).toLocaleString()}` : '—'}
+                        {p.final_price && parseFloat(p.final_price) > 0
+                          ? `${p.currency || 'AED'} ${Number(p.final_price).toLocaleString('en-AE')}`
+                          : <span className="text-ink-400 text-[10px]">Price on Request</span>}
                       </td>
 
                       {/* Status */}
                       <td className="px-3 py-3">
-                        <span className={`badge text-[10px] ${STATUS_COLORS[p.status] || 'badge-gray'}`}>
-                          {p.status}
-                        </span>
+                        <StatusBadge status={p.status} />
                       </td>
 
                       {/* Flags */}
@@ -322,7 +333,7 @@ export default function ProductsPage() {
                             <Gem size={13}/>
                           </button>
                           {/* Delete */}
-                          <button onClick={() => handleDelete(p.id, p.name)} title="Delete"
+                          <button onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} title="Delete"
                             className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500 transition-colors">
                             <Trash2 size={13}/>
                           </button>

@@ -3,13 +3,17 @@ import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { collectionsAPI } from '../services/api';
 import { Plus, Edit2, Trash2, Layers, X, Save, Star } from 'lucide-react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
+import EmptyState from '../components/ui/EmptyState';
 import toast from 'react-hot-toast';
 
 export default function CollectionsPage() {
   const { collapsed, toggleSidebar } = useOutletContext();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // null | 'new' | collection object
+  const [modal, setModal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -22,17 +26,26 @@ export default function CollectionsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleDelete = async (id, name) => {
-    if (!confirm(`Delete collection "${name}"?`)) return;
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
     try {
-      await collectionsAPI.delete(id);
+      await collectionsAPI.delete(deleteConfirm.id);
       toast.success('Collection deleted');
+      setDeleteConfirm(null);
       load();
     } catch { toast.error('Delete failed'); }
   };
 
   return (
     <>
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title={`Delete "${deleteConfirm?.name}"?`}
+        message="All products in this collection will be unassigned. This cannot be undone."
+        confirmLabel="Delete collection"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
       <Topbar title="Collections" subtitle={`${collections.length} collections`}
         actions={
           <button onClick={() => setModal('new')} className="btn-gold flex items-center gap-1.5 text-xs">
@@ -42,14 +55,16 @@ export default function CollectionsPage() {
       />
       <div className="flex-1 overflow-y-auto p-5">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-          </div>
+          <SkeletonLoader variant="card" count={6} />
         ) : collections.length === 0 ? (
-          <div className="card flex flex-col items-center justify-center py-16">
-            <Layers size={32} className="text-ink-300 mb-3" />
-            <p className="text-sm text-ink-500 mb-4">No collections yet</p>
-            <button onClick={() => setModal('new')} className="btn-gold text-xs">Create first collection</button>
+          <div className="card">
+            <EmptyState
+              icon="📦"
+              title="No collections yet"
+              message="Collections group your products into themes like Bridal, Everyday, or Anniversary."
+              actionLabel="Create First Collection"
+              onAction={() => setModal('new')}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -74,7 +89,7 @@ export default function CollectionsPage() {
                       <button onClick={() => setModal(c)} className="p-1.5 rounded hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400">
                         <Edit2 size={13} />
                       </button>
-                      <button onClick={() => handleDelete(c.id, c.name)} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
+                      <button onClick={() => setDeleteConfirm({ id: c.id, name: c.name })} className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-ink-400 hover:text-red-500">
                         <Trash2 size={13} />
                       </button>
                     </div>
