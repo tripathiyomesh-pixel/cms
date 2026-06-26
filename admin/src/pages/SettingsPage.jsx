@@ -51,16 +51,19 @@ export default function SettingsPage() {
   // Load settings from API
   useEffect(()=>{
     api.get('/settings').then(r=>{
-      const s = r.data?.data || {};
-      const get = (k,d='') => s[k]?.value ?? d;
+      const map = {};
+      (r.data?.data || []).forEach(x => {
+        map[x.key] = typeof x.value === 'string' ? x.value.replace(/^"|"$/g, '') : (x.value || '');
+      });
+      const get = (k, d='') => map[k] ?? d;
       setStore({
-        store_name:         get('store_name','My Jewellery Store'),
-        tagline:            get('tagline'),
-        country:            get('country','UAE'),
-        currency:           get('currency','AED'),
-        timezone:           get('timezone','Asia/Dubai'),
-        vat_number:         get('vat_number'),
-        vat_rate:           get('vat_rate','5'),
+        store_name:            get('store_name','My Jewellery Store'),
+        tagline:               get('tagline'),
+        country:               get('country','UAE'),
+        currency:              get('currency','AED'),
+        timezone:              get('timezone','Asia/Dubai'),
+        vat_number:            get('vat_number'),
+        vat_rate:              get('vat_rate','5'),
         business_registration: get('business_registration'),
       });
       setContact({
@@ -82,6 +85,13 @@ export default function SettingsPage() {
         font_family:     get('font_family','Inter'),
         logo_url:        get('logo_url'),
         favicon_url:     get('favicon_url'),
+      });
+      setSmtp({
+        smtp_host:    get('smtp_host'),
+        smtp_port:    get('smtp_port','587'),
+        smtp_secure:  get('smtp_secure','false'),
+        smtp_user:    get('smtp_user'),
+        smtp_pass:    get('smtp_pass'),
       });
     }).catch(()=>{});
   },[]);
