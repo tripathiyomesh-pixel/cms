@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, ChevronLeft, ChevronRight, ZoomIn, X, ExternalLink, ChevronDown } from 'lucide-react';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -252,8 +253,9 @@ function RelatedProducts({ product, waNumber }) {
                 <Link href={`/jewellery/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
                   <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#f0ebe3', marginBottom: 12 }}>
                     {img ? (
-                      <img src={img} alt={p.name} loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 400ms ease' }}
+                      <Image src={img} alt={p.name} fill
+                        sizes='(max-width:1024px) 25vw, 20vw'
+                        style={{ objectFit: 'cover', transition: 'transform 400ms ease' }}
                         onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
                         onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                       />
@@ -385,8 +387,25 @@ export default function ProductPage({ params }) {
   );
   const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMsg}` : null;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description?.replace(/<[^>]*>/g, '') || '',
+    image: images[0] || '',
+    sku: product.sku || '',
+    brand: { '@type': 'Brand', name: 'Tejori' },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'AED',
+      price: product.base_price && Number(product.base_price) > 0 ? product.base_price : undefined,
+      availability: 'https://schema.org/InStock',
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Breadcrumb */}
       <nav style={{ background: 'var(--color-bg)', borderBottom: '1px solid #f0ebe3', padding: '12px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#8b7355' }}>
