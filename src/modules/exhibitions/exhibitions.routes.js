@@ -3,6 +3,7 @@ const router  = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const db = require('../../config/db.pool');
 const ROLES = ['super_admin','admin','manager'];
+const { notifyAdmins } = require('../notifications/notifications.routes');
 
 // ── PUBLIC: list upcoming exhibitions ─────────────────────────
 router.get('/public', async (req, res) => {
@@ -61,6 +62,13 @@ router.post('/public/:slug/register', async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
       [ex.id, full_name, email||null, phone, company||null, visit_date||null, visit_time||null, parseInt(party_size)||1, notes||null]
     );
+    // Notify admins (non-blocking)
+    setImmediate(() => notifyAdmins({
+      type: 'new_exhibition_reg', icon: 'calendar', color: 'purple',
+      title: New exhibition registration: ${full_name},
+      body: Registered for ${ex.title},
+      link: '/exhibitions', resource: 'exhibition_reg',
+    }));
     res.json({ success:true, data:{ id:r[0]?.id||r.rows?.[0]?.id }, message:`Registration confirmed for ${ex.title}` });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
@@ -88,6 +96,13 @@ router.post('/', authenticate, authorize(ROLES), async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) RETURNING id`,
       [title,slug,subtitle||null,description||null,venue_name||null,venue_address||null,venue_city||null,venue_country||'UAE',venue_map_url||null,booth_number||null,start_date,end_date,start_time||'10:00',end_time||'20:00',hero_image||null,JSON.stringify(gallery_images||[]),!!is_vip,registration_open!==false,reg_open_date||null,reg_close_date||null,max_registrations||null,!!is_published,seo_title||null,seo_description||null]
     );
+    // Notify admins (non-blocking)
+    setImmediate(() => notifyAdmins({
+      type: 'new_exhibition_reg', icon: 'calendar', color: 'purple',
+      title: New exhibition registration: ${full_name},
+      body: Registered for ${ex.title},
+      link: '/exhibitions', resource: 'exhibition_reg',
+    }));
     res.json({ success:true, data:{ id:r[0]?.id||r.rows?.[0]?.id, slug }, message:'Exhibition created' });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
@@ -144,3 +159,4 @@ router.patch('/:id/registrations/:regId', authenticate, authorize(ROLES), async 
 });
 
 module.exports = router;
+

@@ -17,6 +17,7 @@ const enquiryLimiter = rateLimit({
 const router   = express.Router();
 const db       = require('../../config/db.pool');
 const { pool } = require('../../config/database');
+const { notifyAdmins } = require('../notifications/notifications.routes');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const ADMIN = ['super_admin','admin','manager','sales_staff'];
 
@@ -137,6 +138,13 @@ router.post('/', enquiryLimiter, async (req, res) => {
       message: message || `Hi, I'm interested in ${product_name||'your product'}${product_sku?' (SKU: '+product_sku+')':''}.${product_url?' '+product_url:''}`,
     });
 
+    // Notify admins of new enquiry (non-blocking)
+    setImmediate(() => notifyAdmins({
+      type: 'new_enquiry', icon: 'message-square', color: 'blue',
+      title: New enquiry from ${customer_name},
+      body: product_name ? Interested in: ${product_name} : 'General enquiry',
+      link: '/enquiries', resource: 'enquiry', resource_id: enquiry.id,
+    }));
     res.status(201).json({
       success: true,
       message: 'Enquiry received',
@@ -235,3 +243,4 @@ router.put('/:id', authenticate, authorize(ADMIN), async (req, res) => {
 });
 
 module.exports = router;
+

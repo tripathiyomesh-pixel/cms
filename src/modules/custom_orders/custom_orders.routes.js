@@ -8,6 +8,7 @@ const router  = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const db = require('../../config/db.pool');
 const ROLES = ['super_admin','admin','manager'];
+const { notifyAdmins } = require('../notifications/notifications.routes');
 
 // ── PUBLIC: submit custom order request ──────────────────────
 router.post('/', async (req, res) => {
@@ -48,6 +49,12 @@ router.post('/', async (req, res) => {
       }).catch(e => console.log('ERP push skipped:', e.message));
     }
 
+    setImmediate(() => notifyAdmins({
+      type: 'new_custom_order', icon: 'gem', color: 'gold',
+      title: New bespoke request from ${customer_name},
+      body: description ? description.slice(0, 100) : 'Custom jewellery request',
+      link: '/custom-orders', resource: 'custom_order', resource_id: id,
+    }));
     res.json({ success: true, data: { id, order_number }, message: 'Request received. We will contact you shortly.' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -133,3 +140,4 @@ router.post('/erp-sync', async (req, res) => {
 });
 
 module.exports = router;
+

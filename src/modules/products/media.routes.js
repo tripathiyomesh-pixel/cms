@@ -223,4 +223,65 @@ router.post('/upload/:productId',
   }
 );
 
+// ── POST /api/media/upload — standalone upload (no productId required) ──────────
+router.post('/upload',
+  authenticate,
+  authorize(EDITORS),
+  ...upload.array('files', 20),
+  async (req, res) => {
+    try {
+      if (!req.files?.length) return res.status(422).json({ success: false, message: 'No files uploaded' });
+
+      const media = await Promise.all(req.files.map((file, i) =>
+        pool.query(
+          ,
+          [
+            file.path,
+            file.path.replace('/upload/', '/upload/w_400,q_auto/'),
+            file.filename,
+            (() => { const m = file.mimetype||''; return m.startsWith('video/') ? 'video' : m === 'application/pdf' ? 'pdf' : 'image'; })(),
+            file.size,
+            req.body.alt_text || 'General upload',
+          ]
+        ).then(r => r.rows[0])
+      ));
+
+      res.status(201).json({ success: true, data: media, message:  });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+  }
+);
+
+
+// ── POST /api/media/upload — standalone upload (no productId) ────────────────
+router.post('/upload',
+  authenticate,
+  authorize(EDITORS),
+  ...upload.array('files', 20),
+  async (req, res) => {
+    try {
+      if (!req.files?.length) return res.status(422).json({ success: false, message: 'No files uploaded' });
+
+      const media = await Promise.all(req.files.map(file =>
+        pool.query(
+          `INSERT INTO media
+             (product_id, file_url, thumb_url, cloudinary_id, file_type, file_size, alt_text, is_primary, sort_order)
+           VALUES (NULL,$1,$2,$3,$4,$5,$6,false,0)
+           RETURNING *`,
+          [
+            file.path,
+            file.path.replace('/upload/', '/upload/w_400,q_auto/'),
+            file.filename,
+            (() => { const m = file.mimetype || ''; return m.startsWith('video/') ? 'video' : m === 'application/pdf' ? 'pdf' : 'image'; })(),
+            file.size,
+            req.body.alt_text || 'General upload',
+          ]
+        ).then(r => r.rows[0])
+      ));
+
+      res.status(201).json({ success: true, data: media, message: `${media.length} file(s) uploaded` });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+  }
+);
+
 module.exports = router;
+

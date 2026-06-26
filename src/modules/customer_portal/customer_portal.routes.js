@@ -135,8 +135,9 @@ router.delete('/wishlist/:id', customerAuth, async (req, res) => {
 router.get('/appointments', customerAuth, async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, appointment_date, appointment_time, type, status, notes, branch, created_at
-       FROM appointments WHERE (customer_account_id=$1 OR customer_email=$2) ORDER BY appointment_date DESC LIMIT 20`,
+      `SELECT id, preferred_date as appointment_date, preferred_time as appointment_time,
+              purpose as type, status, notes, created_at
+       FROM appointments WHERE customer_email=$1 ORDER BY preferred_date DESC LIMIT 20`,
       [req.customer.email]
     );
     res.json({ success:true, data:rows });
@@ -158,6 +159,17 @@ router.get('/enquiries', customerAuth, async (req, res) => {
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
+// ── ORDERS ────────────────────────────────────────────────────
+router.get('/orders', customerAuth, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, order_number, status, total_amount, currency, created_at
+       FROM orders WHERE customer_email=$1 ORDER BY created_at DESC LIMIT 30`,
+      [req.customer.email]
+    );
+    res.json({ success: true, data: rows });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
 // ── CHANGE PASSWORD ───────────────────────────────────────────
 router.put('/change-password', customerAuth, async (req, res) => {
   try {
@@ -175,3 +187,4 @@ router.put('/change-password', customerAuth, async (req, res) => {
 });
 
 module.exports = router;
+

@@ -142,4 +142,32 @@ router.post('/test-email', authenticate, authorize(['super_admin','admin']), asy
   }
 });
 
+
+// ── GET /unread-count ────────────────────────────────────────
+router.get('/unread-count', authenticate, async (req, res) => {
+  try {
+    const [[{ count }]] = await db.query(
+      `SELECT COUNT(*) FROM notifications WHERE user_id=$1 AND is_read=false`, [req.user.id]
+    );
+    res.json({ success: true, data: { count: parseInt(count) } });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ── POST /:id/read ───────────────────────────────────────────
+router.post('/:id/read', authenticate, async (req, res) => {
+  try {
+    await db.query(`UPDATE notifications SET is_read=true WHERE id=$1 AND user_id=$2`, [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// ── POST /read-all ───────────────────────────────────────────
+router.post('/read-all', authenticate, async (req, res) => {
+  try {
+    await db.query(`UPDATE notifications SET is_read=true, read_at=NOW() WHERE user_id=$1 AND is_read=false`, [req.user.id]);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 module.exports.router = router;
+
