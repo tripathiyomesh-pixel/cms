@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 
 const KARATS = ['24K', '22K', '21K', '18K', '14K'];
@@ -30,9 +30,9 @@ export default function GoldRateTicker({
   }, []);
 
   const COLORS = {
-    dark:  { bg:'#0e0e0e', text:'#f5f0e8',  muted:'#8a8078', card:'#1a1a1a', border:'#2a2a2a', label:'var(--color-accent,#c9a84c)' },
+    dark:  { bg:'#0e0e0e', text:'#f5f0e8',  muted:'#8a8078', card:'var(--color-text)', border:'#2a2a2a', label:'var(--color-accent,#c9a84c)' },
     cream: { bg:'#fdf6ec', text:'#3d2b1a',  muted:'#8b6f4a', card:'#fff',    border:'#e8d5bc', label:'var(--color-accent,#c9a84c)' },
-    white: { bg:'#ffffff', text:'#1a1a1a',  muted:'#6b6b6b', card:'#fafaf8', border:'#e5e5e5', label:'var(--color-accent,#c9a84c)' },
+    white: { bg:'#ffffff', text:'var(--color-text)',  muted:'#6b6b6b', card:'#fafaf8', border:'#e5e5e5', label:'var(--color-accent,#c9a84c)' },
     gold:  { bg:'var(--color-accent,#c9a84c)', text:'#0a0a0a', muted:'rgba(0,0,0,0.55)', card:'rgba(255,255,255,0.15)', border:'rgba(0,0,0,0.15)', label:'#0a0a0a' },
   };
   const c = COLORS[bgStyle] || COLORS.dark;
@@ -81,7 +81,7 @@ export default function GoldRateTicker({
 
           {loading ? (
             <div style={{ display:'flex', gap:12 }}>
-              {[1,2,3,4,5].map(i => <div key={i} style={{ flex:1, height:80, background: bgStyle==='dark'?'#1a1a1a':'#f0ece6', borderRadius:4 }}/>)}
+              {[1,2,3,4,5].map(i => <div key={i} style={{ flex:1, height:80, background: bgStyle==='dark'?'var(--color-text)':'#f0ece6', borderRadius:4 }}/>)}
             </div>
           ) : rates ? (
             <div style={{ display:'flex', gap:2, flexWrap:'wrap' }}>

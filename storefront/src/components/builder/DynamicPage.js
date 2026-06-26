@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 
 /**
@@ -76,7 +76,7 @@ function SectionBlock({ section }) {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '32px 80px', background: props.bg || '#fff' }}>
           <div style={{ flex: 1, height: '0.5px', background: '#e5e0d8' }} />
-          <span style={{ fontSize: 18, color: '#b8860b' }}>✦</span>
+          <span style={{ fontSize: 18, color: 'var(--color-accent)' }}>✦</span>
           <div style={{ flex: 1, height: '0.5px', background: '#e5e0d8' }} />
         </div>
       );

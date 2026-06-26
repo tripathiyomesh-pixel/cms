@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 const DEFAULT_VALUES = [
   {
@@ -33,7 +33,7 @@ export default function BrandValues({
   const BG = {
     cream:  { bg:'#fdf6ec', text:'#3d2b1a',  muted:'#8b6f4a', border:'#e8d5bc' },
     dark:   { bg:'#0e0e0e', text:'#f5f0e8',  muted:'#8a8078', border:'#2a2a2a' },
-    white:  { bg:'#ffffff', text:'#1a1a1a',  muted:'#6b6b6b', border:'#e5e5e5' },
+    white:  { bg:'#ffffff', text:'var(--color-text)',  muted:'#6b6b6b', border:'#e5e5e5' },
     accent: { bg:'var(--color-accent,#c9a84c)', text:'#0a0a0a', muted:'rgba(0,0,0,0.55)', border:'rgba(0,0,0,0.1)' },
   };
   const colors = BG[bgStyle] || BG.cream;

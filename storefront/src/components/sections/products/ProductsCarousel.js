@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -27,27 +27,27 @@ export default function ProductsCarousel({ config = {} }) {
   const shown = list.slice(start, start+PER);
 
   return (
-    <section style={{ padding:'80px 0', background:'#fdf8f3' }}>
+    <section style={{ padding:'80px 0', background:'var(--color-bg)' }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 40px' }}>
         <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:48 }}>
           <div>
-            <p style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'#b8860b',marginBottom:10 }}>
+            <p style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--color-accent)',marginBottom:10 }}>
               {config.featured_label||'Featured'}
             </p>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:44,fontWeight:300,color:'#1a1a1a' }}>
+            <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:44,fontWeight:300,color:'var(--color-text)' }}>
               {config.featured_heading||'Our Selection'}
             </h2>
           </div>
           <div style={{ display:'flex', gap:8 }}>
             <button onClick={()=>setStart(s=>Math.max(0,s-PER))} disabled={start===0}
               style={{ width:40,height:40,border:'1px solid #e5e0d8',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',opacity:start===0?0.3:1,transition:'all .15s' }}
-              onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}
+              onMouseEnter={e=>e.currentTarget.style.borderColor='var(--color-accent)'}
               onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e0d8'}>
               <ChevronLeft size={16}/>
             </button>
             <button onClick={()=>setStart(s=>Math.min(list.length-PER,s+PER))} disabled={start+PER>=list.length}
               style={{ width:40,height:40,border:'1px solid #e5e0d8',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',opacity:start+PER>=list.length?0.3:1,transition:'all .15s' }}
-              onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}
+              onMouseEnter={e=>e.currentTarget.style.borderColor='var(--color-accent)'}
               onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e0d8'}>
               <ChevronRight size={16}/>
             </button>
@@ -58,18 +58,18 @@ export default function ProductsCarousel({ config = {} }) {
             const msg = encodeURIComponent(`Hi Tejori, I am interested in ${p.name}`);
             return (
               <div key={p.id} className="group" style={{ background:'#fff', border:'1px solid #e5e0d8', transition:'border-color .2s' }}
-                onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='var(--color-accent)'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e0d8'}>
                 <Link href={`/jewellery/${p.slug||p.id}`} className="block overflow-hidden" style={{ aspectRatio:'1', background:'#f5ede2' }}>
                   <img src={p.thumb_url} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>
                 </Link>
                 <div style={{ padding:16 }}>
-                  <h3 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontWeight:400,color:'#1a1a1a',marginBottom:12 }}>{p.name}</h3>
+                  <h3 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontWeight:400,color:'var(--color-text)',marginBottom:12 }}>{p.name}</h3>
                   <div style={{ display:'flex', gap:8 }}>
                     {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`} target="_blank" rel="noreferrer"
-                      style={{ flex:1,padding:'10px',background:'#1a1a1a',color:'#fff',fontSize:9,fontWeight:500,letterSpacing:'0.15em',textTransform:'uppercase',textAlign:'center',textDecoration:'none',transition:'background .2s' }}
-                      onMouseEnter={e=>e.currentTarget.style.background='#b8860b'}
-                      onMouseLeave={e=>e.currentTarget.style.background='#1a1a1a'}>
+                      style={{ flex:1,padding:'10px',background:'var(--color-text)',color:'#fff',fontSize:9,fontWeight:500,letterSpacing:'0.15em',textTransform:'uppercase',textAlign:'center',textDecoration:'none',transition:'background .2s' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='var(--color-accent)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='var(--color-text)'}>
                       Inquiry Now
                     </a>}
                   </div>

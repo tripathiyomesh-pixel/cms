@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -63,7 +63,7 @@ function SearchInner() {
             style={{ width:'100%', padding:'16px 16px 16px 48px', border:'2px solid #e5e0d8', fontSize:14, outline:'none', background:'#fff', boxSizing:'border-box', fontFamily:"'Inter',sans-serif" }}
             autoFocus/>
         </div>
-        <button type="submit" style={{ padding:'0 28px', background:'#1a1a1a', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
+        <button type="submit" style={{ padding:'0 28px', background:'var(--color-text)', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
           Search
         </button>
       </form>
@@ -79,7 +79,7 @@ function SearchInner() {
               {activeFilters.map(([k,v]) => (
                 <span key={k} style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'3px 10px', background:'#f5ede2', border:'1px solid #e5d5a0', borderRadius:20, fontSize:11, color:'#92600a' }}>
                   {v}
-                  <button onClick={()=>setFilt(k,'')} style={{ background:'none', border:'none', cursor:'pointer', color:'#b8860b', display:'flex' }}><X size={11}/></button>
+                  <button onClick={()=>setFilt(k,'')} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--color-accent)', display:'flex' }}><X size={11}/></button>
                 </span>
               ))}
               {activeFilters.length > 0 && (
@@ -95,7 +95,7 @@ function SearchInner() {
                 <option value="price_desc">Price: High → Low</option>
               </select>
               <button onClick={()=>setShowFilt(!showFilt)}
-                style={{ padding:'6px 12px', border:'1px solid #e5e0d8', background:showFilt?'#1a1a1a':'#fff', color:showFilt?'#fff':'#4a4a4a', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                style={{ padding:'6px 12px', border:'1px solid #e5e0d8', background:showFilt?'var(--color-text)':'#fff', color:showFilt?'#fff':'#4a4a4a', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                 <SlidersHorizontal size={13}/> Filters
               </button>
             </div>
@@ -103,7 +103,7 @@ function SearchInner() {
 
           {/* Filter panel */}
           {showFilt && (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:12, padding:20, background:'#fdf8f3', border:'1px solid #e5d5a0', marginBottom:28 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:12, padding:20, background:'var(--color-bg)', border:'1px solid #e5d5a0', marginBottom:28 }}>
               <div>
                 <label style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', display:'block', marginBottom:8 }}>Category</label>
                 <select value={filters.category} onChange={e=>setFilt('category',e.target.value)}
@@ -149,9 +149,9 @@ function SearchInner() {
             </div>
           ) : results.length === 0 && query ? (
             <div style={{ textAlign:'center', padding:'80px 0' }}>
-              <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>No results found</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'var(--color-text)', marginBottom:12 }}>No results found</p>
               <p style={{ fontSize:13, color:'#6b6b6b', marginBottom:24 }}>Try different keywords or browse our collections</p>
-              <Link href="/jewellery" style={{ fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', borderBottom:'1px solid #1a1a1a', paddingBottom:2 }}>
+              <Link href="/jewellery" style={{ fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', color:'var(--color-text)', borderBottom:'1px solid #1a1a1a', paddingBottom:2 }}>
                 Browse all jewellery →
               </Link>
             </div>
@@ -172,13 +172,13 @@ function SearchInner() {
                       </Link>
                       <div style={{ padding:14, background:'#fff' }}>
                         <Link href={`/jewellery/${p.slug||p.id}`} style={{ textDecoration:'none' }}>
-                          <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:400, color:'#1a1a1a', marginBottom:4, lineHeight:1.3 }}>{p.name}</h3>
+                          <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:400, color:'var(--color-text)', marginBottom:4, lineHeight:1.3 }}>{p.name}</h3>
                         </Link>
                         {p.metal_type && <p style={{ fontSize:11, color:'#6b6b6b', marginBottom:8, textTransform:'capitalize' }}>{p.metal_type} · {p.purity}</p>}
                         {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${msg}`} target="_blank" rel="noreferrer"
-                          style={{ display:'block', width:'100%', padding:'10px', background:'#1a1a1a', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', textAlign:'center', textDecoration:'none', transition:'background .2s' }}
-                          onMouseEnter={e=>e.currentTarget.style.background='#b8860b'}
-                          onMouseLeave={e=>e.currentTarget.style.background='#1a1a1a'}>
+                          style={{ display:'block', width:'100%', padding:'10px', background:'var(--color-text)', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase', textAlign:'center', textDecoration:'none', transition:'background .2s' }}
+                          onMouseEnter={e=>e.currentTarget.style.background='var(--color-accent)'}
+                          onMouseLeave={e=>e.currentTarget.style.background='var(--color-text)'}>
                           Request Price
                         </a>}
                       </div>
@@ -191,9 +191,9 @@ function SearchInner() {
               {results.length < total && (
                 <div style={{ textAlign:'center', marginTop:40 }}>
                   <button onClick={()=>search(query, page+1)}
-                    style={{ padding:'13px 40px', border:'1px solid #1a1a1a', background:'#fff', color:'#1a1a1a', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', cursor:'pointer', transition:'all .2s' }}
-                    onMouseEnter={e=>{e.currentTarget.style.background='#1a1a1a';e.currentTarget.style.color='#fff';}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.color='#1a1a1a';}}>
+                    style={{ padding:'13px 40px', border:'1px solid #1a1a1a', background:'#fff', color:'var(--color-text)', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', cursor:'pointer', transition:'all .2s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.background='var(--color-text)';e.currentTarget.style.color='#fff';}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.color='var(--color-text)';}}>
                     {loading ? 'Loading…' : `Load more (${total - results.length} remaining)`}
                   </button>
                 </div>
@@ -206,13 +206,13 @@ function SearchInner() {
       {/* Empty state — no query */}
       {!query && (
         <div style={{ textAlign:'center', padding:'40px 0' }}>
-          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>What are you looking for?</p>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'var(--color-text)', marginBottom:12 }}>What are you looking for?</p>
           <p style={{ fontSize:13, color:'#6b6b6b', marginBottom:40 }}>Search our collection of diamonds, gemstones and luxury jewellery</p>
           <div style={{ display:'flex', justifyContent:'center', gap:24, flexWrap:'wrap' }}>
             {['Diamond Rings','Gold Necklaces','Pearl Earrings','Sapphire Bracelets','Lab Grown Diamonds','Custom Jewellery'].map(s=>(
               <button key={s} onClick={()=>{ setQuery(s); search(s,1); }}
                 style={{ padding:'8px 16px', border:'1px solid #e5e0d8', background:'#fff', fontSize:12, cursor:'pointer', color:'#4a4a4a', transition:'all .15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='#b8860b';e.currentTarget.style.color='#b8860b';}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--color-accent)';e.currentTarget.style.color='var(--color-accent)';}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='#e5e0d8';e.currentTarget.style.color='#4a4a4a';}}>
                 {s}
               </button>

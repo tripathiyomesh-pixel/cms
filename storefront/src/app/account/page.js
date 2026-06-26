@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 
@@ -32,8 +32,8 @@ export default function AccountPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>My Profile</h1>
-      <div style={{ width:40, height:1, background:'#b8860b', marginBottom:32 }}/>
+      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>My Profile</h1>
+      <div style={{ width:40, height:1, background:'var(--color-accent)', marginBottom:32 }}/>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
         <div>
           <label style={{ display:'block', fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'#6b6b6b', marginBottom:8 }}>First name</label>
@@ -50,7 +50,7 @@ export default function AccountPage() {
       </div>
       {msg && <p style={{ fontSize:12, color:'#4caf70', marginBottom:16 }}>✓ {msg}</p>}
       <button onClick={save} disabled={saving}
-        style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'13px 32px', background:'#1a1a1a', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+        style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'13px 32px', background:'var(--color-text)', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
         {saving ? 'Saving…' : 'Save changes'}
       </button>
     </div>

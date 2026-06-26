@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -37,12 +37,12 @@ export default function AccountLayout({ children }) {
       <aside>
         {/* Account info */}
         <div style={{ padding:'20px', background:'#f5ede2', marginBottom:20 }}>
-          <div style={{ width:48, height:48, borderRadius:'50%', background:'#b8860b', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+          <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--color-accent)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <span style={{ color:'#fff', fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300 }}>
               {account?.first_name?.[0]?.toUpperCase() || '?'}
             </span>
           </div>
-          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:18, fontWeight:400, color:'#1a1a1a' }}>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:18, fontWeight:400, color:'var(--color-text)' }}>
             {account?.first_name} {account?.last_name}
           </p>
           <p style={{ fontSize:11, color:'#6b6b6b', marginTop:2 }}>{account?.email}</p>
@@ -57,8 +57,8 @@ export default function AccountLayout({ children }) {
                 display:'flex', alignItems:'center', justifyContent:'space-between',
                 padding:'12px 16px', textDecoration:'none',
                 borderLeft: isActive ? '2px solid #b8860b' : '2px solid transparent',
-                background: isActive ? '#fdf8f3' : 'transparent',
-                color: isActive ? '#b8860b' : '#4a4a4a',
+                background: isActive ? 'var(--color-bg)' : 'transparent',
+                color: isActive ? 'var(--color-accent)' : '#4a4a4a',
                 fontSize:13, fontWeight: isActive ? 600 : 400,
                 transition:'all .15s',
               }}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 const CATS = [
   { name:'High Jewellery', href:'/jewellery?type=high',         img:'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=600&q=80' },
@@ -8,9 +8,9 @@ const CATS = [
 ];
 export default function CategoriesCards({ config={} }) {
   return (
-    <section style={{ padding:'60px 40px', background:'#fdf8f3' }}>
+    <section style={{ padding:'60px 40px', background:'var(--color-bg)' }}>
       <div style={{ maxWidth:1280,margin:'0 auto' }}>
-        <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:40,fontWeight:300,color:'#1a1a1a',textAlign:'center',marginBottom:48 }}>
+        <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:40,fontWeight:300,color:'var(--color-text)',textAlign:'center',marginBottom:48 }}>
           {config.categories_heading||'Shop by Category'}
         </h2>
         <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20 }}>

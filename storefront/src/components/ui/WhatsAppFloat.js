@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const GOLD = '#b8860b';
+const GOLD = 'var(--color-accent)';
 
 export default function WhatsAppFloat() {
   const [waNumber, setWaNumber] = useState('');
@@ -49,7 +49,7 @@ export default function WhatsAppFloat() {
       {/* Tooltip */}
       {tooltip && (
         <div style={{
-          background: '#1a1208',
+          background: 'var(--color-text)',
           color: '#f5ebe0',
           fontSize: 12,
           padding: '8px 14px',

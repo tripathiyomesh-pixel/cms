@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { RotateCcw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
@@ -94,7 +94,7 @@ export default function ProductViewer360({ frames = [], mainImage, alt = 'Produc
           <div style={{ position:'absolute', bottom:12, left:'50%', transform:'translateX(-50%)', display:'flex', gap:3 }}>
             {Array(Math.min(12, total)).fill(0).map((_,i) => {
               const active = Math.floor(frameIdx / total * 12) === i;
-              return <div key={i} style={{ width:active?12:4, height:4, borderRadius:2, background:active?'#b8860b':'rgba(255,255,255,0.5)', transition:'all .2s' }}/>;
+              return <div key={i} style={{ width:active?12:4, height:4, borderRadius:2, background:active?'var(--color-accent)':'rgba(255,255,255,0.5)', transition:'all .2s' }}/>;
             })}
           </div>
         )}
@@ -106,11 +106,11 @@ export default function ProductViewer360({ frames = [], mainImage, alt = 'Produc
           {frames.length > 1 && (
             <>
               <button onClick={()=>setMode('360')}
-                style={{ padding:'5px 10px', fontSize:10, fontWeight:600, border:'1px solid', borderColor:mode==='360'?'#b8860b':'#e5e0d8', background:mode==='360'?'#fdf8f3':'#fff', color:mode==='360'?'#b8860b':'#6b6b6b', cursor:'pointer', borderRadius:4 }}>
+                style={{ padding:'5px 10px', fontSize:10, fontWeight:600, border:'1px solid', borderColor:mode==='360'?'var(--color-accent)':'#e5e0d8', background:mode==='360'?'var(--color-bg)':'#fff', color:mode==='360'?'var(--color-accent)':'#6b6b6b', cursor:'pointer', borderRadius:4 }}>
                 360°
               </button>
               <button onClick={()=>setMode('zoom')}
-                style={{ padding:'5px 10px', fontSize:10, fontWeight:600, border:'1px solid', borderColor:mode==='zoom'?'#b8860b':'#e5e0d8', background:mode==='zoom'?'#fdf8f3':'#fff', color:mode==='zoom'?'#b8860b':'#6b6b6b', cursor:'pointer', borderRadius:4 }}>
+                style={{ padding:'5px 10px', fontSize:10, fontWeight:600, border:'1px solid', borderColor:mode==='zoom'?'var(--color-accent)':'#e5e0d8', background:mode==='zoom'?'var(--color-bg)':'#fff', color:mode==='zoom'?'var(--color-accent)':'#6b6b6b', cursor:'pointer', borderRadius:4 }}>
                 Zoom
               </button>
             </>

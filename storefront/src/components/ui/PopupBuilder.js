@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
@@ -71,7 +71,7 @@ export default function PopupBuilder({ settings = {} }) {
             <>
               {/* Accent bar */}
               <div style={{ width: 40, height: 3, background: accent, borderRadius: 2, marginBottom: 16 }}/>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 400, color: '#1a1a1a', marginBottom: 12 }}>{title}</h3>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 400, color: 'var(--color-text)', marginBottom: 12 }}>{title}</h3>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6, marginBottom: 20 }}>{msg}</p>
 
               {type === 'newsletter' && !submitted && (

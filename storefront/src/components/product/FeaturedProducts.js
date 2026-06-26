@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -31,7 +31,7 @@ function ProductCard({ product }) {
           <div>
             {product.base_price && Number(product.base_price) > 0
               ? <div className="text-base font-semibold text-ink-800">{product.currency || 'AED'} {Number(product.base_price).toLocaleString()}</div>
-              : <div className="text-sm font-medium" style={{ color:'#b8860b' }}>Price on Request</div>}
+              : <div className="text-sm font-medium" style={{ color:'var(--color-accent)' }}>Price on Request</div>}
           </div>
           <div className="flex gap-1.5">
             <Link href={`/jewellery/${product.slug||product.id}`}

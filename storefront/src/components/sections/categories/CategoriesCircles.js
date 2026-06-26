@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 const CATS = [
   { name:'Bracelets',        href:'/jewellery?category=bracelets', img:'https://images.unsplash.com/photo-1573408301185-9519f94ae069?w=200&q=80' },
@@ -14,13 +14,13 @@ export default function CategoriesCircles({ config={} }) {
   return (
     <section style={{ padding:'60px 40px', background:'#fff', textAlign:'center' }}>
       <div style={{ maxWidth:1280,margin:'0 auto' }}>
-        <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:40,fontWeight:300,color:'#1a1a1a',marginBottom:48 }}>
+        <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:40,fontWeight:300,color:'var(--color-text)',marginBottom:48 }}>
           {config.categories_heading||'Top Categories'}
         </h2>
         <div style={{ display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:20 }}>
           {CATS.map(c=>(
             <Link key={c.name} href={c.href} style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:10,textDecoration:'none' }}
-              onMouseEnter={e=>e.currentTarget.querySelector('div').style.borderColor='#b8860b'}
+              onMouseEnter={e=>e.currentTarget.querySelector('div').style.borderColor='var(--color-accent)'}
               onMouseLeave={e=>e.currentTarget.querySelector('div').style.borderColor='#e5e0d8'}>
               <div style={{ width:80,height:80,borderRadius:'50%',overflow:'hidden',border:'1.5px solid #e5e0d8',transition:'border-color .2s' }}>
                 <img src={c.img} alt={c.name} style={{ width:'100%',height:'100%',objectFit:'cover' }}/>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
@@ -21,7 +21,7 @@ export default function HeroFullscreen({ config = {} }) {
       <div className={`absolute inset-0 flex items-center ${hero_text_align==='center'?'justify-center text-center':''}`}>
         <div className="max-w-screen-xl mx-auto px-8 lg:px-16 w-full">
           <div style={{ maxWidth: hero_text_align==='center'?'none':640 }}>
-            {hero_label && <p style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'#b8860b',marginBottom:16 }}>{hero_label}</p>}
+            {hero_label && <p style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--color-accent)',marginBottom:16 }}>{hero_label}</p>}
             <h1 style={{ fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:'clamp(48px,7vw,88px)',fontWeight:300,color:'#fff',lineHeight:1,marginBottom:20 }}>{hero_headline}</h1>
             <p style={{ fontSize:'clamp(14px,1.5vw,18px)',color:'rgba(255,255,255,0.7)',maxWidth:480,lineHeight:1.7,marginBottom:36,margin: hero_text_align==='center'?'0 auto 36px':'0 0 36px' }}>{hero_subtext}</p>
             <Link href={hero_cta_link} style={{ fontSize:11,fontWeight:500,letterSpacing:'0.18em',textTransform:'uppercase',color:'#fff',borderBottom:'1px solid rgba(255,255,255,0.5)',paddingBottom:3,display:'inline-flex',alignItems:'center',gap:8 }}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, Trash2, MessageCircle } from 'lucide-react';
@@ -27,13 +27,13 @@ export default function WishlistPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>My Wishlist</h1>
-      <div style={{ width:40, height:1, background:'#b8860b', marginBottom:32 }}/>
+      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>My Wishlist</h1>
+      <div style={{ width:40, height:1, background:'var(--color-accent)', marginBottom:32 }}/>
       {items.length === 0 ? (
         <div style={{ textAlign:'center', padding:'60px 0' }}>
           <Heart size={40} style={{ color:'#e5e0d8', marginBottom:16 }}/>
-          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>Your wishlist is empty</p>
-          <Link href="/jewellery" style={{ fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', color:'#1a1a1a', borderBottom:'1px solid #1a1a1a', paddingBottom:2 }}>Explore Collection →</Link>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>Your wishlist is empty</p>
+          <Link href="/jewellery" style={{ fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', color:'var(--color-text)', borderBottom:'1px solid #1a1a1a', paddingBottom:2 }}>Explore Collection →</Link>
         </div>
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:24 }}>
@@ -45,9 +45,9 @@ export default function WishlistPage() {
                 </div>
               </Link>
               <div style={{ padding:16 }}>
-                <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'#1a1a1a', marginBottom:12 }}>{item.name}</p>
+                <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'var(--color-text)', marginBottom:12 }}>{item.name}</p>
                 <div style={{ display:'flex', gap:8 }}>
-                  {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Hi Tejori, I am interested in ${item.name}`)}`} target="_blank" rel="noreferrer" style={{ flex:1, padding:'9px', background:'#1a1a1a', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', textDecoration:'none' }}>Enquire</a>}
+                  {wapp && <a href={`https://wa.me/${wapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Hi Tejori, I am interested in ${item.name}`)}`} target="_blank" rel="noreferrer" style={{ flex:1, padding:'9px', background:'var(--color-text)', color:'#fff', fontSize:9, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', textDecoration:'none' }}>Enquire</a>}
                   <button onClick={()=>remove(item.id)} style={{ padding:'9px', border:'1px solid #e5e0d8', background:'#fff', cursor:'pointer', color:'#999' }}><Trash2 size={13}/></button>
                 </div>
               </div>

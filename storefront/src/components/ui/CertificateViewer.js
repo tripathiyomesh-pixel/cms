@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { Award, ExternalLink, X, Shield, CheckCircle } from 'lucide-react';
 
@@ -30,7 +30,7 @@ export default function CertificateViewer({ certifications = [], productName = '
   return (
     <div style={{ marginTop:24 }}>
       <h3 style={{ fontSize:10, fontWeight:700, letterSpacing:'0.15em', textTransform:'uppercase', color:'#4a4a4a', marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>
-        <Shield size={13} style={{ color:'#b8860b' }}/> Certifications
+        <Shield size={13} style={{ color:'var(--color-accent)' }}/> Certifications
       </h3>
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
         {certs.map((cert, i) => {
@@ -73,7 +73,7 @@ export default function CertificateViewer({ certifications = [], productName = '
         <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.7)', padding:24 }}>
           <div style={{ background:'#fff', maxWidth:600, width:'100%', maxHeight:'90vh', overflow:'auto', borderRadius:4 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid #e5e0d8' }}>
-              <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300, color:'#1a1a1a' }}>
+              <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300, color:'var(--color-text)' }}>
                 {selected.lab} Certificate
               </h3>
               <button onClick={()=>setSelected(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b6b6b' }}><X size={18}/></button>
@@ -95,14 +95,14 @@ export default function CertificateViewer({ certifications = [], productName = '
                 ].filter(([,v])=>v&&v!=='—').map(([label,value])=>(
                   <div key={label} style={{ padding:'10px 12px', background:'#f9fafb', borderRadius:4 }}>
                     <p style={{ fontSize:9, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9ca3af', marginBottom:3 }}>{label}</p>
-                    <p style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{value}</p>
+                    <p style={{ fontSize:14, fontWeight:500, color:'var(--color-text)' }}>{value}</p>
                   </div>
                 ))}
               </div>
               {/* Verify button */}
               {LAB_URLS[selected.lab] && (selected.number||selected.cert_number) && (
                 <a href={LAB_URLS[selected.lab](selected.number||selected.cert_number)} target="_blank" rel="noreferrer"
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px', background:'#1a1a1a', color:'#fff', textDecoration:'none', fontSize:11, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase' }}>
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px', background:'var(--color-text)', color:'#fff', textDecoration:'none', fontSize:11, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase' }}>
                   <ExternalLink size={13}/> Verify on {selected.lab} Website
                 </a>
               )}

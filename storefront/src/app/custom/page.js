@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import DynamicPage from '@/components/builder/DynamicPage';
@@ -40,8 +40,8 @@ function StaticCustomPage() {
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* Hero */}
-      <div style={{ background: '#1a1a1a', padding: '100px 40px 80px', textAlign: 'center' }}>
-        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 16 }}>Bespoke Jewellery</p>
+      <div style={{ background: 'var(--color-text)', padding: '100px 40px 80px', textAlign: 'center' }}>
+        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 16 }}>Bespoke Jewellery</p>
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(40px,6vw,72px)', fontWeight: 300, color: '#fff', lineHeight: 1.1, marginBottom: 20 }}>
           Create Your Dream Piece
         </h1>
@@ -53,15 +53,15 @@ function StaticCustomPage() {
       {/* Process steps */}
       <div style={{ background: '#faf8f3', padding: '80px 40px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <p style={{ textAlign: 'center', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 12 }}>The Process</p>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, textAlign: 'center', color: '#1a1a1a', marginBottom: 56 }}>
+          <p style={{ textAlign: 'center', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 12 }}>The Process</p>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, textAlign: 'center', color: 'var(--color-text)', marginBottom: 56 }}>
             From Vision to Reality
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32 }}>
             {STEPS.map(s => (
               <div key={s.n} style={{ textAlign: 'center' }}>
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 48, fontWeight: 300, color: '#e5ddd0', lineHeight: 1, marginBottom: 16 }}>{s.n}</p>
-                <h3 style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1a1a1a', marginBottom: 12 }}>{s.title}</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text)', marginBottom: 12 }}>{s.title}</h3>
                 <p style={{ fontSize: 13, color: '#6b6b6b', lineHeight: 1.8 }}>{s.desc}</p>
               </div>
             ))}
@@ -71,8 +71,8 @@ function StaticCustomPage() {
 
       {/* Enquiry form */}
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '80px 40px' }}>
-        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#b8860b', marginBottom: 12 }}>Start Your Journey</p>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, color: '#1a1a1a', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 12 }}>Start Your Journey</p>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, color: 'var(--color-text)', marginBottom: 8 }}>
           Tell Us Your Vision
         </h2>
         <p style={{ color: '#6b6b6b', marginBottom: 40, lineHeight: 1.7 }}>
@@ -82,7 +82,7 @@ function StaticCustomPage() {
         {done ? (
           <div style={{ background: '#f0f9f4', border: '1px solid #c8e6c9', borderRadius: 8, padding: 32, textAlign: 'center' }}>
             <p style={{ fontSize: 32, marginBottom: 12 }}>✓</p>
-            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, marginBottom: 8, color: '#1a1a1a' }}>Enquiry Received</h3>
+            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, marginBottom: 8, color: 'var(--color-text)' }}>Enquiry Received</h3>
             <p style={{ color: '#6b6b6b', lineHeight: 1.7 }}>Thank you! Our team will contact you within 24 hours to discuss your bespoke piece.</p>
           </div>
         ) : (
@@ -143,7 +143,7 @@ function StaticCustomPage() {
             </div>
 
             <button type="submit" disabled={submitting}
-              style={{ width: '100%', background: submitting ? '#aaa' : '#1a1a1a', color: '#fff', border: 'none', padding: '16px', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: submitting ? 'not-allowed' : 'pointer' }}>
+              style={{ width: '100%', background: submitting ? '#aaa' : 'var(--color-text)', color: '#fff', border: 'none', padding: '16px', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: submitting ? 'not-allowed' : 'pointer' }}>
               {submitting ? 'Sending...' : 'Submit Enquiry'}
             </button>
 

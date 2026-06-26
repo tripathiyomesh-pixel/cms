@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ export default function LoginPage() {
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const api = process.env.NEXT_PUBLIC_API_URL || '/api';
   const inp = { width:'100%', padding:'14px 16px', border:'1px solid #e5e0d8', fontSize:13, outline:'none', marginBottom:14, fontFamily:"'Inter',sans-serif", boxSizing:'border-box', background:'#fff' };
-  const btn = { width:'100%', padding:'14px', background:'#1a1a1a', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase' };
+  const btn = { width:'100%', padding:'14px', background:'var(--color-text)', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.15em', textTransform:'uppercase' };
 
   const handleLogin = async (e) => {
     e.preventDefault(); setError(''); setLoading(true);
@@ -41,12 +41,12 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth:400, margin:'80px auto', padding:'0 24px' }}>
       <div style={{ textAlign:'center', marginBottom:40 }}>
-        <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:36, fontWeight:300, color:'#1a1a1a', marginBottom:12 }}>My Account</h1>
-        <div style={{ width:40, height:1, background:'#b8860b', margin:'0 auto' }}/>
+        <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:36, fontWeight:300, color:'var(--color-text)', marginBottom:12 }}>My Account</h1>
+        <div style={{ width:40, height:1, background:'var(--color-accent)', margin:'0 auto' }}/>
       </div>
       <div style={{ display:'flex', borderBottom:'1px solid #e5e0d8', marginBottom:32 }}>
         {['login','register'].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'12px', background:'transparent', border:'none', borderBottom:tab===t?'2px solid #b8860b':'2px solid transparent', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', color:tab===t?'#b8860b':'#6b6b6b', marginBottom:-1 }}>
+          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'12px', background:'transparent', border:'none', borderBottom:tab===t?'2px solid #b8860b':'2px solid transparent', cursor:'pointer', fontSize:11, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', color:tab===t?'var(--color-accent)':'#6b6b6b', marginBottom:-1 }}>
             {t==='login'?'Sign In':'Create Account'}
           </button>
         ))}

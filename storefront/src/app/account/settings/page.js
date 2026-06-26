@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 
 export default function AccountSettingsPage() {
@@ -25,8 +25,8 @@ export default function AccountSettingsPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>Account Settings</h1>
-      <div style={{ width:40, height:1, background:'#b8860b', marginBottom:32 }}/>
+      <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>Account Settings</h1>
+      <div style={{ width:40, height:1, background:'var(--color-accent)', marginBottom:32 }}/>
       <div style={{ maxWidth:400 }}>
         <h3 style={{ fontSize:12, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', color:'#4a4a4a', marginBottom:20 }}>Change Password</h3>
         <form onSubmit={save}>
@@ -35,7 +35,7 @@ export default function AccountSettingsPage() {
           <input type="password" placeholder="Confirm new password" value={form.confirm_password} onChange={e=>setForm(f=>({...f,confirm_password:e.target.value}))} style={inp} required/>
           {error && <p style={{ fontSize:12, color:'#dc2626', marginBottom:12 }}>✗ {error}</p>}
           {msg   && <p style={{ fontSize:12, color:'#4caf70', marginBottom:12 }}>✓ {msg}</p>}
-          <button type="submit" disabled={saving} style={{ padding:'13px 32px', background:'#1a1a1a', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+          <button type="submit" disabled={saving} style={{ padding:'13px 32px', background:'var(--color-text)', color:'#fff', border:'none', cursor:'pointer', fontSize:11, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
             {saving?'Updating…':'Update Password'}
           </button>
         </form>

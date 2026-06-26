@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, Package, Truck, CheckCircle, XCircle, RefreshCw, ChevronRight } from 'lucide-react';
@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
   returned:   { label: 'Returned',   color: '#6b7280', bg: '#f9fafb', icon: RefreshCw },
 };
 
-const gold = '#b8860b';
+const gold = 'var(--color-accent)';
 const serif = "'Cormorant Garamond', Georgia, serif";
 const sans  = "'Inter', system-ui, sans-serif";
 
@@ -50,7 +50,7 @@ export default function OrdersPage() {
 
   return (
     <div style={{ fontFamily: sans }}>
-      <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 300, color: '#1a1a1a', marginBottom: 8 }}>
+      <h1 style={{ fontFamily: serif, fontSize: 32, fontWeight: 300, color: 'var(--color-text)', marginBottom: 8 }}>
         My Orders
       </h1>
       <div style={{ width: 40, height: 1, background: gold, marginBottom: 32 }}/>
@@ -66,7 +66,7 @@ export default function OrdersPage() {
           </p>
           <Link href="/jewellery" style={{
             display: 'inline-block', padding: '12px 32px',
-            background: '#1a1a1a', color: '#fff', textDecoration: 'none',
+            background: 'var(--color-text)', color: '#fff', textDecoration: 'none',
             fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>
             Browse Collection
@@ -97,7 +97,7 @@ export default function OrdersPage() {
                       <Icon size={18} style={{ color: sc.color }}/>
                     </div>
                     <div>
-                      <p style={{ fontFamily: serif, fontSize: 16, fontWeight: 500, color: '#1a1a1a', marginBottom: 2 }}>
+                      <p style={{ fontFamily: serif, fontSize: 16, fontWeight: 500, color: 'var(--color-text)', marginBottom: 2 }}>
                         {order.order_number}
                       </p>
                       <p style={{ fontSize: 11, color: '#8b8b8b', letterSpacing: '0.05em' }}>
@@ -132,7 +132,7 @@ export default function OrdersPage() {
                           {items.map((item, i) => (
                             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < items.length - 1 ? '1px solid #e8dcc8' : 'none' }}>
                               <div>
-                                <p style={{ fontSize: 13, color: '#1a1a1a', fontFamily: serif }}>{item.name || item.product_name || 'Item'}</p>
+                                <p style={{ fontSize: 13, color: 'var(--color-text)', fontFamily: serif }}>{item.name || item.product_name || 'Item'}</p>
                                 {item.qty && <p style={{ fontSize: 11, color: '#8b8b8b' }}>Qty: {item.qty}</p>}
                               </div>
                               {item.price && (
@@ -159,7 +159,7 @@ export default function OrdersPage() {
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid #e8dcc8' }}>
-                        <span style={{ fontFamily: serif, fontSize: 15, fontWeight: 500, color: '#1a1a1a' }}>Total</span>
+                        <span style={{ fontFamily: serif, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>Total</span>
                         <span style={{ fontFamily: serif, fontSize: 15, fontWeight: 500, color: gold }}>{order.currency} {Number(order.total_amount || 0).toLocaleString()}</span>
                       </div>
                     </div>

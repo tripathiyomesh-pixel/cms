@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 
 const LANGUAGES = [
@@ -51,7 +51,7 @@ export default function LanguageSwitcher() {
             padding:'4px 8px',
             fontSize:11,
             fontWeight: lang===l.code ? 700 : 400,
-            color: lang===l.code ? '#b8860b' : '#6b6b6b',
+            color: lang===l.code ? 'var(--color-accent)' : '#6b6b6b',
             background:'transparent',
             border:'none',
             cursor:'pointer',

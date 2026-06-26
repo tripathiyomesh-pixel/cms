@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -59,7 +59,7 @@ export default function HeroSlider({ config = {} }) {
         <div className="max-w-screen-xl mx-auto px-8 lg:px-16 w-full">
           <div style={{ maxWidth:640 }}>
             <p className={`transition-all duration-500 ${animating?'opacity-0 translate-y-4':'opacity-100 translate-y-0'}`}
-              style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'#b8860b',marginBottom:16 }}>
+              style={{ fontSize:10,fontWeight:500,letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--color-accent)',marginBottom:16 }}>
               {s.label}
             </p>
             <h1 className={`transition-all duration-500 delay-100 ${animating?'opacity-0 translate-y-4':'opacity-100 translate-y-0'}`}

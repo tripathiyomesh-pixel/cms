@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react';
@@ -23,7 +23,7 @@ function Countdown({ targetDate }) {
     <div style={{ display:'flex', gap:12 }}>
       {[['d','Days'],['h','Hrs'],['m','Min'],['s','Sec']].map(([k,l]) => (
         <div key={k} style={{ textAlign:'center' }}>
-          <div style={{ fontSize:20, fontWeight:700, color:'#1a1a1a', lineHeight:1 }}>{String(time[k]).padStart(2,'0')}</div>
+          <div style={{ fontSize:20, fontWeight:700, color:'var(--color-text)', lineHeight:1 }}>{String(time[k]).padStart(2,'0')}</div>
           <div style={{ fontSize:9, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginTop:2 }}>{l}</div>
         </div>
       ))}
@@ -51,8 +51,8 @@ export default function ExhibitionsPage() {
     <div style={{ fontFamily:"'Inter', system-ui, sans-serif", paddingTop:96 }}>
 
       {/* ── Hero ── */}
-      <div style={{ background:'#1a1a1a', padding:'72px 40px', textAlign:'center' }}>
-        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.3em', textTransform:'uppercase', color:'#b8860b', marginBottom:14 }}>
+      <div style={{ background:'var(--color-text)', padding:'72px 40px', textAlign:'center' }}>
+        <p style={{ fontSize:10, fontWeight:600, letterSpacing:'0.3em', textTransform:'uppercase', color:'var(--color-accent)', marginBottom:14 }}>
           Events & Exhibitions
         </p>
         <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(36px,5vw,64px)', fontWeight:300, color:'#fff', lineHeight:1.1, marginBottom:16 }}>
@@ -76,7 +76,7 @@ export default function ExhibitionsPage() {
 
         {!loading && error && (
           <div style={{ textAlign:'center', padding:'80px 40px', background:'#faf8f3', border:'1px solid #e5e0d8' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>
               Unable to load exhibitions
             </p>
             <p style={{ fontSize:13, color:'#888', marginBottom:24 }}>
@@ -93,14 +93,14 @@ export default function ExhibitionsPage() {
         {!loading && !error && exhibitions.length === 0 && (
           <div style={{ textAlign:'center', padding:'80px 40px', border:'1px solid #e5e0d8' }}>
             <div style={{ fontSize:48, marginBottom:16 }}>📅</div>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'#1a1a1a', marginBottom:8 }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:300, color:'var(--color-text)', marginBottom:8 }}>
               No upcoming exhibitions
             </p>
             <p style={{ fontSize:13, color:'#888', marginBottom:24 }}>
               Follow us on Instagram to be the first to know about upcoming events.
             </p>
             <Link href="/jewellery"
-              style={{ display:'inline-block', background:'#1a1a1a', color:'#fff', padding:'12px 28px', fontSize:11, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none' }}>
+              style={{ display:'inline-block', background:'var(--color-text)', color:'#fff', padding:'12px 28px', fontSize:11, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none' }}>
               Explore Collection
             </Link>
           </div>
@@ -122,7 +122,7 @@ export default function ExhibitionsPage() {
                   boxShadow: ex.is_vip ? '0 0 0 1px #b8860b' : 'none',
                 }}>
                   {/* Image */}
-                  <div style={{ position:'relative', minHeight:260, background:'#1a1a1a', overflow:'hidden' }}>
+                  <div style={{ position:'relative', minHeight:260, background:'var(--color-text)', overflow:'hidden' }}>
                     {ex.hero_image
                       ? <img src={ex.hero_image} alt={ex.title}
                           style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
@@ -136,7 +136,7 @@ export default function ExhibitionsPage() {
                         </span>
                       )}
                       {ex.is_vip && (
-                        <span style={{ background:'#b8860b', color:'#fff', fontSize:10, fontWeight:700, padding:'4px 10px', letterSpacing:'0.08em', display:'flex', alignItems:'center', gap:4 }}>
+                        <span style={{ background:'var(--color-accent)', color:'#fff', fontSize:10, fontWeight:700, padding:'4px 10px', letterSpacing:'0.08em', display:'flex', alignItems:'center', gap:4 }}>
                           ✦ VIP
                         </span>
                       )}
@@ -153,17 +153,17 @@ export default function ExhibitionsPage() {
                         </div>
                       )}
 
-                      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(20px,2.5vw,32px)', fontWeight:300, color:'#1a1a1a', marginBottom:6, lineHeight:1.2 }}>
+                      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(20px,2.5vw,32px)', fontWeight:300, color:'var(--color-text)', marginBottom:6, lineHeight:1.2 }}>
                         {ex.title}
                       </h2>
                       {ex.subtitle && (
-                        <p style={{ fontSize:13, color:'#b8860b', fontWeight:500, marginBottom:16 }}>{ex.subtitle}</p>
+                        <p style={{ fontSize:13, color:'var(--color-accent)', fontWeight:500, marginBottom:16 }}>{ex.subtitle}</p>
                       )}
 
                       {/* Key info */}
                       <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
-                          <Calendar size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
+                          <Calendar size={14} style={{ color:'var(--color-accent)', flexShrink:0 }}/>
                           <span>
                             {new Date(ex.start_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}
                             {ex.end_date !== ex.start_date && ` — ${new Date(ex.end_date).toLocaleDateString('en-AE',{day:'numeric',month:'long',year:'numeric'})}`}
@@ -171,13 +171,13 @@ export default function ExhibitionsPage() {
                         </div>
                         {(ex.start_time || ex.end_time) && (
                           <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
-                            <Clock size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
+                            <Clock size={14} style={{ color:'var(--color-accent)', flexShrink:0 }}/>
                             <span>{ex.start_time} — {ex.end_time}</span>
                           </div>
                         )}
                         {ex.venue_name && (
                           <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#555' }}>
-                            <MapPin size={14} style={{ color:'#b8860b', flexShrink:0 }}/>
+                            <MapPin size={14} style={{ color:'var(--color-accent)', flexShrink:0 }}/>
                             <span>
                               {ex.venue_name}
                               {ex.venue_city && `, ${ex.venue_city}`}
@@ -187,7 +187,7 @@ export default function ExhibitionsPage() {
                         )}
                         {+ex.reg_count > 0 && (
                           <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12, color:'#888' }}>
-                            <Users size={13} style={{ color:'#b8860b', flexShrink:0 }}/>
+                            <Users size={13} style={{ color:'var(--color-accent)', flexShrink:0 }}/>
                             <span>
                               {ex.reg_count} registered
                               {ex.max_registrations ? ` · ${ex.max_registrations - ex.reg_count} spots remaining` : ''}
@@ -212,7 +212,7 @@ export default function ExhibitionsPage() {
                     {/* Actions */}
                     <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                       <Link href={`/exhibitions/${ex.slug}`}
-                        style={{ background:'#1a1a1a', color:'#fff', padding:'12px 28px', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none', display:'inline-block' }}>
+                        style={{ background:'var(--color-text)', color:'#fff', padding:'12px 28px', fontSize:11, fontWeight:500, letterSpacing:'0.15em', textTransform:'uppercase', textDecoration:'none', display:'inline-block' }}>
                         {isFull ? 'View Details' : canReg ? 'Register Now' : 'View Details'}
                       </Link>
                       {isFull && (
