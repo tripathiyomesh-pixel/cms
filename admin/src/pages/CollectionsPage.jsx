@@ -97,6 +97,7 @@ function CollectionModal({ data, onClose, onSave }) {
   const [form, setForm] = useState({
     name: data?.name || '', description: data?.description || '',
     is_featured: data?.is_featured || false, sort_order: data?.sort_order || 0,
+    banner_url: data?.banner_url || '',
     seo_title: data?.seo_title || '', seo_desc: data?.seo_desc || '',
   });
   const [saving, setSaving] = useState(false);
@@ -131,6 +132,11 @@ function CollectionModal({ data, onClose, onSave }) {
             <label className="block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} className="input-field min-h-[70px]" placeholder="Collection description..." />
           </div>
+          <div>
+            <label className="block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5">Banner image URL</label>
+            <input value={form.banner_url} onChange={e => set('banner_url', e.target.value)} className="input-field" placeholder="https://..." />
+            {form.banner_url && <img src={form.banner_url} alt="" className="mt-2 h-20 w-full object-cover rounded" />}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5">Sort order</label>
@@ -141,6 +147,18 @@ function CollectionModal({ data, onClose, onSave }) {
                 <input type="checkbox" checked={form.is_featured} onChange={e => set('is_featured', e.target.checked)} className="rounded border-ink-300" />
                 Featured collection
               </label>
+            </div>
+          </div>
+          <div className="border-t border-ink-200/60 dark:border-ink-700 pt-4 space-y-3">
+            <p className="text-[11px] font-semibold text-ink-400 uppercase tracking-wide">SEO</p>
+            <div>
+              <label className="block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5">SEO title</label>
+              <input value={form.seo_title} onChange={e => set('seo_title', e.target.value)} className="input-field" placeholder="SEO title for this collection" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5">SEO description (max 160 chars)</label>
+              <textarea value={form.seo_desc} onChange={e => set('seo_desc', e.target.value)} maxLength={160} className="input-field" rows={2} placeholder="Meta description for search engines..." />
+              <p className="text-[10px] text-ink-400 mt-1">{form.seo_desc.length}/160</p>
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
