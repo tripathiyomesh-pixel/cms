@@ -1,19 +1,7 @@
-FROM node:20-alpine
-
+﻿FROM node:20-alpine
 WORKDIR /app
-
-# dos2unix fixes Windows CRLF line endings in shell scripts
-RUN apk add --no-cache dos2unix
-
 COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-# Strip CRLF from every shell script in the image — belt and suspenders
-RUN find . -name "*.sh" -exec dos2unix {} \; && \
-    find . -name "*.sh" -exec chmod +x {} \;
-
+RUN npm ci --only=production
+COPY src/ ./src/
 EXPOSE 4000
-
-CMD ["sh", "scripts/start.sh"]
+CMD ["node", "src/server.js"]
