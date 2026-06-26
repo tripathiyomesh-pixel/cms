@@ -33,7 +33,7 @@ const exhibitionRoutes  = require('./modules/exhibitions/exhibitions.routes');
 const rapnetRoutes      = require('./modules/rapnet/rapnet.routes');
 const searchRoutes       = require('./modules/storefront/search.routes');
 const seoRoutes          = require('./modules/storefront/seo.routes');
-const appointmentRoutes2 = require('./modules/appointments/appointments.routes');
+const appointmentRoutes  = require('./modules/appointments/appointments.routes');
 const { startERPSyncCron } = require('./jobs/erpSyncCron');
 const { startGoldRateCron } = require('./jobs/goldRateCron');
 const pearlRoutes        = require('./modules/pearls/pearls.routes');
@@ -56,7 +56,6 @@ const storefrontRoutes     = require('./modules/storefront/storefront.routes');
 const auditRoutes          = require('./modules/audit/audit.routes');
 
 const jewelleryRoutes = require('./modules/jewellery/jewellery.routes');
-const appointmentRoutes = require('./modules/jewellery/appointments.routes');
 const themeRoutes       = require('./modules/themes/themes.routes');
 const pagesRoutes      = require('./modules/pages/pages.routes');
 
@@ -115,52 +114,50 @@ app.use('/api/plugins',     pluginRoutes);
 app.use('/api/menus',       menuRoutes);
 app.use('/api/settings',    settingsRoutes);
 app.use('/api/webhooks',    webhookRoutes);
-app.use('/api/orders', ordersRoutes);
-app.use('/api/enquiries', enquiriesRoutes);
+app.use('/api/orders',      ordersRoutes);
+app.use('/api/enquiries',   enquiriesRoutes);
 app.use(maintenanceMw);
-app.use('/api/workforce', workforceRoutes);
-app.use('/api/gold-rates', goldRatesRoutes);
-app.use('/api/customer', customerPortalRoutes);
-app.use('/api/payments',      paymentRoutes);
-app.use('/api/erp',           erpRoutes);
-app.use('/api/exhibitions',    exhibitionRoutes);
-app.use('/api/rapnet',        rapnetRoutes);
-app.use('/api/search',        searchRoutes);
-app.use('/api/appointments',  appointmentRoutes2);
-app.use('/api/pearls',        pearlRoutes);
-app.use('/api/import',        importRoutes);
-app.use('/api/import',        bulkImportRoutes);
-app.use('/api/blog',          blogRoutes);
-app.use('/api/diamonds',      diamondRoutes);
-app.use('/api/gemstones',     gemstoneRoutes);
-app.use('/api/mountings',     mountingRoutes);
+app.use('/api/workforce',   workforceRoutes);
+app.use('/api/gold-rates',  goldRatesRoutes);
+app.use('/api/customer',    customerPortalRoutes);
+app.use('/api/payments',    paymentRoutes);
+app.use('/api/erp',         erpRoutes);
+app.use('/api/exhibitions', exhibitionRoutes);
+app.use('/api/rapnet',      rapnetRoutes);
+app.use('/api/search',      searchRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/pearls',      pearlRoutes);
+app.use('/api/import',      importRoutes);
+app.use('/api/import',      bulkImportRoutes);
+app.use('/api/blog',        blogRoutes);
+app.use('/api/diamonds',    diamondRoutes);
+app.use('/api/gemstones',   gemstoneRoutes);
+app.use('/api/mountings',   mountingRoutes);
 app.use('/api/custom-orders', customOrderRoutes);
 app.use('/api/feature-flags', featureFlagRoutes);
-app.use('/api/verify',        certVerifyRoutes);
-app.use('/api/dashboard',      dashboardRoutes);
-app.use('/api/customers',      customerRoutes);
-app.use('/api/crm',            crmRoutes);
-app.use('/api/reports',        reportsRoutes);
-app.use('/api/media',          mediaRoutes);
-app.use('/api/notifications',  notificationRoutes);
-app.use('/api/ring-builder', (req,res)=>res.redirect(307,'/api/storefront/ring-builder'));
-app.use('/sitemap.xml', seoRoutes);
-app.use('/robots.txt',  seoRoutes);
-app.use('/api/seo',     seoRoutes);
-app.use('/api/storefront',     storefrontRoutes);
-app.use('/api/audit',          auditRoutes);
-
-app.use('/api/jewellery', jewelleryRoutes);
-app.use('/api/appointments', appointmentRoutes);
+app.use('/api/verify',      certVerifyRoutes);
+app.use('/api/dashboard',   dashboardRoutes);
+app.use('/api/customers',   customerRoutes);
+app.use('/api/crm',         crmRoutes);
+app.use('/api/reports',     reportsRoutes);
+app.use('/api/media',       mediaRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/ring-builder', (req, res) => res.redirect(307, '/api/storefront/ring-builder'));
+app.use('/sitemap.xml',     seoRoutes);
+app.use('/robots.txt',      seoRoutes);
+app.use('/api/seo',         seoRoutes);
+app.use('/api/storefront',  storefrontRoutes);
+app.use('/api/audit',       auditRoutes);
+app.use('/api/jewellery',   jewelleryRoutes);
 app.use('/api',             themeRoutes);
-app.use('/api/pages',      pagesRoutes);
+app.use('/api/pages',       pagesRoutes);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` }));
 
 // ─── GLOBAL ERROR HANDLER ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  logger.error(`${err.status || 500} — ${err.message}`, { stack: err.stack });
+  logger.error(`${err.status || 500} - ${err.message}`, { stack: err.stack });
   res.status(err.status || 500).json({
     success: false,
     message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
@@ -175,8 +172,8 @@ const PORT = process.env.PORT || 4000;
     await sequelize.authenticate();
     logger.info('PostgreSQL connected');
     startGoldRateCron();
-startERPSyncCron();
-app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
+    startERPSyncCron();
+    app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
   } catch (e) {
     logger.error('DB connection failed:', e.message);
     process.exit(1);
@@ -184,6 +181,3 @@ app.listen(PORT, () => logger.info(`JewelleryCMS API running on port ${PORT}`));
 })();
 
 module.exports = app;
-
-// Global error handler — must be last middleware
-app.use(globalErrorHandler);
