@@ -9,6 +9,13 @@ function PhotoViewer({ images, onLightbox }) {
   const [active, setActive] = useState(0);
   const prev = () => setActive(i => Math.max(0,i-1));
   const next = () => setActive(i => Math.min(images.length-1,i+1));
+
+  if (!images.length) return (
+    <div style={{ position:'relative',aspectRatio:'1',overflow:'hidden',background:'#f5ede2',display:'flex',alignItems:'center',justifyContent:'center' }}>
+      <div style={{ width:'100%',height:'100%',background:'linear-gradient(135deg,#1a1208,#2d1f0e)',display:'flex',alignItems:'center',justifyContent:'center',color:'#b8860b',fontSize:80,fontFamily:'var(--font-heading)',letterSpacing:4 }}>T</div>
+    </div>
+  );
+
   return (
     <div>
       <div style={{ position:'relative',aspectRatio:'1',overflow:'hidden',background:'#f5ede2',cursor:'zoom-in' }} onClick={()=>onLightbox&&onLightbox(active)}>
@@ -141,7 +148,7 @@ export default function MediaViewer({ images = [], videoUrl, frames = [] }) {
           ))}
         </div>
       )}
-      {tab === 'photos' && <PhotoViewer images={hasPhotos?images:['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800']} onLightbox={setLightbox}/>}
+      {tab === 'photos' && <PhotoViewer images={hasPhotos?images:[]} onLightbox={setLightbox}/>}
       {tab === 'video'  && <VideoViewer src={videoUrl}/>}
       {tab === '360'    && <Viewer360 frames={frames}/>}
       {lightbox !== null && <Lightbox images={images} index={lightbox} onClose={()=>setLightbox(null)}/>}

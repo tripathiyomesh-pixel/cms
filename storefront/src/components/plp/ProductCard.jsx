@@ -151,7 +151,13 @@ export function SkeletonCard() {
   );
 }
 
-export default function ProductCard({ product, waNumber, variant = 'grid' }) {
+export default function ProductCard({ product, waNumber, variant = 'grid', expectedType }) {
+  if (process.env.NODE_ENV === 'development' &&
+      product?.diamond_type &&
+      expectedType &&
+      product.diamond_type !== expectedType) {
+    console.warn('Diamond type mismatch in ProductCard', product.sku, product.diamond_type, expectedType);
+  }
   if (variant === 'list') return <ListCard product={product} waNumber={waNumber}/>;
   return <GridCard product={product} waNumber={waNumber}/>;
 }

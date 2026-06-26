@@ -193,6 +193,8 @@ export default function ThemeEditorPage() {
         { key:'theme_back_to_top',       value: customConfig.back_to_top       || 'true' },
         { key:'theme_product_layout',    value: customConfig.product_layout    || 'cartier' },
         { key:'theme_listing_layout',    value: customConfig.listing_layout    || 'grid_4' },
+        { key:'plp_style',               value: customConfig.plp_style         || 'plp1'   },
+        { key:'pdp_style',               value: customConfig.pdp_style         || 'pdp1'   },
         { key:'theme_dark_mode',         value: customConfig.dark_mode         || 'false' },
       ];
       await api.post('/settings/bulk', { settings });
