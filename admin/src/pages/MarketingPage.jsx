@@ -116,8 +116,76 @@ export default function MarketingPage() {
         )}
       </div>
 
-      {modal === 'promo' && <PromoModal onClose={() => setModal(null)} onSave={() => { setModal(null); load(); }} />}
+      {modal === 'banner' && <BannerModal onClose={() => setModal(null)} onSave={() => { setModal(null); load(); }} />}
+      {modal === 'promo'  && <PromoModal  onClose={() => setModal(null)} onSave={() => { setModal(null); load(); }} />}
     </>
+  );
+}
+
+function BannerModal({ onClose, onSave }) {
+  const [form, setForm] = useState({ title: '', image_url: '', position: 'hero', link_url: '', is_active: true, expiry_date: '' });
+  const [saving, setSaving] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.title) return toast.error('Title is required');
+    setSaving(true);
+    try {
+      await marketingAPI.createBanner(form);
+      toast.success('Banner created');
+      onSave();
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="card w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-200/60 dark:border-ink-700">
+          <h3 className="text-sm font-medium text-ink-700 dark:text-ink-200">New banner</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-ink-100 text-ink-400"><X size={16} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-[11px] font-medium text-ink-500 mb-1.5">Title *</label>
+            <input value={form.title} onChange={e => set('title', e.target.value)} className="input-field" required placeholder="Summer Sale" />
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-ink-500 mb-1.5">Image URL</label>
+            <input value={form.image_url} onChange={e => set('image_url', e.target.value)} className="input-field" placeholder="https://..." />
+            {form.image_url && <img src={form.image_url} alt="" className="mt-2 h-20 w-full object-cover rounded" />}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-medium text-ink-500 mb-1.5">Position</label>
+              <select value={form.position} onChange={e => set('position', e.target.value)} className="input-field">
+                <option value="hero">Hero</option>
+                <option value="sidebar">Sidebar</option>
+                <option value="popup">Popup</option>
+                <option value="strip">Strip</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-ink-500 mb-1.5">Expiry date</label>
+              <input type="date" value={form.expiry_date} onChange={e => set('expiry_date', e.target.value)} className="input-field" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-ink-500 mb-1.5">Link URL</label>
+            <input value={form.link_url} onChange={e => set('link_url', e.target.value)} className="input-field" placeholder="/collections/sale" />
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="is_active" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="rounded" />
+            <label htmlFor="is_active" className="text-xs text-ink-600 dark:text-ink-300">Active</label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-ghost text-xs">Cancel</button>
+            <button type="submit" disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs"><Save size={13} /> Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
