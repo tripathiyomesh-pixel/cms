@@ -29,12 +29,12 @@ const JEWELLERY_MENU = {
     {
       heading: 'Collections',
       items: [
-        { label: 'Aurora Collection', href: '/jewellery?collection=aurora',   img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80' },
-        { label: 'Frost Collection',  href: '/jewellery?collection=frost',    img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80' },
-        { label: 'Vivid Collection',  href: '/jewellery?collection=vivid',    img: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=600&q=80' },
-        { label: 'Bridal Edit',       href: '/jewellery?collection=bridal',   img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80' },
-        { label: 'Heritage Line',     href: '/jewellery?collection=heritage', img: 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=600&q=80' },
-        { label: 'New Arrivals',      href: '/jewellery?collection=new',      img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80' },
+        { label: 'All Collections',   href: '/collections',                    img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80' },
+        { label: 'Adamas',            href: '/collections/adamas',             img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80' },
+        { label: 'Frost',             href: '/collections/frost',              img: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=600&q=80' },
+        { label: 'Mallika',           href: '/collections/mallika',            img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80' },
+        { label: 'High Jewellery',    href: '/collections/high-jewellery',     img: 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=600&q=80' },
+        { label: 'New Arrivals',      href: '/jewellery?sort=newest',          img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80' },
       ],
     },
   ],
@@ -71,7 +71,7 @@ const DIAMONDS_MENU = {
 const NAV_LINKS = [
   { label: 'Jewellery',   href: '/jewellery',   mega: JEWELLERY_MENU },
   { label: 'Diamonds',    href: '/diamonds',    mega: DIAMONDS_MENU },
-  { label: 'Collections', href: '/jewellery',   mega: null },
+  { label: 'Collections', href: '/collections',  mega: null },
   { label: 'Bespoke',     href: '/custom',      mega: null },
   { label: 'About',       href: '/about',       mega: null },
 ];
