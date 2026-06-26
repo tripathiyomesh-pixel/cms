@@ -183,33 +183,33 @@ function LeadModal({ lead, onClose, onSave }) {
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* Name */}
           <div>
-            <label className="label">Name <span className="text-red-500">*</span></label>
-            <input value={form.name} onChange={e => set('name', e.target.value)} className="input w-full" placeholder="Customer name"/>
+            <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Name <span className="text-red-500">*</span></label>
+            <input value={form.name} onChange={e => set('name', e.target.value)} className="input-field w-full" placeholder="Customer name"/>
           </div>
 
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Phone</label>
-              <input value={form.phone} onChange={e => set('phone', e.target.value)} className="input w-full" placeholder="+971 50..."/>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Phone</label>
+              <input value={form.phone} onChange={e => set('phone', e.target.value)} className="input-field w-full" placeholder="+971 50..."/>
             </div>
             <div>
-              <label className="label">Email</label>
-              <input value={form.email} onChange={e => set('email', e.target.value)} type="email" className="input w-full" placeholder="name@email.com"/>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Email</label>
+              <input value={form.email} onChange={e => set('email', e.target.value)} type="email" className="input-field w-full" placeholder="name@email.com"/>
             </div>
           </div>
 
           {/* Stage & Priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Stage</label>
-              <select value={form.stage} onChange={e => set('stage', e.target.value)} className="input w-full">
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Stage</label>
+              <select value={form.stage} onChange={e => set('stage', e.target.value)} className="input-field w-full">
                 {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Priority</label>
-              <select value={form.priority} onChange={e => set('priority', e.target.value)} className="input w-full">
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Priority</label>
+              <select value={form.priority} onChange={e => set('priority', e.target.value)} className="input-field w-full">
                 <option value="low">Low</option>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
@@ -220,38 +220,38 @@ function LeadModal({ lead, onClose, onSave }) {
           {/* Source & Value */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Source</label>
-              <select value={form.source} onChange={e => set('source', e.target.value)} className="input w-full">
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Source</label>
+              <select value={form.source} onChange={e => set('source', e.target.value)} className="input-field w-full">
                 {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Expected value (AED)</label>
-              <input value={form.value} onChange={e => set('value', e.target.value)} type="number" className="input w-full" placeholder="0"/>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Expected value (AED)</label>
+              <input value={form.value} onChange={e => set('value', e.target.value)} type="number" className="input-field w-full" placeholder="0"/>
             </div>
           </div>
 
           {/* Budget range */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Budget min</label>
-              <input value={form.budget_min} onChange={e => set('budget_min', e.target.value)} type="number" className="input w-full" placeholder="0"/>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Budget min</label>
+              <input value={form.budget_min} onChange={e => set('budget_min', e.target.value)} type="number" className="input-field w-full" placeholder="0"/>
             </div>
             <div>
-              <label className="label">Budget max</label>
-              <input value={form.budget_max} onChange={e => set('budget_max', e.target.value)} type="number" className="input w-full" placeholder="0"/>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Budget max</label>
+              <input value={form.budget_max} onChange={e => set('budget_max', e.target.value)} type="number" className="input-field w-full" placeholder="0"/>
             </div>
           </div>
 
           {/* Interest */}
           <div>
-            <label className="label">Interest / What are they looking for?</label>
-            <input value={form.interest} onChange={e => set('interest', e.target.value)} className="input w-full" placeholder="e.g. 18K engagement ring, ~1ct diamond, round cut"/>
+            <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Interest / What are they looking for?</label>
+            <input value={form.interest} onChange={e => set('interest', e.target.value)} className="input-field w-full" placeholder="e.g. 18K engagement ring, ~1ct diamond, round cut"/>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="label">Notes</label>
+            <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3}
               className="input w-full resize-none" placeholder="Any additional context…"/>
           </div>
@@ -259,16 +259,16 @@ function LeadModal({ lead, onClose, onSave }) {
           {/* Lost reason */}
           {form.stage === 'lost' && (
             <div>
-              <label className="label">Lost reason</label>
+              <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Lost reason</label>
               <input value={form.lost_reason || ''} onChange={e => set('lost_reason', e.target.value)}
-                className="input w-full" placeholder="e.g. Price too high, bought elsewhere"/>
+                className="input-field w-full" placeholder="e.g. Price too high, bought elsewhere"/>
             </div>
           )}
         </div>
 
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-ink-100 dark:border-ink-800">
           <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="btn-primary text-sm">
+          <button onClick={handleSave} disabled={saving} className="btn-gold text-sm">
             {saving ? 'Saving…' : lead?.id ? 'Update Lead' : 'Create Lead'}
           </button>
         </div>
@@ -289,6 +289,9 @@ export default function CrmPage() {
   const [stageFilter, setStageFilter] = useState('');
   const [search,      setSearch]      = useState('');
   const [deleting,    setDeleting]    = useState(null);
+  const [listPage,    setListPage]    = useState(1);
+  const [listTotal,   setListTotal]   = useState(0);
+  const LIST_LIMIT = 30;
 
   // ── Load board ──────────────────────────────────────────────
   const loadBoard = async () => {
@@ -301,11 +304,18 @@ export default function CrmPage() {
   };
 
   // ── Load list ───────────────────────────────────────────────
-  const loadList = async () => {
+  const loadList = async (page = listPage) => {
     setLoading(true);
     try {
-      const r = await crmAPI.leads({ stage: stageFilter || undefined, search: search || undefined, limit: 100 });
-      setLeads(r.data.data || []);
+      const r = await crmAPI.leads({ stage: stageFilter || undefined, search: search || undefined, limit: LIST_LIMIT, page });
+      const payload = r.data.data;
+      if (payload && typeof payload === 'object' && Array.isArray(payload.data)) {
+        setLeads(payload.data);
+        setListTotal(payload.total || payload.data.length);
+      } else {
+        setLeads(Array.isArray(payload) ? payload : []);
+        setListTotal(Array.isArray(payload) ? payload.length : 0);
+      }
     } catch { setLeads([]); }
     setLoading(false);
   };
@@ -374,7 +384,7 @@ export default function CrmPage() {
         collapsed={collapsed}
         toggleSidebar={toggleSidebar}
         actions={
-          <button onClick={() => setModalLead('new')} className="btn-primary flex items-center gap-1.5 text-xs">
+          <button onClick={() => setModalLead('new')} className="btn-gold flex items-center gap-1.5 text-xs">
             <Plus size={13}/> New Lead
           </button>
         }
@@ -569,6 +579,27 @@ export default function CrmPage() {
                 </tbody>
               </table>
             </div>
+            {listTotal > LIST_LIMIT && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-ink-200/60 dark:border-ink-800">
+                <button
+                  onClick={() => { const p = listPage - 1; setListPage(p); loadList(p); }}
+                  disabled={listPage <= 1}
+                  className="btn-ghost text-xs flex items-center gap-1 disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <span className="text-[11px] text-ink-400">
+                  Showing {((listPage-1)*LIST_LIMIT)+1}–{Math.min(listPage*LIST_LIMIT,listTotal)} of {listTotal} leads
+                </span>
+                <button
+                  onClick={() => { const p = listPage + 1; setListPage(p); loadList(p); }}
+                  disabled={listPage * LIST_LIMIT >= listTotal}
+                  className="btn-ghost text-xs flex items-center gap-1 disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
