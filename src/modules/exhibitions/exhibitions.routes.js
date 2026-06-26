@@ -4,6 +4,7 @@ const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const db = require('../../config/db.pool');
 const ROLES = ['super_admin','admin','manager'];
 const { notifyAdmins } = require('../notifications/notifications.routes');
+const { triggerWebhooks } = require('../webhooks/webhooks.routes');
 
 // ── PUBLIC: list upcoming exhibitions ─────────────────────────
 router.get('/public', async (req, res) => {
@@ -159,4 +160,5 @@ router.patch('/:id/registrations/:regId', authenticate, authorize(ROLES), async 
 });
 
 module.exports = router;
+
 

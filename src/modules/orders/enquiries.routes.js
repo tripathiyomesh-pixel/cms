@@ -18,6 +18,7 @@ const router   = express.Router();
 const db       = require('../../config/db.pool');
 const { pool } = require('../../config/database');
 const { notifyAdmins } = require('../notifications/notifications.routes');
+const { triggerWebhooks } = require('../webhooks/webhooks.routes');
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const ADMIN = ['super_admin','admin','manager','sales_staff'];
 
@@ -243,4 +244,5 @@ router.put('/:id', authenticate, authorize(ADMIN), async (req, res) => {
 });
 
 module.exports = router;
+
 

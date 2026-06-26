@@ -9,6 +9,7 @@ const { authenticate, authorize } = require('../../common/guards/auth.guard');
 const db = require('../../config/db.pool');
 const ROLES = ['super_admin','admin','manager'];
 const { notifyAdmins } = require('../notifications/notifications.routes');
+const { triggerWebhooks } = require('../webhooks/webhooks.routes');
 
 // ── PUBLIC: submit custom order request ──────────────────────
 router.post('/', async (req, res) => {
@@ -140,4 +141,5 @@ router.post('/erp-sync', async (req, res) => {
 });
 
 module.exports = router;
+
 

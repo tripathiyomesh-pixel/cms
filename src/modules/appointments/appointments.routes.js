@@ -7,6 +7,7 @@
  * Phase 4 addition: New appointment auto-creates a CRM lead + activity.
  */
 const { notifyAdmins }    = require('../notifications/notifications.routes');
+const { triggerWebhooks } = require('../webhooks/webhooks.routes');
 const express             = require('express');
 const router              = express.Router();
 const { authenticate, authorize } = require('../../common/guards/auth.guard');
@@ -241,3 +242,4 @@ router.patch('/:id', authenticate, authorize(['super_admin', 'admin', 'manager']
 
 module.exports = router;
 module.exports.syncToCrm = syncToCrm; // exported for use in enquiries
+
