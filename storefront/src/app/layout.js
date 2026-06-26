@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google';
 import TemplateLayout from '@/components/layout/TemplateLayout';
 import { CurrencyProvider } from '@/components/ui/CurrencySwitcher';
 import WhatsAppFloat from '@/components/ui/WhatsAppFloat';
+import ThemeProvider from '@/components/ThemeProvider';
 
 const inter     = Inter({ subsets:['latin'], variable:'--font-inter', display:'swap' });
 const playfair  = Playfair_Display({ subsets:['latin'], variable:'--font-playfair', display:'swap' });
@@ -57,12 +58,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
       <body>
-        <CurrencyProvider>
-          <TemplateLayout>
-            {children}
-          </TemplateLayout>
-        </CurrencyProvider>
-        <WhatsAppFloat />
+        <ThemeProvider>
+          <CurrencyProvider>
+            <TemplateLayout>
+              {children}
+            </TemplateLayout>
+          </CurrencyProvider>
+          <WhatsAppFloat />
+        </ThemeProvider>
       </body>
     </html>
   );
