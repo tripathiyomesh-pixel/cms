@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SlidersHorizontal, X, Heart, ChevronDown } from 'lucide-react';
+import { addToWishlist, removeFromWishlist, isInWishlist } from '@/app/wishlist/page';
 
 const API  = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const GOLD = 'var(--color-accent)';
@@ -41,7 +42,7 @@ function SkeletonCard() {
 // ── PRODUCT CARD ──────────────────────────────────────────────
 function ProductCard({ product, waNumber }) {
   const [hovered, setHovered] = useState(false);
-  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlisted, setWishlisted] = useState(() => isInWishlist(product.id));
 
   const images = Array.isArray(product.images)
     ? product.images
@@ -87,7 +88,7 @@ function ProductCard({ product, waNumber }) {
 
         {/* Wishlist button */}
         <button
-          onClick={(e) => { e.preventDefault(); setWishlisted(w => !w); }}
+          onClick={(e) => { e.preventDefault(); if (wishlisted) { removeFromWishlist(product.id); setWishlisted(false); } else { addToWishlist(product); setWishlisted(true); } }}
           aria-label="Save to wishlist"
           style={{
             position: 'absolute', top: 10, right: 10,
