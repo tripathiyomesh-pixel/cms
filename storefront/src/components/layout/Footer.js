@@ -2,8 +2,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-const GOLD  = '#b8860b';
-const CREAM = '#fdf8f3';
+// CSS vars — no hardcoded hex; theme switching works automatically
+const GOLD  = 'var(--color-accent)';
+const CREAM = 'var(--color-bg)';
 
 const COL1 = {
   heading: 'Jewellery',
@@ -98,7 +99,7 @@ function FooterColumn({ col }) {
         color: GOLD,
         marginBottom: 20,
         paddingBottom: 10,
-        borderBottom: `1px solid rgba(184,134,11,0.25)`,
+        borderBottom: `1px solid var(--color-border)`,
       }}>
         {col.heading}
       </p>
@@ -109,13 +110,14 @@ function FooterColumn({ col }) {
               href={l.href}
               style={{
                 fontSize: 12,
-                color: '#c8bfb0',
+                color: 'var(--nav-text)',
+                opacity: 0.7,
                 textDecoration: 'none',
                 letterSpacing: '0.04em',
-                transition: 'color 150ms ease',
+                transition: 'color 150ms ease, opacity 150ms ease',
               }}
-              onMouseOver={e => e.target.style.color = '#e8d5a3'}
-              onMouseOut={e => e.target.style.color = '#c8bfb0'}
+              onMouseOver={e => { e.target.style.color = GOLD; e.target.style.opacity = '1'; }}
+              onMouseOut={e => { e.target.style.color = 'var(--nav-text)'; e.target.style.opacity = '0.7'; }}
             >
               {l.label}
             </Link>
@@ -146,13 +148,13 @@ export default function Footer() {
     : 'https://wa.me';
 
   return (
-    <footer style={{ background: '#0e0c09', color: '#c8bfb0', fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <footer style={{ background: 'var(--nav-bg)', color: 'var(--nav-text)', fontFamily: 'var(--font-body)' }}>
 
       {/* WhatsApp CTA strip */}
       <div style={{
-        background: 'linear-gradient(135deg, #1a1208 0%, #241a0c 100%)',
-        borderTop: `1px solid rgba(184,134,11,0.3)`,
-        borderBottom: `1px solid rgba(184,134,11,0.15)`,
+        background: 'var(--nav-bg)',
+        borderTop: `1px solid var(--color-accent)`,
+        borderBottom: `1px solid var(--color-border)`,
         padding: '32px 48px',
         display: 'flex',
         alignItems: 'center',
@@ -162,15 +164,15 @@ export default function Footer() {
       }}>
         <div>
           <p style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: 'var(--font-heading)',
             fontSize: 22,
             fontWeight: 400,
-            color: '#f5ebe0',
+            color: 'var(--nav-text)',
             marginBottom: 4,
           }}>
             Have a Question? Chat with Our Expert
           </p>
-          <p style={{ fontSize: 12, color: '#8b7355' }}>
+          <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
             Available 7 days · 9am–9pm · Dubai
           </p>
         </div>
@@ -212,12 +214,12 @@ export default function Footer() {
         {/* Brand column */}
         <div style={{ paddingRight: 32 }}>
           <p style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: 'var(--font-heading)',
             fontSize: 32,
             fontWeight: 400,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: '#f5ebe0',
+            color: 'var(--nav-text)',
             marginBottom: 12,
           }}>
             Tejori
@@ -231,7 +233,7 @@ export default function Footer() {
           }}>
             Since 1985 · Dubai · Crafted with Passion
           </p>
-          <p style={{ fontSize: 12, lineHeight: 1.8, color: '#8b7355', marginBottom: 28, maxWidth: 280 }}>
+          <p style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--color-text-muted)', marginBottom: 28, maxWidth: 280 }}>
             Luxury Indian &amp; GCC jewellery. GIA and IGI certified diamonds. Bespoke design services. Boutiques across Dubai.
           </p>
 
@@ -255,18 +257,18 @@ export default function Footer() {
                   justifyContent: 'center',
                   width: 38,
                   height: 38,
-                  border: '1px solid rgba(184,134,11,0.3)',
-                  color: '#8b7355',
+                  border: `1px solid var(--color-border)`,
+                  color: 'var(--color-text-muted)',
                   textDecoration: 'none',
                   transition: 'color 150ms ease, border-color 150ms ease',
                 }}
                 onMouseOver={e => {
-                  e.currentTarget.style.color = GOLD;
-                  e.currentTarget.style.borderColor = GOLD;
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
                 }}
                 onMouseOut={e => {
-                  e.currentTarget.style.color = '#8b7355';
-                  e.currentTarget.style.borderColor = 'rgba(184,134,11,0.3)';
+                  e.currentTarget.style.color = 'var(--color-text-muted)';
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
                 }}
               >
                 <Icon />
@@ -283,7 +285,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: `1px solid var(--color-border)`,
         padding: '20px 48px',
         maxWidth: 1280,
         margin: '0 auto',
@@ -293,7 +295,7 @@ export default function Footer() {
         flexWrap: 'wrap',
         gap: 12,
       }}>
-        <p style={{ fontSize: 11, color: '#5a5040' }}>
+        <p style={{ fontSize: 11, color: 'var(--color-text-muted)', opacity: 0.6 }}>
           © 2026 Tejori Jewellery LLC. All rights reserved. Dubai, UAE.
         </p>
         <div style={{ display: 'flex', gap: 24 }}>
@@ -305,17 +307,15 @@ export default function Footer() {
             <Link
               key={l.label}
               href={l.href}
-              style={{ fontSize: 11, color: '#5a5040', textDecoration: 'none', transition: 'color 150ms ease' }}
-              onMouseOver={e => e.target.style.color = GOLD}
-              onMouseOut={e => e.target.style.color = '#5a5040'}
+              style={{ fontSize: 11, color: 'var(--color-text-muted)', opacity: 0.6, textDecoration: 'none', transition: 'color 150ms ease, opacity 150ms ease' }}
+              onMouseOver={e => { e.target.style.color = 'var(--color-accent)'; e.target.style.opacity = '1'; }}
+              onMouseOut={e => { e.target.style.color = 'var(--color-text-muted)'; e.target.style.opacity = '0.6'; }}
             >
               {l.label}
             </Link>
           ))}
         </div>
       </div>
-
-      {/* Responsive */}
     </footer>
   );
 }
