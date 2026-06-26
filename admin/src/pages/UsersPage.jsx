@@ -4,7 +4,7 @@ import Topbar from '../components/layout/Topbar';
 import { usersAPI, authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit2, Shield, X, Save, UserPlus, Check, Info } from 'lucide-react';
-import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';\import toast from 'react-hot-toast';
 
 const ROLES = [
   { id: 'super_admin', label: 'Super Admin',  color: 'badge-gold',  desc: 'Full access to everything. Cannot be restricted.' },
@@ -344,3 +344,4 @@ function UserModal({ data, onClose, onSave }) {
     </div>
   );
 }
+

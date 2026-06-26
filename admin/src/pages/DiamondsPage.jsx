@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { Plus, Search, Filter, ChevronLeft, ChevronRight, Gem, Edit2, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';\import toast from 'react-hot-toast';
 import api from '../services/api';
 
 const SHAPES = ['','Round','Princess','Oval','Marquise','Pear','Cushion','Emerald','Asscher','Radiant','Heart'];
@@ -168,3 +168,4 @@ export default function DiamondsPage() {
     </>
   );
 }
+

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { Plus, Search, Edit2, Trash2, Eye, X, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';\import toast from 'react-hot-toast';
 import api from '../services/api';
 
 const STATUS_COLORS = { draft:'bg-ink-100 text-ink-500', published:'bg-green-50 text-green-600', archived:'bg-red-50 text-red-500' };
@@ -131,3 +131,4 @@ export default function BlogPage() {
     </>
   );
 }
+

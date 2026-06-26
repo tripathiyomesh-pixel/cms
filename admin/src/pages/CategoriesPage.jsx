@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import { categoriesAPI } from '../services/api';
 import { Plus, Edit2, Trash2, FolderTree, ChevronRight, ChevronDown, X, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';\import toast from 'react-hot-toast';
 
 function CategoryNode({ cat, level = 0, onEdit, onDelete }) {
   const [open, setOpen] = useState(true);
@@ -162,3 +162,4 @@ function CategoryModal({ data, parents, onClose, onSave }) {
     </div>
   );
 }
+
