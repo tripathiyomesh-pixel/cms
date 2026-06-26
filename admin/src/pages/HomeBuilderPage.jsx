@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import Topbar from '../components/layout/Topbar';
 import Toggle from '../components/ui/Toggle';
 import api from '../services/api';
-import { Save, ChevronDown, ChevronUp, GripVertical, Edit2, X, Check, Upload } from 'lucide-react';
+import { Save, ChevronDown, ChevronUp, Edit2, X, Check, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ── HERO VARIANTS ─────────────────────────────────────────────
@@ -160,7 +160,6 @@ function SectionRow({ section, onToggle, onEdit, onMoveUp, onMoveDown, isFirst, 
         <button onClick={onMoveUp} disabled={isFirst} className="p-0.5 text-ink-300 hover:text-ink-600 disabled:opacity-20"><ChevronUp size={12}/></button>
         <button onClick={onMoveDown} disabled={isLast} className="p-0.5 text-ink-300 hover:text-ink-600 disabled:opacity-20"><ChevronDown size={12}/></button>
       </div>
-      <GripVertical size={14} className="text-ink-300 cursor-grab flex-shrink-0"/>
       <span className="text-lg flex-shrink-0">{section.icon}</span>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${section.enabled?'text-ink-700 dark:text-ink-200':'text-ink-400'}`}>{section.label}</p>
@@ -200,11 +199,10 @@ export default function HomeBuilderPage() {
           const saved = JSON.parse(map.homepage_sections_config);
           if (Array.isArray(saved)) {
             setSections(saved);
-            return;
           }
         } catch {}
       }
-      // Load content settings
+      // Always load content settings regardless of whether sections config parsed
       setContent(map);
     }).catch(() => {});
   }, []);
