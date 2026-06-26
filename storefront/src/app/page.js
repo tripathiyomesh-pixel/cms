@@ -659,6 +659,138 @@ function WhatsAppCTASection({ waNumber }) {
   );
 }
 
+// ── SECTION 7: NEW ARRIVALS ───────────────────────────────────
+function NewArrivalsSection({ waNumber }) {
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    fetch(`${API}/storefront/products?limit=4&sort=newest`)
+      .then(r => r.json())
+      .then(d => setProducts(d.data?.data || d.data || d.products || []))
+      .catch(() => {});
+  }, []);
+
+  if (!products.length) return null;
+
+  return (
+    <section style={{ background: DARK, padding: '96px 48px' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.3em', textTransform: 'uppercase', color: GOLD, marginBottom: 12 }}>Just Arrived</p>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(28px,4vw,46px)', fontWeight: 300, color: '#f5ebe0', lineHeight: 1.1 }}>
+            New Arrivals
+          </h2>
+          <div style={{ width: 40, height: 1, background: GOLD, margin: '20px auto 0' }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 24 }}>
+          {products.map(p => {
+            const img = (p.images||[])[0] || p.image_url;
+            const price = p.base_price && Number(p.base_price) > 0
+              ? `AED ${Number(p.base_price).toLocaleString()}`
+              : 'Price on Request';
+            const isPOR = !p.base_price || Number(p.base_price) === 0;
+            const waMsg = encodeURIComponent(`Hi Tejori, I'm interested in ${p.name}${p.sku ? ` (SKU: ${p.sku})` : ''}.`);
+            const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMsg}` : null;
+            return (
+              <Link key={p.id} href={`/jewellery/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
+                <div style={{ background: '#141414', transition: 'transform 200ms ease', cursor: 'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: '#1a1a1a' }}>
+                    {img ? (
+                      <Image src={img} alt={p.name} fill sizes="(max-width:640px) 50vw, 25vw"
+                        style={{ objectFit: 'cover', transition: 'transform 400ms ease' }}
+                        onMouseEnter={e => e.target.style.transform = 'scale(1.04)'}
+                        onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                      />
+                    ) : (
+                      <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                        <span style={{ color: 'rgba(184,134,11,0.2)', fontSize: 32 }}>✦</span>
+                      </div>
+                    )}
+                    <div style={{ position:'absolute',top:12,left:12,background:GOLD,color:'#fff',fontSize:9,fontWeight:700,letterSpacing:'0.16em',padding:'3px 8px',textTransform:'uppercase' }}>New</div>
+                    {waHref && (
+                      <a href={waHref} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
+                        style={{ position:'absolute',bottom:0,left:0,right:0,padding:10,background:'#25D366',color:'#fff',textAlign:'center',fontSize:10,fontWeight:600,letterSpacing:'0.12em',textTransform:'uppercase',textDecoration:'none',opacity:0,transition:'opacity 200ms ease' }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                      >Enquire on WhatsApp</a>
+                    )}
+                  </div>
+                  <div style={{ padding: '16px 16px 20px' }}>
+                    <p style={{ fontFamily:"'Cormorant Garamond', Georgia, serif", fontSize: 15, color:'#f5ebe0', marginBottom: 4 }}>{p.name}</p>
+                    {p.metal_type && <p style={{ fontSize: 11, color:'#6b5a4a', marginBottom: 8 }}>{p.metal_type.replace(/_/g,' ')}</p>}
+                    <p style={{ fontSize: 13, fontWeight: 600, color: isPOR ? GOLD : '#f5ebe0' }}>{price}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 48 }}>
+          <Link href="/jewellery?sort=newest" style={{ display:'inline-flex',alignItems:'center',gap:8,padding:'12px 32px',border:`1px solid ${GOLD}`,color:GOLD,textDecoration:'none',fontSize:11,fontWeight:600,letterSpacing:'0.18em',textTransform:'uppercase' }}>
+            View All New Arrivals
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── SECTION 8: EXHIBITIONS PREVIEW ───────────────────────────
+function ExhibitionsSection() {
+  const [exhibitions, setExhibitions] = useState([]);
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+    fetch(`${base}/exhibitions/public?limit=2`)
+      .then(r => r.json())
+      .then(d => setExhibitions(d.data || []))
+      .catch(() => {});
+  }, []);
+
+  if (!exhibitions.length) return null;
+
+  return (
+    <section style={{ background: '#fdf6ee', padding: '80px 48px' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.3em', textTransform: 'uppercase', color: GOLD, marginBottom: 12 }}>Tejori Events</p>
+          <h2 style={{ fontFamily:"'Cormorant Garamond', Georgia, serif", fontSize:'clamp(28px,4vw,46px)', fontWeight:300, color:DARK, lineHeight:1.1 }}>
+            Upcoming Exhibitions
+          </h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: exhibitions.length > 1 ? '1fr 1fr' : '1fr', gap: 32, maxWidth: exhibitions.length > 1 ? '100%' : 640, margin:'0 auto' }}>
+          {exhibitions.slice(0, 2).map(ex => (
+            <Link key={ex.id} href="/exhibitions" style={{ textDecoration: 'none', display: 'block' }}>
+              <div style={{ background: '#fff', overflow:'hidden', border:'1px solid #e8ddd0', transition:'box-shadow 200ms ease' }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              >
+                {ex.image_url && (
+                  <div style={{ position:'relative', height: 200, overflow:'hidden' }}>
+                    <Image src={ex.image_url} alt={ex.title} fill sizes="(max-width:768px) 100vw, 50vw" style={{ objectFit:'cover' }} />
+                    <div style={{ position:'absolute',inset:0,background:'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' }} />
+                  </div>
+                )}
+                <div style={{ padding: '24px 28px' }}>
+                  <p style={{ fontSize:9, fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', color:GOLD, marginBottom:8 }}>{ex.city || ex.location}</p>
+                  <h3 style={{ fontFamily:"'Cormorant Garamond', Georgia, serif", fontSize:20, fontWeight:400, color:DARK, marginBottom:8 }}>{ex.title}</h3>
+                  <p style={{ fontSize:12, color:'var(--color-text-muted)' }}>{ex.dates || ex.event_date}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <Link href="/exhibitions" style={{ color:GOLD, fontSize:11, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', textDecoration:'none' }}>
+            View All Events →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── PAGE ROOT ─────────────────────────────────────────────────
 export default function HomePage() {
   const [waNumber, setWaNumber] = useState('');
@@ -682,7 +814,9 @@ export default function HomePage() {
       <CollectionsSection />
       <FeaturedProductsSection waNumber={waNumber} />
       <BrandStripSection />
+      <NewArrivalsSection waNumber={waNumber} />
       <WhatsAppCTASection waNumber={waNumber} />
+      <ExhibitionsSection />
 
     </main>
   );
