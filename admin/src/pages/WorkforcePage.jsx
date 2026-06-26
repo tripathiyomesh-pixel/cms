@@ -206,12 +206,13 @@ function CreateStaffModal({ branches, departments, policies, onClose, onCreated 
 
 // ── STAFF TAB ─────────────────────────────────────────────────
 function StaffTab({ branches, departments, policies }) {
-  const [staff,   setStaff]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
+  const [staff,      setStaff]      = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [search,     setSearch]     = useState('');
   const [filterBranch, setFilterBranch] = useState('');
   const [filterRole,   setFilterRole]   = useState('');
   const [showCreate,   setShowCreate]   = useState(false);
+  const [editStaff,    setEditStaff]    = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -301,7 +302,7 @@ function StaffTab({ branches, departments, policies }) {
                     {!s.has_profile && (
                       <span title="No workforce profile" className="text-[9px] bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-semibold mr-1">Legacy</span>
                     )}
-                    <button className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition-colors"><Edit2 size={13}/></button>
+                    <button onClick={()=>setEditStaff(s)} className="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition-colors"><Edit2 size={13}/></button>
                   </td>
                 </tr>
               ))}
@@ -317,7 +318,100 @@ function StaffTab({ branches, departments, policies }) {
           onCreated={()=>{ load(); }}
         />
       )}
+
+      {editStaff && (
+        <EditStaffModal
+          staff={editStaff}
+          branches={branches}
+          departments={departments}
+          onClose={()=>setEditStaff(null)}
+          onSaved={()=>{ setEditStaff(null); load(); }}
+        />
+      )}
     </>
+  );
+}
+
+function EditStaffModal({ staff, branches, departments, onClose, onSaved }) {
+  const lbl = 'block text-[11px] font-medium text-ink-500 dark:text-ink-400 mb-1.5 uppercase tracking-wide';
+  const inp = 'input-field';
+  const [form, setForm] = useState({
+    name:          staff.name || '',
+    job_title:     staff.job_title || '',
+    role:          staff.role || 'staff',
+    branch_id:     staff.branch_id || '',
+    department_id: staff.department_id || '',
+    phone:         staff.phone || '',
+    is_active:     staff.is_active !== false,
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.patch(`/workforce/staff/${staff.id}`, form);
+      toast.success('Staff member updated');
+      onSaved();
+    } catch(err) { toast.error(err.response?.data?.message || 'Update failed'); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="card w-full max-w-md" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-200/60 dark:border-ink-700">
+          <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200">Edit staff — {staff.name}</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-ink-100 text-ink-400"><X size={16}/></button>
+        </div>
+        <form onSubmit={handleSave} className="p-5 space-y-4">
+          <div>
+            <label className={lbl}>Name</label>
+            <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} className={inp} required/>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={lbl}>Job title</label>
+              <input value={form.job_title} onChange={e=>setForm(f=>({...f,job_title:e.target.value}))} className={inp} placeholder="Sales Associate"/>
+            </div>
+            <div>
+              <label className={lbl}>Role</label>
+              <select value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))} className={inp}>
+                {['staff','manager','cashier','jeweller','admin'].map(r=><option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lbl}>Branch</label>
+              <select value={form.branch_id} onChange={e=>setForm(f=>({...f,branch_id:e.target.value}))} className={inp}>
+                <option value="">— No branch —</option>
+                {branches.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lbl}>Department</label>
+              <select value={form.department_id} onChange={e=>setForm(f=>({...f,department_id:e.target.value}))} className={inp}>
+                <option value="">— None —</option>
+                {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className={lbl}>Phone</label>
+            <input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} className={inp} placeholder="+971 50 000 0000"/>
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="edit_is_active" checked={form.is_active} onChange={e=>setForm(f=>({...f,is_active:e.target.checked}))} className="rounded"/>
+            <label htmlFor="edit_is_active" className="text-xs text-ink-600 dark:text-ink-300">Active</label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-ghost text-xs">Cancel</button>
+            <button type="submit" disabled={saving} className="btn-gold flex items-center gap-1.5 text-xs">
+              <Save size={13}/>{saving?'Saving…':'Save changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -506,7 +600,7 @@ function PoliciesTab() {
           <p className="text-[10px] font-bold text-ink-400 uppercase tracking-widest mb-2">{group.group}</p>
           <div className="flex flex-wrap gap-2">
             {group.caps.map(cap=>(
-              <button key={cap} onClick={()=>toggleCap(cap, caps, setCaps)}
+              <button key={cap} onClick={()=>setCaps(cap)}
                 className={`text-[10px] px-2.5 py-1 rounded-full border font-medium transition-all ${caps[cap]?'bg-gold-500 border-gold-500 text-white':'border-ink-200 dark:border-ink-700 text-ink-500 hover:border-gold-300'}`}>
                 {cap.split('.')[1]}
               </button>
@@ -545,7 +639,7 @@ function PoliciesTab() {
             <div><label className={lbl}>Description</label><input value={newPolicy.description} onChange={e=>setNewPolicy(p=>({...p,description:e.target.value}))} className={inp} placeholder="Sales staff in Dubai branch"/></div>
             <div>
               <label className={lbl}>Capabilities</label>
-              <CapGrid caps={newPolicy.capabilities} setCaps={c=>setNewPolicy(p=>({...p,capabilities:c(p.capabilities)}))}/>
+              <CapGrid caps={newPolicy.capabilities} setCaps={(cap)=>setNewPolicy(p=>({...p,capabilities:{...p.capabilities,[cap]:!p.capabilities[cap]}}))} />
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={()=>setShowNew(false)} className="btn-ghost flex-1 justify-center text-xs">Cancel</button>
