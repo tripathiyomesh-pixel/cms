@@ -468,35 +468,61 @@ export default function ThemeEditorPage() {
             {/* LAYOUTS TAB */}
             {activeTab === 'layout' && (
               <div className="space-y-6">
+                {/* PLP */}
                 <div>
-                  <label className={lbl}>Product detail page</label>
-                  <p className="text-[10px] text-ink-400 mb-3">Layout for individual product pages</p>
+                  <label className={lbl}>Product Listing Layout (PLP)</label>
+                  <p className="text-[10px] text-ink-400 mb-3">How /jewellery catalog displays — active immediately, no rebuild</p>
                   <div className="space-y-2">
-                    {PRODUCT_LAYOUTS.map(s => (
-                      <button key={s.id} onClick={() => set('product_layout', s.id)}
-                        className={`w-full text-left p-3 rounded-xl border-2 transition-all ${customConfig.product_layout === s.id ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20' : 'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
-                        <div className="flex items-center gap-2">
-                          <span>{s.icon}</span>
-                          <div className="flex-1">
+                    {[
+                      { id:'plp1', label:'PLP1 – BlueNile',         ascii:'[FILTER] [=][=][=]\n         [=][=][=]\n         Load More', desc:'Left sidebar 280px + 3-col grid + pagination' },
+                      { id:'plp2', label:'PLP2 – TopBar',            ascii:'[CAT▾][METAL▾][PRICE▾]  Sort▾\n[=][=][=][=]\n[=][=][=][=]',   desc:'Sticky filter dropdowns + 4-col grid' },
+                      { id:'plp3', label:'PLP3 – Editorial Sidebar', ascii:'[img] Rings     [=][=][=]\n[img] Necklaces [=][=][=]\n[img] Bracelets [=][=][=]', desc:'Category/collection thumbnails nav + 3-col' },
+                      { id:'plp4', label:'PLP4 – Masonry',           ascii:'[▆][▅▅][▇]\n[▇▇][▅][▆]\n[▅][▇][▅▅]', desc:'CSS columns masonry, variable-height cards' },
+                      { id:'plp5', label:'PLP5 – Collection Story',  ascii:'█████ HERO BANNER █████\n[chip][chip][chip]\n[=][=][=]', desc:'Full editorial hero + sticky filter chips' },
+                      { id:'plp6', label:'PLP6 – Shop the Look',     ascii:'LOOK IMAGE  ① Ring\n  ①②③     ② Necklace\n            ③ Bracelet', desc:'55/45 split: look image + numbered product list' },
+                      { id:'plp7', label:'PLP7 – Infinite Scroll',   ascii:'[=][=][=]\n[=][=][=]\n  ● ● ●  ← auto-loads', desc:'Intersection Observer, fade-in items, gold dots' },
+                      { id:'plp8', label:'PLP8 – Quick Shop',        ascii:'[=][=][=]\n  hover→[WA | View slides up]\n[=][=][=]', desc:'Hover reveals slide-up panel: WA + view CTA' },
+                    ].map(s => (
+                      <button key={s.id} onClick={() => set('plp_style', s.id)}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-all ${customConfig.plp_style === s.id ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20' : 'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
+                        <div className="flex items-start gap-3">
+                          <pre className="text-[8px] text-ink-400 dark:text-ink-500 leading-tight font-mono whitespace-pre flex-shrink-0 bg-ink-100 dark:bg-ink-800 rounded px-2 py-1 mt-0.5">{s.ascii}</pre>
+                          <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold text-ink-700 dark:text-ink-200">{s.label}</p>
-                            <p className="text-[10px] text-ink-400">{s.desc}</p>
+                            <p className="text-[10px] text-ink-400 leading-snug">{s.desc}</p>
                           </div>
-                          {customConfig.product_layout === s.id && <span className="text-[9px] bg-gold-100 text-gold-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Active</span>}
+                          {customConfig.plp_style === s.id && <span className="text-[9px] bg-gold-100 text-gold-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 mt-1">Active</span>}
                         </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="border-t border-ink-100 dark:border-ink-800 pt-4">
-                  <label className={lbl}>Jewellery listing page</label>
-                  <p className="text-[10px] text-ink-400 mb-3">How /jewellery catalog displays</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {LISTING_LAYOUTS.map(s => (
-                      <button key={s.id} onClick={() => set('listing_layout', s.id)}
-                        className={`py-3 px-2 rounded-xl border-2 text-center transition-all ${customConfig.listing_layout === s.id ? 'border-gold-500 bg-gold-50 text-gold-700' : 'border-ink-200 text-ink-500 hover:border-gold-300'}`}>
-                        <div className="text-lg mb-1">{s.icon}</div>
-                        <div className="text-[10px] font-medium leading-tight">{s.label}</div>
+                {/* PDP */}
+                <div className="border-t border-ink-100 dark:border-ink-800 pt-5">
+                  <label className={lbl}>Product Detail Layout (PDP)</label>
+                  <p className="text-[10px] text-ink-400 mb-3">Layout for individual product pages — active immediately, no rebuild</p>
+                  <div className="space-y-2">
+                    {[
+                      { id:'pdp1', label:'PDP1 – Cartier',   ascii:'[MEDIA 55%] [INFO 45%▲]\n             Name\n             Price\n             [WA][♥]', desc:'55/45 split, sticky info panel, MediaViewer' },
+                      { id:'pdp2', label:'PDP2 – Tiffany',   ascii:'████ FULL-WIDTH HERO ████\n[1][2][3] thumbnails\n   CENTERED NAME + CTA', desc:'Full-width hero, centered info below, thumb strip' },
+                      { id:'pdp3', label:'PDP3 – Graff',     ascii:'████ 100vh HERO ████\n  Name · Price overlay\n  ↓ scroll for details', desc:'100vh dark hero with overlay info, scroll reveals specs' },
+                      { id:'pdp4', label:'PDP4 – Magazine',  ascii:'[IMG]  Name\n[IMG]  Price\n[IMG]  Specs ►', desc:'Tall stacked images 60%, sticky info 40%' },
+                      { id:'pdp5', label:'PDP5 – Split',     ascii:'[IMAGE 50%] | [INFO 50%]\n             Centered\n             Name+CTA', desc:'50/50 100vh, image left, centered info right' },
+                      { id:'pdp6', label:'PDP6 – Gallery',   ascii:'[IMG ×2]  [IMG]\n[IMG]     [IMG]\nName — Price   [WA]', desc:'Editorial image grid top, 2-col info below' },
+                      { id:'pdp7', label:'PDP7 – Video',     ascii:'[Photos|Video|360°] ← tabs\n[───── VIDEO PLAYER ─────]\nName · Price · CTA below', desc:'MediaViewer prominent: Video/360/Photos tabs at top' },
+                      { id:'pdp8', label:'PDP8 – Minimal',   ascii:'   [─── IMAGE ───]\n      Name\n      Price\n    [WA]  [♥]', desc:'Centered single image max 700px, Apple-style whitespace' },
+                    ].map(s => (
+                      <button key={s.id} onClick={() => set('pdp_style', s.id)}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-all ${customConfig.pdp_style === s.id ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20' : 'border-ink-200 dark:border-ink-700 hover:border-gold-300'}`}>
+                        <div className="flex items-start gap-3">
+                          <pre className="text-[8px] text-ink-400 dark:text-ink-500 leading-tight font-mono whitespace-pre flex-shrink-0 bg-ink-100 dark:bg-ink-800 rounded px-2 py-1 mt-0.5">{s.ascii}</pre>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-ink-700 dark:text-ink-200">{s.label}</p>
+                            <p className="text-[10px] text-ink-400 leading-snug">{s.desc}</p>
+                          </div>
+                          {customConfig.pdp_style === s.id && <span className="text-[9px] bg-gold-100 text-gold-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 mt-1">Active</span>}
+                        </div>
                       </button>
                     ))}
                   </div>
