@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Heart, Menu, X, ChevronDown, Phone } from 'lucide-react';
+import MegaMenu, { MENU_VARIANTS } from '@/components/menus';
 
 // ── BRAND CONSTANTS — use CSS vars so theme switching works ───
 const GOLD  = 'var(--color-accent)';
@@ -428,10 +429,27 @@ function MobileDrawer({ open, onClose }) {
 
 // ── MAIN HEADER ───────────────────────────────────────────────
 export default function Header() {
-  const [openMenu, setOpenMenu]   = useState(null); // which mega menu is open
+  const [openMenu, setOpenMenu]   = useState(null);
   const [scrolled, setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState('M1');
+  const [lang, setLang]           = useState('en');
   const closeTimer = useRef(null);
+
+  // Load menu_style from settings API (zero rebuild on change)
+  useEffect(() => {
+    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    fetch(`${API}/settings/public`)
+      .then(r => r.json())
+      .then(d => {
+        const ms = d.data?.menu_style || d.data?.theme_menu_style || 'M1';
+        if (MENU_VARIANTS[ms]) setMenuStyle(ms);
+      })
+      .catch(() => {});
+  }, []);
+
+  const isFullscreen = MENU_VARIANTS[menuStyle]?.fullscreen || false;
+  const closeMenu = useCallback(() => setOpenMenu(null), []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -644,16 +662,34 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mega menu panels */}
-        <div
-          onMouseEnter={() => clearTimeout(closeTimer.current)}
-          onMouseLeave={handleMouseLeave}
-          style={{ position: 'absolute', left: 0, right: 0 }}
-        >
-          <MegaPanel menu={JEWELLERY_MENU} open={openMenu === 'Jewellery'} />
-          <MegaPanel menu={DIAMONDS_MENU}  open={openMenu === 'Diamonds'}  />
-        </div>
+        {/* Mega menu — variant driven by menu_style DB setting */}
+        {!isFullscreen && (
+          <div
+            onMouseEnter={() => clearTimeout(closeTimer.current)}
+            onMouseLeave={handleMouseLeave}
+            style={{ position: 'absolute', left: 0, right: 0 }}
+          >
+            <MegaMenu
+              variant={menuStyle}
+              openMenu={openMenu}
+              onClose={closeMenu}
+              lang={lang}
+              onLangToggle={() => setLang(l => l === 'en' ? 'ar' : 'en')}
+            />
+          </div>
+        )}
       </header>
+
+      {/* Fullscreen menus (M6, M11) rendered at root level */}
+      {isFullscreen && (
+        <MegaMenu
+          variant={menuStyle}
+          openMenu={openMenu}
+          onClose={closeMenu}
+          lang={lang}
+          onLangToggle={() => setLang(l => l === 'en' ? 'ar' : 'en')}
+        />
+      )}
 
       {/* Mobile drawer */}
       <MobileDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} />
